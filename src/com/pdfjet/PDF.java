@@ -507,7 +507,7 @@ public class PDF {
     byte[] buf = page.buf.toByteArray();
     dos.write(buf, 0, buf.length);
     dos.finish();
-    page.buf = null; // Release the page content memory!
+//    page.buf = null; // Release the page content memory!
 
     newobj();
     append("<<\n");
