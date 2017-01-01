@@ -10,7 +10,9 @@ rm docs/_net/net/pdfjet/*.html
 rm docs/java/*.html
 rm docs/_net/*.html
 
-javadoc -public -notree -noindex -nonavbar com/pdfjet/*.java -d docs/java
+cd src
+javadoc -public -notree -noindex -nonavbar com/pdfjet/*.java -d ../docs/java
+cd ..
 javac util/Translate.java
 java util.Translate
 
