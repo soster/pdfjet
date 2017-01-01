@@ -98,41 +98,86 @@ public class PDF {
     protected String extGState = "";
 
 
-    public PDF()
-            throws Exception {
+    /**
+     * The default constructor - use when reading PDF files.
+     *
+     * @throws Exception
+     */
+    public PDF() throws Exception {
     }
 
 
-    public PDF(OutputStream os)
-            throws Exception {
-        this(os, 0);
-    }
+    /**
+     *  Creates a PDF object that represents a PDF document.
+     *
+     *  @param os the associated output stream.
+     */
+    public PDF(OutputStream os) throws Exception { this(os, 0); }
 
 
-    public PDF(OutputStream os, int compliance)
-            throws Exception {
+    // Here is the layout of the PDF document:
+    //
+    // Metadata Object
+    // Output Intent Object
+    // Fonts
+    // Images
+    // Resources Object
+    // Content1
+    // Content2
+    // ...
+    // ContentN
+    // Annot1
+    // Annot2
+    // ...
+    // AnnotN
+    // Page1
+    // Page2
+    // ...
+    // PageN
+    // Pages
+    // StructElem1
+    // StructElem2
+    // ...
+    // StructElemN
+    // StructTreeRoot
+    // Info
+    // Root
+    // xref table
+    // Trailer
+    /**
+     *  Creates a PDF object that represents a PDF document.
+     *  Use this constructor to create PDF/A compliant PDF documents.
+     *  Please note: PDF/A compliance requires all fonts to be embedded in the PDF.
+     *
+     *  @param os the associated output stream.
+     *  @param compliance must be: Compliance.PDF_A_1B
+     */
+    public PDF(OutputStream os, int compliance) throws Exception {
+
         this.os = os;
         this.compliance = compliance;
 
-        Date localDate = new Date();
+        Date date = new Date();
         SimpleDateFormat sdf1 = new SimpleDateFormat("yyyyMMddHHmmss");
         SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-        this.creationDate = sdf1.format(localDate);
-        this.createDate = sdf2.format(localDate);
+        creationDate = sdf1.format(date);
+        createDate = sdf2.format(date);
 
         append("%PDF-1.5\n");
         append('%');
-        append((byte) -14);
-        append((byte) -13);
-        append((byte) -12);
-        append((byte) -11);
-        append((byte) -10);
+        append((byte) 0x00F2);
+        append((byte) 0x00F3);
+        append((byte) 0x00F4);
+        append((byte) 0x00F5);
+        append((byte) 0x00F6);
         append('\n');
 
-        if ((compliance == 1) || (compliance == 2)) {
-            this.metadataObjNumber = addMetadataObject("", false);
-            this.outputIntentObjNumber = addOutputIntentObject();
+        if (compliance == Compliance.PDF_A_1B ||
+                compliance == Compliance.PDF_UA) {
+            metadataObjNumber = addMetadataObject("", false);
+            outputIntentObjNumber = addOutputIntentObject();
         }
+
     }
 
     protected void newobj()
@@ -1033,7 +1078,7 @@ public class PDF {
 
         int j = getStartXRef(arrayOfByte);
         PDFobj localPDFobj1 = getObject(arrayOfByte, j);
-        if (((String) localPDFobj1.dict.get(0)).equals("xref")) {
+        if ((localPDFobj1.dict.get(0)).equals("xref")) {
             getObjects1(arrayOfByte, localPDFobj1, localArrayList);
         } else {
             getObjects2(arrayOfByte, localPDFobj1, localArrayList);
@@ -1056,8 +1101,8 @@ public class PDF {
                 int m = Integer.valueOf(localPDFobj2.getValue("/First")).intValue();
                 PDFobj localPDFobj3 = getObject(localPDFobj2.data, 0, m);
                 for (int n = 0; n < localPDFobj3.dict.size(); n += 2) {
-                    int i1 = Integer.valueOf((String) localPDFobj3.dict.get(n)).intValue();
-                    int i2 = Integer.valueOf((String) localPDFobj3.dict.get(n + 1)).intValue();
+                    int i1 = Integer.valueOf(localPDFobj3.dict.get(n)).intValue();
+                    int i2 = Integer.valueOf(localPDFobj3.dict.get(n + 1)).intValue();
                     int i3 = localPDFobj2.data.length;
                     if (n <= localPDFobj3.dict.size() - 4) {
                         i3 = m + Integer.valueOf((String) localPDFobj3.dict.get(n + 3)).intValue();
@@ -1241,17 +1286,17 @@ public class PDF {
         int f2 = 0; // Field 2
         int f3 = 0; // Field 3
         for (int n = 0; n < obj.dict.size(); n++) {
-            String token = (String) obj.dict.get(n);
-            if ((((String) token).equals("/Predictor")) &&
-                    (((String) obj.dict.get(n + 1)).equals("12"))) {
+            String token = obj.dict.get(n);
+            if ((( token).equals("/Predictor")) &&
+                    (( obj.dict.get(n + 1)).equals("12"))) {
                 p1 = 1;
             }
 
 
             if (((String) token).equals("/W")) {
-                f1 = Integer.valueOf((String) obj.dict.get(n + 2)).intValue();
-                f2 = Integer.valueOf((String) obj.dict.get(n + 3)).intValue();
-                f3 = Integer.valueOf((String) obj.dict.get(n + 4)).intValue();
+                f1 = Integer.valueOf(obj.dict.get(n + 2)).intValue();
+                f2 = Integer.valueOf(obj.dict.get(n + 3)).intValue();
+                f3 = Integer.valueOf(obj.dict.get(n + 4)).intValue();
             }
         }
 
@@ -1267,7 +1312,7 @@ public class PDF {
 
             if (entry[p1] == 1) {
                 PDFobj o2 = getObject(pdf, toInt((byte[]) entry, p1 + f1, f2));
-                o2.number = Integer.valueOf((String) o2.dict.get(0)).intValue();
+                o2.number = Integer.valueOf(o2.dict.get(0)).intValue();
                 objects.add(o2);
             }
         }
@@ -1452,7 +1497,7 @@ public class PDF {
             throws Exception {
         List<Integer> kids = obj.getObjectNumbers("/Kids");
         for (Integer localInteger : kids) {
-            PDFobj localPDFobj = (PDFobj) map.get(localInteger);
+            PDFobj localPDFobj = map.get(localInteger);
             if (isPageObject(localPDFobj)) {
                 objects.add(localPDFobj);
             } else {
@@ -1464,7 +1509,7 @@ public class PDF {
     private boolean isPageObject(PDFobj obj) {
         boolean isPageObject = false;
         for (int i = 0; i < obj.dict.size(); i++) {
-            if ((((String) obj.dict.get(i)).equals("/Type")) && (((String) obj.dict.get(i + 1)).equals("/Page"))) {
+            if (((obj.dict.get(i)).equals("/Type")) && (((String) obj.dict.get(i + 1)).equals("/Page"))) {
                 isPageObject = true;
             }
         }
@@ -1477,7 +1522,7 @@ public class PDF {
         List localList = obj.getDict();
         int i = 0;
         for (int j = 0; j < localList.size(); j++) {
-            if (((String) localList.get(j)).equals("/ExtGState")) {
+            if ((localList.get(j)).equals("/ExtGState")) {
                 localStringBuilder.append("/ExtGState << ");
                 j++;
                 i++;
@@ -1502,9 +1547,9 @@ public class PDF {
         ArrayList list = new ArrayList();
         List<String> dictEntries = obj.getDict();
         for (int i = 0; i < dictEntries.size(); i++) {
-            if ((((String) dictEntries.get(i)).equals("/Font")) &&
-                    (!((String) dictEntries.get(i + 2)).equals(">>"))) {
-                list.add(objects.get(Integer.valueOf((String) dictEntries.get(i + 3))));
+            if (((dictEntries.get(i)).equals("/Font")) &&
+                    (!(dictEntries.get(i + 2)).equals(">>"))) {
+                list.add(objects.get(Integer.valueOf(dictEntries.get(i + 3))));
             }
         }
 
@@ -1515,13 +1560,13 @@ public class PDF {
 
         int i = 4;
         for (; ; ) {
-            if (((String) dictEntries.get(i)).equals("/Font")) {
+            if ((dictEntries.get(i)).equals("/Font")) {
                 i += 2;
                 break;
             }
             i++;
         }
-        while (!((String) dictEntries.get(i)).equals(">>")) {
+        while (!(dictEntries.get(i)).equals(">>")) {
             this.importedFonts.add(dictEntries.get(i));
             i++;
         }
@@ -1534,8 +1579,8 @@ public class PDF {
         ArrayList localArrayList = new ArrayList();
         List localList = obj.getDict();
         for (int i = 0; i < localList.size(); i++) {
-            if ((((String) localList.get(i)).equals("/DescendantFonts")) &&
-                    (!((String) localList.get(i + 2)).equals("]"))) {
+            if (((localList.get(i)).equals("/DescendantFonts")) &&
+                    (!( localList.get(i + 2)).equals("]"))) {
                 localArrayList.add(objects.get(Integer.valueOf((String) localList.get(i + 2))));
             }
         }
@@ -1547,8 +1592,8 @@ public class PDF {
     private PDFobj getObject(String text, PDFobj object, Map<Integer, PDFobj> objects) {
         List list = object.getDict();
         for (int i = 0; i < list.size(); i++) {
-            if (((String) list.get(i)).equals(text)) {
-                return (PDFobj) objects.get(Integer.valueOf((String) list.get(i + 1)));
+            if ((list.get(i)).equals(text)) {
+                return objects.get(Integer.valueOf((String) list.get(i + 1)));
             }
         }
         return null;
@@ -1558,25 +1603,25 @@ public class PDF {
         TreeMap treeMap = new TreeMap();
 
         List<PDFobj> localList1 = getPageObjects(objects);
-        for (PDFobj localPDFobj1 : localList1) {
-            PDFobj localPDFobj2 = localPDFobj1.getResourcesObject(objects);
-            List<PDFobj> localList2 = getFontObjects(localPDFobj2, objects);
-            if (localList2 != null) {
-                for (PDFobj localPDFobj3 : localList2) {
+        for (PDFobj pdfObj : localList1) {
+            PDFobj pdfObj2 = pdfObj.getResourcesObject(objects);
+            List<PDFobj> pdfObjects = getFontObjects(pdfObj2, objects);
+            if (pdfObjects != null) {
+                for (PDFobj localPDFobj3 : pdfObjects) {
                     treeMap.put(Integer.valueOf(localPDFobj3.getNumber()), localPDFobj3);
-                    localPDFobj2 = getObject("/ToUnicode", localPDFobj3, objects);
-                    treeMap.put(Integer.valueOf(localPDFobj2.getNumber()), localPDFobj2);
+                    pdfObj2 = getObject("/ToUnicode", localPDFobj3, objects);
+                    treeMap.put(Integer.valueOf(pdfObj2.getNumber()), pdfObj2);
                     List<PDFobj> localList3 = getDescendantFonts(localPDFobj3, objects);
                     for (PDFobj localPDFobj4 : localList3) {
                         treeMap.put(Integer.valueOf(localPDFobj4.getNumber()), localPDFobj4);
-                        localPDFobj2 = getObject("/FontDescriptor", localPDFobj4, objects);
-                        treeMap.put(Integer.valueOf(localPDFobj2.getNumber()), localPDFobj2);
-                        localPDFobj2 = getObject("/FontFile2", localPDFobj2, objects);
-                        treeMap.put(Integer.valueOf(localPDFobj2.getNumber()), localPDFobj2);
+                        pdfObj2 = getObject("/FontDescriptor", localPDFobj4, objects);
+                        treeMap.put(Integer.valueOf(pdfObj2.getNumber()), pdfObj2);
+                        pdfObj2 = getObject("/FontFile2", pdfObj2, objects);
+                        treeMap.put(Integer.valueOf(pdfObj2.getNumber()), pdfObj2);
                     }
                 }
             }
-            this.extGState = getExtGState(localPDFobj2, objects);
+            this.extGState = getExtGState(pdfObj2, objects);
         }
 
         if (treeMap.size() > 0) {
@@ -1586,7 +1631,7 @@ public class PDF {
 
     private void addObjectsToPDF(Map<Integer, PDFobj> objects)
             throws Exception {
-        int i = ((Integer)Collections.max(objects.keySet())).intValue();
+        int i = (Collections.max(objects.keySet())).intValue();
         PDFobj object;
         for (int j = 1; j < i; j++) {
             if (objects.get(Integer.valueOf(j)) == null)
@@ -1609,7 +1654,7 @@ public class PDF {
                 if (object.dict != null) {
                     for (k = 0; k < object.dict.size(); k++)
                     {
-                        append((String)object.dict.get(k));
+                        append(object.dict.get(k));
                         append(' ');
                     }
                 }
@@ -1632,7 +1677,7 @@ public class PDF {
                 String str = null;
                 for (int m = 0; m < k; m++)
                 {
-                    str = (String)object.dict.get(m);
+                    str = object.dict.get(m);
                     append(str);
                     if (m < k - 1) {
                         append(' ');

@@ -88,9 +88,9 @@ public class PDFobj {
      */
     public String getValue(String key) {
         for (int i = 0; i < this.dict.size(); i++) {
-            String token = (String) this.dict.get(i);
+            String token = this.dict.get(i);
             if (token.equals(key)) {
-                return (String) this.dict.get(i + 1);
+                return this.dict.get(i + 1);
             }
         }
         return "";
@@ -207,8 +207,8 @@ public class PDFobj {
 
     public float[] getPageSize() {
         for (int i = 0; i < this.dict.size(); i++) {
-            if (((String) this.dict.get(i)).equals("/MediaBox")) {
-                return new float[]{Float.valueOf((String) this.dict.get(i + 4)).floatValue(), Float.valueOf((String) this.dict.get(i + 5)).floatValue()};
+            if ((this.dict.get(i)).equals("/MediaBox")) {
+                return new float[]{Float.valueOf(this.dict.get(i + 4)).floatValue(), Float.valueOf(this.dict.get(i + 5)).floatValue()};
             }
         }
 
@@ -218,10 +218,10 @@ public class PDFobj {
 
     protected int getLength(List<PDFobj> objects) {
         for (int i = 0; i < this.dict.size(); i++) {
-            String str = (String) this.dict.get(i);
+            String str = this.dict.get(i);
             if (str.equals("/Length")) {
-                int j = Integer.valueOf((String) this.dict.get(i + 1)).intValue();
-                if ((((String) this.dict.get(i + 2)).equals("0")) && (((String) this.dict.get(i + 3)).equals("R"))) {
+                int j = Integer.valueOf(this.dict.get(i + 1)).intValue();
+                if (((this.dict.get(i + 2)).equals("0")) && ((this.dict.get(i + 3)).equals("R"))) {
                     return getLength(objects, j);
                 }
 
@@ -243,11 +243,11 @@ public class PDFobj {
 
     public PDFobj getContentsObject(Map<Integer, PDFobj> objects) {
         for (int i = 0; i < this.dict.size(); i++) {
-            if (((String) this.dict.get(i)).equals("/Contents")) {
-                if (((String) this.dict.get(i + 1)).equals("[")) {
-                    return (PDFobj) objects.get(Integer.valueOf((String) this.dict.get(i + 2)));
+            if ((this.dict.get(i)).equals("/Contents")) {
+                if ((this.dict.get(i + 1)).equals("[")) {
+                    return objects.get(Integer.valueOf(this.dict.get(i + 2)));
                 }
-                return (PDFobj) objects.get(Integer.valueOf((String) this.dict.get(i + 1)));
+                return objects.get(Integer.valueOf(this.dict.get(i + 1)));
             }
         }
         return null;
@@ -255,8 +255,8 @@ public class PDFobj {
 
     public PDFobj getResourcesObject(Map<Integer, PDFobj> objects) {
         for (int i = 0; i < this.dict.size(); i++) {
-            if (((String) this.dict.get(i)).equals("/Resources")) {
-                return (PDFobj) objects.get(Integer.valueOf((String) this.dict.get(i + 1)));
+            if ((this.dict.get(i)).equals("/Resources")) {
+                return objects.get(Integer.valueOf(this.dict.get(i + 1)));
             }
         }
         return null;
@@ -267,7 +267,7 @@ public class PDFobj {
         localFont.fontID = localFont.name.replace('-', '_').toUpperCase();
 
         PDFobj localPDFobj = new PDFobj();
-        localPDFobj.number = (((Integer) Collections.max(paramMap.keySet())).intValue() + 1);
+        localPDFobj.number = ((Collections.max(paramMap.keySet())).intValue() + 1);
         localPDFobj.dict.add("<<");
         localPDFobj.dict.add("/Type");
         localPDFobj.dict.add("/Font");
@@ -284,12 +284,12 @@ public class PDFobj {
         paramMap.put(Integer.valueOf(localPDFobj.number), localPDFobj);
 
         for (int i = 0; i < this.dict.size(); i++) {
-            if (((String) this.dict.get(i)).equals("/Resources")) {
-                String str = (String) this.dict.get(++i);
+            if ((this.dict.get(i)).equals("/Resources")) {
+                String str = this.dict.get(++i);
                 if (str.equals("<<")) {
                     addFontResource(this, paramMap, localFont.fontID, localPDFobj.number);
                 } else if (Character.isDigit(str.charAt(0))) {
-                    addFontResource((PDFobj) paramMap.get(Integer.valueOf(str)), paramMap, localFont.fontID, localPDFobj.number);
+                    addFontResource( paramMap.get(Integer.valueOf(str)), paramMap, localFont.fontID, localPDFobj.number);
                 }
             }
         }
@@ -301,8 +301,8 @@ public class PDFobj {
     private void addFontResource(PDFobj obj, Map<Integer, PDFobj> objects, String fontID, int number) {
         for (int i = 0; i < obj.dict.size(); i++) {
             String str = null;
-            if (((String) obj.dict.get(i)).equals("/Font")) {
-                str = (String) obj.dict.get(++i);
+            if ((obj.dict.get(i)).equals("/Font")) {
+                str = obj.dict.get(++i);
                 if (str.equals("<<")) {
                     obj.dict.add(++i, "/" + fontID);
                     obj.dict.add(++i, String.valueOf(number));
@@ -313,7 +313,7 @@ public class PDFobj {
                 if (Character.isDigit(str.charAt(0))) {
                     PDFobj localPDFobj = (PDFobj) objects.get(Integer.valueOf(str));
                     for (int j = 0; j < localPDFobj.dict.size(); j++) {
-                        str = (String) localPDFobj.dict.get(j);
+                        str = localPDFobj.dict.get(j);
                         if (str.equals("<<")) {
                             localPDFobj.dict.add(++j, "/" + fontID);
                             localPDFobj.dict.add(++j, String.valueOf(number));
@@ -357,7 +357,7 @@ public class PDFobj {
                         String key = (String) localIterator2.next();
                         dict.add(++i, "/GS"+String.valueOf(states.get(key).intValue()));
                         dict.add(++i, "<<");
-                        dict.add(++i, (String) key);
+                        dict.add(++i, key);
                         dict.add(++i, ">>");
                     }
                     if (!extexists) {
@@ -384,7 +384,7 @@ public class PDFobj {
                         String key = (String) localIterator2.next();
                         obj.dict.add(++i, "/GS"+String.valueOf(states.get(key).intValue()));
                         obj.dict.add(++i, "<<");
-                        obj.dict.add(++i, (String) key);
+                        obj.dict.add(++i, key);
                         obj.dict.add(++i, ">>");
                     }
                     added = true;
@@ -404,7 +404,7 @@ public class PDFobj {
                 String key = (String) localIterator2.next();
                 obj.dict.add("/GS"+String.valueOf(states.get(key).intValue()));
                 obj.dict.add("<<");
-                obj.dict.add((String) key);
+                obj.dict.add(key);
                 obj.dict.add(">>");
             }
             obj.dict.add(">>");
