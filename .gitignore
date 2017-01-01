@@ -1,5 +1,5 @@
 *.class
-
+Example*.pdf
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
