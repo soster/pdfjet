@@ -1,7 +1,7 @@
 /**
  *  CompositeTextLine.java
  *
-Copyright (c) 2014, Innovatics Inc.
+Copyright (c) 2015, Innovatics Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,
@@ -366,12 +366,19 @@ public class CompositeTextLine implements Drawable {
      *  Draws this line on the specified page.
      *
      *  @param page the page to draw this line on.
+     *  @return x and y coordinates of the bottom right corner of this component.
+     *  @throws Exception
      */
-    public void drawOn(Page page) throws Exception {
+    public float[] drawOn(Page page) throws Exception {
+        float x_max = 0f;
+        float y_max = 0f;
         // Loop through all the text lines and draw them on the page
         for (TextLine textLine : textLines) {
-            textLine.drawOn(page);
+            float[] xy = textLine.drawOn(page);
+            x_max = Math.max(x_max, xy[0]);
+            y_max = Math.max(y_max, xy[1]);
         }
+        return new float[] {x_max, y_max};
     }
 
 }

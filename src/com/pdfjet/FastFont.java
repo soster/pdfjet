@@ -1,7 +1,7 @@
 /**
  *  FastFont.java
  *
-Copyright (c) 2014, Innovatics Inc.
+Copyright (c) 2015, Innovatics Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,
@@ -40,24 +40,45 @@ class FastFont {
             Font font,
             InputStream inputStream) throws Exception {
 
-        font.name = DejaVuLGCSerif.name;
-        font.unitsPerEm = DejaVuLGCSerif.unitsPerEm;
-        font.bBoxLLx = DejaVuLGCSerif.bBoxLLx;
-        font.bBoxLLy = DejaVuLGCSerif.bBoxLLy;
-        font.bBoxURx = DejaVuLGCSerif.bBoxURx;
-        font.bBoxURy = DejaVuLGCSerif.bBoxURy;
-        font.ascent  = DejaVuLGCSerif.ascent;
-        font.descent = DejaVuLGCSerif.descent;
-        font.capHeight = DejaVuLGCSerif.capHeight;
-        font.firstChar = DejaVuLGCSerif.firstChar;
-        font.lastChar  = DejaVuLGCSerif.lastChar;
-        font.underlinePosition  = DejaVuLGCSerif.underlinePosition;
-        font.underlineThickness = DejaVuLGCSerif.underlineThickness;
-        font.compressed_size = DejaVuLGCSerif.compressed_size;
-        font.uncompressed_size = DejaVuLGCSerif.uncompressed_size;
-        font.advanceWidth = decodeRLE(DejaVuLGCSerif.advanceWidth);
-        font.glyphWidth   = decodeRLE(DejaVuLGCSerif.glyphWidth);
-        font.unicodeToGID = decodeRLE(DejaVuLGCSerif.unicodeToGID);
+        int len = inputStream.read();
+        byte[] fontName = new byte[len];
+        inputStream.read(fontName, 0, len);
+        font.name = new String(fontName);
+        // System.out.println(font.name);
+
+        font.unitsPerEm = getInt32(inputStream);
+        font.bBoxLLx = getInt32(inputStream);
+        font.bBoxLLy = getInt32(inputStream);
+        font.bBoxURx = getInt32(inputStream);
+        font.bBoxURy = getInt32(inputStream);
+        font.ascent = getInt32(inputStream);
+        font.descent = getInt32(inputStream);
+        font.firstChar = getInt32(inputStream);
+        font.lastChar = getInt32(inputStream);
+        font.capHeight = getInt32(inputStream);
+        font.underlinePosition = getInt32(inputStream);
+        font.underlineThickness = getInt32(inputStream);
+
+        len = getInt32(inputStream);
+        font.advanceWidth = new int[len];
+        for (int i = 0; i < len; i++) {
+            font.advanceWidth[i] = getInt16(inputStream);
+        }
+
+        len = getInt32(inputStream);
+        font.glyphWidth = new int[len];
+        for (int i = 0; i < len; i++) {
+            font.glyphWidth[i] = getInt16(inputStream);
+        }
+
+        len = getInt32(inputStream);
+        font.unicodeToGID = new int[len];
+        for (int i = 0; i < len; i++) {
+            font.unicodeToGID[i] = getInt16(inputStream);
+        }
+
+        font.uncompressed_size = getInt32(inputStream);
+        font.compressed_size = getInt32(inputStream);
 
         embedFontFile(pdf, font, inputStream);
         addFontDescriptorObject(pdf, font);
@@ -98,7 +119,7 @@ class FastFont {
             }
         }
 /*
-        int metadataObjNumber = pdf.addMetadataObject(DejaVu.FONT_LICENSE, false);
+        int metadataObjNumber = pdf.addMetadataObject(DejaVu.FONT_LICENSE, true);
 */
         pdf.newobj();
         pdf.append("<<\n");
@@ -118,9 +139,10 @@ class FastFont {
 
         pdf.append(">>\n");
         pdf.append("stream\n");
-        int ch;
-        while ((ch = inputStream.read()) != -1) {
-            pdf.append((byte) ch);
+        byte[] buf = new byte[2048];
+        int len;
+        while ((len = inputStream.read(buf, 0, buf.length)) > 0) {
+            pdf.append(buf, 0, len);
         }
         inputStream.close();
         pdf.append("\nendstream\n");
@@ -312,21 +334,29 @@ class FastFont {
     }
 
 
-    private static int[] decodeRLE(int[] buf) throws Exception {
-        List<Integer> list = new ArrayList<Integer>();
-        for (int i = 0; i < buf.length; i++) {
-            int pair = buf[i];
-            int count = (pair >> 16) & 0x0000FFFF;
-            int value = (pair & 0x0000FFFF);
-            for (int j = 0; j < count; j++) {
-                list.add(value);
-            }
-        }
-        int[] decoded = new int[list.size()];
-        for (int i = 0; i < list.size(); i++) {
-            decoded[i] = list.get(i);
-        }
-        return decoded;
+    private static int getInt16(InputStream inputStream) throws Exception {
+        byte[] buf = new byte[2];
+        inputStream.read(buf, 0, 2);
+        int val = 0;
+        val |= buf[0] & 0xff;
+        val <<= 8;
+        val |= buf[1] & 0xff;
+        return val;
+    }
+
+
+    private static int getInt32(InputStream inputStream) throws Exception {
+        byte[] buf = new byte[4];
+        inputStream.read(buf, 0, 4);
+        int val = 0;
+        val |= buf[0] & 0xff;
+        val <<= 8;
+        val |= buf[1] & 0xff;
+        val <<= 8;
+        val |= buf[2] & 0xff;
+        val <<= 8;
+        val |= buf[3] & 0xff;
+        return val;
     }
 
 }   // End of FastFont.java

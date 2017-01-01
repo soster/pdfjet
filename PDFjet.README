@@ -1,0 +1,23 @@
+Thank you for taking the time to evaluate the Open Source Edition of PDFjet v5.77
+
+
+To rebuild the PDFjet.jar, PDFjet.dll and the examples on Linux please run the
+following commands in the exact same sequence:
+
+build-java.sh
+build-mono.sh
+generate-documentation.cmd
+
+
+For everything to work properly you will need to have installed both
+the Java SDK v1.5 (or higher) AND Mono v3.2.3 (or higher).
+
+You can also use the .NET SDK v2.0 (or higher) on Windows.
+
+
+If you have any questions, comments or suggestions about how we can improve
+the software please e-mail us at:
+
+support@pdfjet.com
+
+We always appreciate feedback from the users of PDFjet Open Source Edition. 

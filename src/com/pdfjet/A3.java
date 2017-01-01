@@ -7,10 +7,10 @@ All rights reserved.
 Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
- * Redistributions of source code must retain the above copyright notice,
+    * Redistributions of source code must retain the above copyright notice,
       this list of conditions and the following disclaimer.
  
- * Redistributions in binary form must reproduce the above copyright notice,
+    * Redistributions in binary form must reproduce the above copyright notice,
       this list of conditions and the following disclaimer in the documentation
       and / or other materials provided with the distribution.
 
@@ -25,17 +25,17 @@ PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+*/
 
 package com.pdfjet;
 
+
 /**
- * Used to specify PDF page with size <strong>A3</strong>. For more information
- * about the page size classes - A3, A4, A5, B5, Executive, Letter, Legal and
- * Tabloid - see the Page class.
- * 
+ *  Used to specify PDF page with size <strong>A3</strong>.
+ *  For more information about the page size classes - A3, A4, A5, B5, Executive, Letter, Legal and Tabloid - see the Page class.
+ *
  */
 public class A3 {
-  public static final float[] PORTRAIT = new float[] { 842.0f, 1191.0f };
-  public static final float[] LANDSCAPE = new float[] { 1191.0f, 842.0f };
+    public static final float[] PORTRAIT = new float[] {842.0f, 1191.0f};
+    public static final float[] LANDSCAPE = new float[] {1191.0f, 842.0f};
 }

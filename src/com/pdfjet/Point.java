@@ -1,31 +1,31 @@
 /**
  *  Point.java
  *
-Copyright (c) 2014, Innovatics Inc.
-All rights reserved.
+ Copyright (c) 2015, Innovatics Inc.
+ All rights reserved.
 
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
+ Redistribution and use in source and binary forms, with or without modification,
+ are permitted provided that the following conditions are met:
 
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
+ * Redistributions of source code must retain the above copyright notice,
+ this list of conditions and the following disclaimer.
 
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and / or other materials provided with the distribution.
+ * Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and / or other materials provided with the distribution.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+ LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 
 package com.pdfjet;
 
@@ -88,7 +88,7 @@ public class Point implements Drawable {
      *  @param y the y coordinate of this point when drawn on the page.
      */
     public Point(double x, double y) {
-    	this((float) x, (float) y);
+        this((float) x, (float) y);
     }
 
 
@@ -112,7 +112,7 @@ public class Point implements Drawable {
      *  @param isControlPoint true if this point is one of the points specifying a curve.
      */
     public Point(double x, double y, boolean isControlPoint) {
-    	this((float) x, (float) y, isControlPoint);
+        this((float) x, (float) y, isControlPoint);
     }
 
 
@@ -137,7 +137,7 @@ public class Point implements Drawable {
      *  @param y the y coordinate of this point when drawn on the page.
      */
     public void setPosition(double x, double y) {
-    	setPosition((float) x, (float) y);
+        setPosition((float) x, (float) y);
     }
 
 
@@ -183,7 +183,7 @@ public class Point implements Drawable {
         this.x = x;
     }
 
-    
+
     /**
      *  Returns the x coordinate of this point.
      *
@@ -542,7 +542,7 @@ public class Point implements Drawable {
             Box box,
             double x_offset,
             double y_offset) throws Exception {
-    	placeIn(box, (float) x_offset, (float) y_offset);
+        placeIn(box, (float) x_offset, (float) y_offset);
     }
 
 
@@ -566,8 +566,10 @@ public class Point implements Drawable {
      *  Draws this point on the specified page.
      *
      *  @param page the page to draw this point on.
+     *  @return x and y coordinates of the bottom right corner of this component.
+     *  @throws Exception
      */
-    public void drawOn(Page page) throws Exception {
+    public float[] drawOn(Page page) throws Exception {
         page.setPenWidth(lineWidth);
         page.setLinePattern(linePattern);
 
@@ -583,6 +585,8 @@ public class Point implements Drawable {
         page.drawPoint(this);
         x -= box_x;
         y -= box_y;
+
+        return new float[] {x + box_x + r, y + box_y + r};
     }
 
 }   // End of Point.java

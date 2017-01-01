@@ -46,7 +46,7 @@ import java.io.*;
  * Used to embed JPG images in the PDF document.
  *
  */
-public class JPGImage {
+class JPGImage {
 
     static final char M_SOF0  = (char) 0x00C0;  // Start Of Frame N
     static final char M_SOF1  = (char) 0x00C1;  // N indicates which compression process
@@ -71,26 +71,11 @@ public class JPGImage {
     private InputStream stream;
 
 
-    public JPGImage(JPGImage jpg, InputStream stream) throws Exception {
-        if (jpg == null) {
-            readJPGImage(stream);
-            stream.close();
-        }
-        else {
-            this.width = jpg.width;
-            this.height = jpg.height;
-            this.size = jpg.size;
-            this.colorComponents = jpg.colorComponents;
-            this.stream = stream;
-        }
-    }
-
-
     public JPGImage(InputStream inputStream) throws Exception {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         byte[] buf = new byte[2048];
         int count;
-        while ((count = inputStream.read(buf, 0, buf.length)) != -1) {
+        while ((count = inputStream.read(buf, 0, buf.length)) > 0) {
             baos.write(buf, 0, count);
         }
         inputStream.close();

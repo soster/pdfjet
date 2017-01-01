@@ -1,7 +1,7 @@
 /**
  *  Image.java
  *
-Copyright (c) 2014, Innovatics Inc.
+Copyright (c) 2016, Innovatics Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,
@@ -34,9 +34,9 @@ import java.io.*;
 
 /**
  *  Used to create image objects and draw them on a page.
- *  The image type can be one of the following: ImageType.JPG, ImageType.PNG, ImageType.BMP or ImageType.PDF.
+ *  The image type can be one of the following: ImageType.JPG, ImageType.PNG, ImageType.BMP or ImageType.JET
  *
- *  Please see Example_03.
+ *  Please see Example_03 and Example_24.
  */
 public class Image implements Drawable {
 
@@ -55,48 +55,11 @@ public class Image implements Drawable {
     private float box_x;
     private float box_y;
 
-    private boolean rotate90 = false;
+    private int degrees = 0;
 
-
-    /**
-     *  Use of this constructor will result in reduced memory consumption and faster processing, however it currently only supports JPG images.
-     *  Please see Example_24
-     */
-    public Image(PDF pdf, JPGImage jpg) throws Exception {
-        this.w = jpg.getWidth();
-        this.h = jpg.getHeight();
-        this.size = jpg.getFileSize();
-        InputStream stream = jpg.getInputStream();
-        if (jpg.getColorComponents() == 1) {
-            addImage(pdf, stream, ImageType.JPG, w, h, size, "DeviceGray", 8);
-        }
-        else if (jpg.getColorComponents() == 3) {
-            addImage(pdf, stream, ImageType.JPG, w, h, size, "DeviceRGB", 8);
-        }
-        else if (jpg.getColorComponents() == 4) {
-            addImage(pdf, stream, ImageType.JPG, w, h, size, "DeviceCMYK", 8);
-        }
-        stream.close();
-    }
-
-
-    /**
-     *  Use of this constructor will result in reduced memory consumption and faster processing, however it currently only supports deflated raw PDF images.
-     *  Please see Example_24
-     */
-    public Image(PDF pdf, PDFImage raw) throws Exception {
-        this.w = raw.getWidth();
-        this.h = raw.getHeight();
-        this.size = raw.getSize();
-        InputStream stream = raw.getInputStream();
-        if (raw.getColorComponents() == 1) {
-            addImage(pdf, stream, ImageType.PDF, w, h, size, "DeviceGray", 8);
-        }
-        else if (raw.getColorComponents() == 3) {
-            addImage(pdf, stream, ImageType.PDF, w, h, size, "DeviceRGB", 8);
-        }
-        stream.close();
-    }
+    private String language = null;
+    private String altDescription = Single.space;
+    private String actualText = Single.space;
 
 
     /**
@@ -130,11 +93,11 @@ public class Image implements Drawable {
             data = png.getData();
             w = png.getWidth();
             h = png.getHeight();
-            if (png.colorType == 0) {
-                addImage(pdf, data, null, imageType, "DeviceGray", png.bitDepth);
+            if (png.getColorType() == 0) {
+                addImage(pdf, data, null, imageType, "DeviceGray", png.getBitDepth());
             }
             else {
-                if (png.bitDepth == 16) {
+                if (png.getBitDepth() == 16) {
                     addImage(pdf, data, null, imageType, "DeviceRGB", 16);
                 }
                 else {
@@ -148,6 +111,9 @@ public class Image implements Drawable {
             w = bmp.getWidth();
             h = bmp.getHeight();
             addImage(pdf, data, null, imageType, "DeviceRGB", 8);
+        }
+        else if (imageType == ImageType.JET) {
+            addImage(pdf, inputStream);
         }
 
         inputStream.close();
@@ -259,7 +225,46 @@ public class Image implements Drawable {
      *  @param rotate90 the flag.
      */
     public void setRotateCW90(boolean rotate90) {
-        this.rotate90 = rotate90;
+        if (rotate90) {
+            this.degrees = 90;
+        }
+        else {
+            this.degrees = 0;
+        }
+    }
+
+
+    /**
+     *  Sets the image rotation to the specified number of degrees.
+     *
+     *  @param degrees the number of degrees.
+     */
+    public void setRotate(int degrees) {
+        this.degrees = degrees;
+    }
+
+
+    /**
+     *  Sets the alternate description of this image.
+     *
+     *  @param altDescription the alternate description of the image.
+     *  @return this Image.
+     */
+    public Image setAltDescription(String altDescription) {
+        this.altDescription = altDescription;
+        return this;
+    }
+
+
+    /**
+     *  Sets the actual text for this image.
+     *
+     *  @param actualText the actual text for the image.
+     *  @return this Image.
+     */
+    public Image setActualText(String actualText) {
+        this.actualText = actualText;
+        return this;
     }
 
 
@@ -267,31 +272,17 @@ public class Image implements Drawable {
      *  Draws this image on the specified page.
      *
      *  @param page the page to draw this image on.
+     *  @return x and y coordinates of the bottom right corner of this component.
+     *  @throws Exception
      */
-    public void drawOn(Page page) throws Exception {
+    public float[] drawOn(Page page) throws Exception {
+        page.addBMC(StructElem.SPAN, language, altDescription, actualText);
+
         x += box_x;
         y += box_y;
         page.append("q\n");
 
-        if (rotate90) {
-            page.append(h);
-            page.append(' ');
-            page.append(0f);
-            page.append(' ');
-            page.append(0f);
-            page.append(' ');
-            page.append(w);
-            page.append(' ');
-            page.append(x);
-            page.append(' ');
-            page.append(page.height - y);
-            page.append(" cm\n");
-
-            // Rotate the image 2x45 degrees clockwise. The magic number is Math.sqrt(0.5):
-            page.append("0.7071067811 -0.7071067811 0.7071067811 0.7071067811 0.0 0.0 cm\n");
-            page.append("0.7071067811 -0.7071067811 0.7071067811 0.7071067811 0.0 0.0 cm\n");
-        }
-        else {
+        if (degrees == 0) {
             page.append(w);
             page.append(' ');
             page.append(0f);
@@ -305,21 +296,73 @@ public class Image implements Drawable {
             page.append(page.height - (y + h));
             page.append(" cm\n");
         }
+        else if (degrees == 90) {
+            page.append(h);
+            page.append(' ');
+            page.append(0f);
+            page.append(' ');
+            page.append(0f);
+            page.append(' ');
+            page.append(w);
+            page.append(' ');
+            page.append(x);
+            page.append(' ');
+            page.append(page.height - y);
+            page.append(" cm\n");
+            page.append("0 -1 1 0 0 0 cm\n");
+        }
+        else if (degrees == 180) {
+            page.append(w);
+            page.append(' ');
+            page.append(0f);
+            page.append(' ');
+            page.append(0f);
+            page.append(' ');
+            page.append(h);
+            page.append(' ');
+            page.append(x + w);
+            page.append(' ');
+            page.append(page.height - y);
+            page.append(" cm\n");
+            page.append("-1 0 0 -1 0 0 cm\n");
+        }
+        else if (degrees == 270) {
+            page.append(h);
+            page.append(' ');
+            page.append(0f);
+            page.append(' ');
+            page.append(0f);
+            page.append(' ');
+            page.append(w);
+            page.append(' ');
+            page.append(x + h);
+            page.append(' ');
+            page.append(page.height - (y + w));
+            page.append(" cm\n");
+            page.append("0 1 -1 0 0 0 cm\n");
+        }
 
         page.append("/Im");
         page.append(objNumber);
         page.append(" Do\n");
         page.append("Q\n");
-        
+
+        page.addEMC();
+
         if (uri != null || key != null) {
-            page.annots.add(new Annotation(
+            page.addAnnotation(new Annotation(
                     uri,
                     key,    // The destination name
                     x,
                     page.height - y,
                     x + w,
-                    page.height - (y + h)));
+                    page.height - (y + h),
+                    language,
+                    altDescription,
+                    actualText));
         }
+
+        return new float[] {x + w, y + h};
     }
 
 
@@ -433,55 +476,95 @@ public class Image implements Drawable {
     }
 
 
-    private void addImage(
-            PDF pdf,
-            InputStream is,
-            int imageType,
-            float w,
-            float h,
-            long length,
-            String colorSpace,
-            int bitsPerComponent) throws Exception {
+    private void addImage(PDF pdf, InputStream inputStream) throws Exception {
+
+        w = getInt(inputStream);            // Width
+        h = getInt(inputStream);            // Height
+        byte c = (byte) inputStream.read(); // Color Space
+        byte a = (byte) inputStream.read(); // Alpha
+
+        if (a != 0) {
+            pdf.newobj();
+            pdf.append("<<\n");
+            pdf.append("/Type /XObject\n");
+            pdf.append("/Subtype /Image\n");
+            pdf.append("/Filter /FlateDecode\n");
+            pdf.append("/Width ");
+            pdf.append(w);
+            pdf.append('\n');
+            pdf.append("/Height ");
+            pdf.append(h);
+            pdf.append('\n');
+            pdf.append("/ColorSpace /DeviceGray\n");
+            pdf.append("/BitsPerComponent 8\n");
+            int length = getInt(inputStream);
+            pdf.append("/Length ");
+            pdf.append(length);
+            pdf.append('\n');
+            pdf.append(">>\n");
+            pdf.append("stream\n");
+            byte[] buf1 = new byte[length];
+            inputStream.read(buf1, 0, length);
+            pdf.append(buf1, 0, length);
+            pdf.append("\nendstream\n");
+            pdf.endobj();
+            objNumber = pdf.objNumber;
+        }
+
         pdf.newobj();
         pdf.append("<<\n");
         pdf.append("/Type /XObject\n");
         pdf.append("/Subtype /Image\n");
-        if (imageType == ImageType.JPG) {
-            pdf.append("/Filter /DCTDecode\n");
-        }
-        else if (imageType == ImageType.PDF) {
-            pdf.append("/Filter /FlateDecode\n");
+        pdf.append("/Filter /FlateDecode\n");
+        if (a != 0) {
+            pdf.append("/SMask ");
+            pdf.append(objNumber);
+            pdf.append(" 0 R\n");
         }
         pdf.append("/Width ");
-        pdf.append(( int ) w);
+        pdf.append(w);
         pdf.append('\n');
         pdf.append("/Height ");
-        pdf.append(( int ) h);
+        pdf.append(h);
         pdf.append('\n');
         pdf.append("/ColorSpace /");
-        pdf.append(colorSpace);
-        pdf.append('\n');
-        pdf.append("/BitsPerComponent ");
-        pdf.append(bitsPerComponent);
-        pdf.append('\n');
-        if (colorSpace.equals("DeviceCMYK")) {
-            // If the image was created with Photoshop - invert the colors:
-            pdf.append("/Decode [1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0]\n");
+        if (c == 1) {
+            pdf.append("DeviceGray");
         }
+        else if (c == 3 || c == 6) {
+            pdf.append("DeviceRGB");
+        }
+        pdf.append('\n');
+        pdf.append("/BitsPerComponent 8\n");
         pdf.append("/Length ");
-        pdf.append((int) length);
+        pdf.append(getInt(inputStream));
         pdf.append('\n');
         pdf.append(">>\n");
         pdf.append("stream\n");
-        byte[] buf = new byte[2048];
+        byte[] buf2 = new byte[2048];
         int count;
-        while ((count = is.read(buf, 0, buf.length)) != -1) {
-            pdf.append(buf, 0, count);
+        while ((count = inputStream.read(buf2, 0, buf2.length)) > 0) {
+            pdf.append(buf2, 0, count);
         }
         pdf.append("\nendstream\n");
         pdf.endobj();
         pdf.images.add(this);
         objNumber = pdf.objNumber;
+    }
+
+
+    private int getInt(InputStream inputStream) throws Exception {
+        byte[] buf = new byte[4];
+        inputStream.read(buf, 0, 4);
+        int val = 0;
+        val |= buf[0] & 0xff;
+        val <<= 8;
+        val |= buf[1] & 0xff;
+        val <<= 8;
+        val |= buf[2] & 0xff;
+        val <<= 8;
+        val |= buf[3] & 0xff;
+        return val;
     }
     
 }   // End of Image.java

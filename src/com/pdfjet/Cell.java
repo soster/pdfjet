@@ -1,7 +1,7 @@
 /**
  *  Cell.java
  *
-Copyright (c) 2014, Innovatics Inc.
+Copyright (c) 2015, Innovatics Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,
@@ -40,6 +40,7 @@ import java.util.*;
 public class Cell {
 
     protected Font font;
+    protected Font fallbackFont;
     protected String text;
     protected Image image;
     protected Point point;
@@ -75,6 +76,8 @@ public class Cell {
     private int properties = 0x000F0001;
     private String uri;
 
+    private int valign = Align.TOP;
+
 
     /**
      *  Creates a cell object and sets the font.
@@ -99,6 +102,20 @@ public class Cell {
 
 
     /**
+     *  Creates a cell object and sets the font, fallback font and the cell text.
+     *
+     *  @param font the font.
+     *  @param fallbackFont the fallback font.
+     *  @param text the text.
+     */
+    public Cell(Font font, Font fallbackFont, String text) {
+        this.font = font;
+        this.fallbackFont = fallbackFont;
+        this.text = text;
+    }
+
+
+    /**
      *  Sets the font for this cell.
      *
      *  @param font the font.
@@ -109,12 +126,32 @@ public class Cell {
 
 
     /**
+     *  Sets the fallback font for this cell.
+     *
+     *  @param fallbackFont the fallback font.
+     */
+    public void setFallbackFont(Font fallbackFont) {
+        this.fallbackFont = fallbackFont;
+    }
+
+
+    /**
      *  Returns the font used by this cell.
      *
      *  @return the font.
      */
     public Font getFont() {
         return this.font;
+    }
+
+
+    /**
+     *  Returns the fallback font used by this cell.
+     *
+     *  @return the fallback font.
+     */
+    public Font getFallbackFont() {
+        return this.fallbackFont;
     }
 
 
@@ -255,6 +292,19 @@ public class Cell {
      *  @param padding the right padding.
      */
     public void setRightPadding(float padding) {
+        this.right_padding = padding;
+    }
+
+
+    /**
+     *  Sets the top, bottom, left and right paddings of this cell.
+     *
+     *  @param padding the right padding.
+     */
+    public void setPadding(float padding) {
+        this.top_padding = padding;
+        this.bottom_padding = padding;
+        this.left_padding = padding;
         this.right_padding = padding;
     }
 
@@ -441,9 +491,31 @@ public class Cell {
     /**
      *  Returns the text alignment.
      *
+     *  @return the text horizontal alignment code.
      */
     public int getTextAlignment() {
         return (this.properties & 0x00300000);
+    }
+
+
+    /**
+     *  Sets the cell text vertical alignment.
+     *
+     *  @param alignment the alignment code.
+     *  Supported values: Align.TOP, Align.CENTER and Align.BOTTOM.
+     */
+    public void setVerTextAlignment(int alignment) {
+        this.valign = alignment;
+    }
+
+
+    /**
+     *  Returns the cell text vertical alignment.
+     *
+     *  @return the vertical alignment code.
+     */
+    public int getVerTextAlignment() {
+        return this.valign;
     }
 
 
@@ -522,7 +594,7 @@ public class Cell {
         }
         drawBorders(page, x, y, w, h);
         if (text != null) {
-            drawText(page, x, y, w);
+            drawText(page, x, y, w, h);
         }
         if (point != null) {
             if (point.align == Align.LEFT) {
@@ -534,13 +606,16 @@ public class Cell {
             point.y = y + h/2;
             page.setBrushColor(point.getColor());
             if (point.getURIAction() != null) {
-                page.annots.add(new Annotation(
+                page.addAnnotation(new Annotation(
                         point.getURIAction(),
                         null,
                         point.x - point.r,
                         page.height - (point.y - point.r),
                         point.x + point.r,
-                        page.height - (point.y + point.r)));
+                        page.height - (point.y + point.r),
+                        null,
+                        null,
+                        null));
             }
             page.drawPoint(point);
         }
@@ -572,28 +647,38 @@ public class Cell {
                 getBorder(Border.BOTTOM) &&
                 getBorder(Border.LEFT) &&
                 getBorder(Border.RIGHT)) {
+            page.addBMC(StructElem.SPAN, Single.space, Single.space);
             page.drawRect(x, y, cell_w, cell_h);
+            page.addEMC();
         }
         else {
             if (getBorder(Border.TOP)) {
+                page.addBMC(StructElem.SPAN, Single.space, Single.space);
                 page.moveTo(x, y);
                 page.lineTo(x + cell_w, y);
                 page.strokePath();
+                page.addEMC();
             }
             if (getBorder(Border.BOTTOM)) {
+                page.addBMC(StructElem.SPAN, Single.space, Single.space);
                 page.moveTo(x, y + cell_h);
                 page.lineTo(x + cell_w, y + cell_h);
                 page.strokePath();
+                page.addEMC();
             }
             if (getBorder(Border.LEFT)) {
+                page.addBMC(StructElem.SPAN, Single.space, Single.space);
                 page.moveTo(x, y);
                 page.lineTo(x, y + cell_h);
                 page.strokePath();
+                page.addEMC();
             }
             if (getBorder(Border.RIGHT)) {
+                page.addBMC(StructElem.SPAN, Single.space, Single.space);
                 page.moveTo(x + cell_w, y);
                 page.lineTo(x + cell_w, y + cell_h);
                 page.strokePath();
+                page.addEMC();
             }
         }
 
@@ -604,10 +689,23 @@ public class Cell {
             Page page,
             float x,
             float y,
-            float cell_w) throws Exception {
+            float cell_w,
+            float cell_h) throws Exception {
 
         float x_text;
-        float y_text = y + font.ascent + this.top_padding;
+        float y_text;
+        if (valign == Align.TOP) {
+            y_text = y + font.ascent + this.top_padding;
+        }
+        else if (valign == Align.CENTER) {
+            y_text = y + cell_h/2 + font.ascent/2;
+        }
+        else if (valign == Align.BOTTOM) {
+            y_text = (y + cell_h) - this.bottom_padding;
+        }
+        else {
+            throw new Exception("Invalid vertical text alignment option.");
+        }
 
         page.setPenColor(pen);
         page.setBrushColor(brush);
@@ -615,7 +713,9 @@ public class Cell {
         if (getTextAlignment() == Align.RIGHT) {
             if (compositeTextLine == null) {
                 x_text = (x + cell_w) - (font.stringWidth(text) + this.right_padding);
-                page.drawString(font, text, x_text, y_text);
+                page.addBMC(StructElem.SPAN, text, text);
+                page.drawString(font, fallbackFont, text, x_text, y_text);
+                page.addEMC();
                 if (getUnderline()) {
                     underlineText(page, font, text, x_text, y_text);
                 }
@@ -626,14 +726,18 @@ public class Cell {
             else {
                 x_text = (x + cell_w) - (compositeTextLine.getWidth() + this.right_padding);
                 compositeTextLine.setPosition(x_text, y_text);
+                page.addBMC(StructElem.SPAN, text, text);
                 compositeTextLine.drawOn(page);
+                page.addEMC();
             }
         }
         else if (getTextAlignment() == Align.CENTER) {
             if (compositeTextLine == null) {
                 x_text = x + this.left_padding +
                         (((cell_w - (left_padding + right_padding)) - font.stringWidth(text)) / 2);
-                page.drawString(font, text, x_text, y_text);
+                page.addBMC(StructElem.SPAN, text, text);
+                page.drawString(font, fallbackFont, text, x_text, y_text);
+                page.addEMC();
                 if (getUnderline()) {
                     underlineText(page, font, text, x_text, y_text);
                 }
@@ -645,13 +749,17 @@ public class Cell {
                 x_text = x + this.left_padding +
                         (((cell_w - (left_padding + right_padding)) - compositeTextLine.getWidth()) / 2);
                 compositeTextLine.setPosition(x_text, y_text);
+                page.addBMC(StructElem.SPAN, text, text);
                 compositeTextLine.drawOn(page);
+                page.addEMC();
             }
         }
         else if (getTextAlignment() == Align.LEFT) {
             x_text = x + this.left_padding;
             if (compositeTextLine == null) {
-                page.drawString(font, text, x_text, y_text);
+                page.addBMC(StructElem.SPAN, text, text);
+                page.drawString(font, fallbackFont, text, x_text, y_text);
+                page.addEMC();
                 if (getUnderline()) {
                     underlineText(page, font, text, x_text, y_text);
                 }
@@ -661,7 +769,9 @@ public class Cell {
             }
             else {
                 compositeTextLine.setPosition(x_text, y_text);
+                page.addBMC(StructElem.SPAN, text, text);
                 compositeTextLine.drawOn(page);
+                page.addEMC();
             }
         }
         else {
@@ -672,56 +782,105 @@ public class Cell {
             float w = (compositeTextLine != null) ?
                     compositeTextLine.getWidth() : font.stringWidth(text);
             // Please note: The font descent is a negative number.
-            page.annots.add(new Annotation(
+            page.addAnnotation(new Annotation(
                     uri,
                     null,
                     x_text,
                     (page.height - y_text) + font.descent,
                     x_text + w,
-                    (page.height - y_text) + font.ascent));
+                    (page.height - y_text) + font.ascent,
+                    null,
+                    null,
+                    null));
         }
     }
 
 
     private void underlineText(
             Page page, Font font, String text, float x, float y) throws Exception {
+        page.addBMC(StructElem.SPAN, "underline", "underline");
         float descent = font.getDescent();
         page.setPenWidth(font.underlineThickness);
         page.moveTo(x, y + descent);
         page.lineTo(x + font.stringWidth(text), y + descent);
         page.strokePath();
+        page.addEMC();
     }
 
 
     private void strikeoutText(
             Page page, Font font, String text, float x, float y) throws Exception {
+        page.addBMC(StructElem.SPAN, "strike out", "strike out");
         page.setPenWidth(font.underlineThickness);
         page.moveTo(x, y - font.getAscent()/3f);
         page.lineTo(x + font.stringWidth(text), y - font.getAscent()/3f);
         page.strokePath();
+        page.addEMC();
     }
 
 
-    protected int getNumVerCells() {
+    /**
+     *  Use this method to find out how many vertically stacked cell are needed after call to wrapAroundCellText.
+     *
+     *  @return the number of vertical cells needed to wrap around the cell text.
+     */
+    public int getNumVerCells() {
         int n = 1;
-        String[] tokens = getText().split("\\s+");
-        if (tokens.length == 1) {
+        if (getText() == null) {
+            return n;
+        }
+
+        String[] textLines = getText().split("\\r?\\n");
+        if (textLines.length == 0) {
+            return n;
+        }
+
+        n = 0; 
+        for (String textLine : textLines) {
+            String[] tokens = textLine.split("\\s+");
+            StringBuilder sb = new StringBuilder();
+            if (tokens.length > 1) {
+                for (int i = 0; i < tokens.length; i++) {
+                    String token = tokens[i];
+                    if (font.stringWidth(sb.toString() + " " + token) >
+                            (getWidth() - (this.left_padding + this.right_padding))) {
+                        sb = new StringBuilder(token);
+                        n++;
+                    }
+                    else {
+                        if (i > 0) {
+                            sb.append(" ");
+                        }
+                        sb.append(token);
+                    }
+                }
+            }
+            n++;
+        }
+
+        return n;
+    }
+
+
+    /**
+     *  Use this method to find out how many vertically stacked cell are needed after call to wrapAroundCellText2.
+     *
+     *  @return the number of vertical cells needed to wrap around the cell text.
+     */
+    public int getNumVerCells2() {
+        int n = 1;
+        if (getText() == null) {
             return n;
         }
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < tokens.length; i++) {
-            String token = tokens[i];
-            if (font.stringWidth(sb.toString() + " " + token) >
+        for (int i = 0; i < this.text.length(); i++) {
+            String str = new String(new char[] { this.text.charAt(i) });
+            if (font.stringWidth(sb.toString() + str) >
                     (getWidth() - (this.left_padding + this.right_padding))) {
-                sb = new StringBuilder(token);
                 n++;
+                sb.setLength(0);
             }
-            else {
-                if (i > 0) {
-                    sb.append(" ");
-                }
-                sb.append(token);
-            }
+            sb.append(str);
         }
         return n;
     }

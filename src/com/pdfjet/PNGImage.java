@@ -1,31 +1,31 @@
 /**
  *  PNGImage.java
  *
-Copyright (c) 2014, Innovatics Inc.
-All rights reserved.
+ Copyright (c) 2015, Innovatics Inc.
+ All rights reserved.
 
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
+ Redistribution and use in source and binary forms, with or without modification,
+ are permitted provided that the following conditions are met:
 
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
+ * Redistributions of source code must retain the above copyright notice,
+ this list of conditions and the following disclaimer.
 
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and / or other materials provided with the distribution.
+ * Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and / or other materials provided with the distribution.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+ LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 
 package com.pdfjet;
 
@@ -35,7 +35,14 @@ import java.util.*;
 
 /**
  * Used to embed PNG images in the PDF document.
- *
+ * <p>
+ * <strong>Please note:</strong>
+ * <p>
+ *     Interlaced images are not supported.
+ * <p>
+ *     To convert interlaced image to non-interlaced image use OptiPNG:
+ * <p>
+ *     optipng -i0 -o7 myimage.png
  */
 public class PNGImage {
 
@@ -50,8 +57,8 @@ public class PNGImage {
     byte[] alphaForPalette; // The alpha for the palette data
     byte[] deflatedAlpha;   // The deflated alpha channel data
 
-    protected byte bitDepth = 8;
-    protected int colorType = 0;
+    private byte bitDepth = 8;
+    private byte colorType = 0;
 
 
     /**
@@ -77,13 +84,16 @@ public class PNGImage {
                 this.colorType = chunk.getData()[9];        // Color Type
 
                 // System.out.println(
-                //         "Bit Depth == " + chunk.getData()[ 8 ] );
+                //         "Bit Depth == " + chunk.getData()[8]);
                 // System.out.println(
-                //         "Color Type == " + chunk.getData()[ 9 ] );
-                // System.out.println( chunk.getData()[ 10 ] );
-                // System.out.println( chunk.getData()[ 11 ] );
-                // System.out.println( chunk.getData()[ 12 ] );
+                //         "Color Type == " + chunk.getData()[9]);
+                // System.out.println(chunk.getData()[10]);
+                // System.out.println(chunk.getData()[11]);
+                // System.out.println(chunk.getData()[12]);
 
+                if (chunk.getData()[12] == 1) {
+                    System.out.println("Interlaced PNG images are not supported.\nConvert the image using OptiPNG:\noptipng -i0 -o7 myimage.png\n");
+                }
             }
             else if (chunk.type[0] == 'I'
                     && chunk.type[1] == 'D'
@@ -169,7 +179,12 @@ public class PNGImage {
             }
         }
         else if (colorType == 6) {
-            image = getImageColorType6BitDepth8();
+            if (bitDepth == 8) {
+                image = getImageColorType6BitDepth8();
+            }
+            else {
+                throw new Exception("Image with unsupported bit depth == " + bitDepth);
+            }
         }
         else {
             // Color Image
@@ -206,37 +221,47 @@ public class PNGImage {
     }
 
 
-    protected int getWidth() {
+    public int getWidth() {
         return this.w;
     }
 
 
-    protected int getHeight() {
+    public int getHeight() {
         return this.h;
     }
 
 
-    protected byte[] getData() {
+    public int getColorType() {
+        return this.colorType;
+    }
+
+
+    public int getBitDepth() {
+        return this.bitDepth;
+    }
+
+
+    public byte[] getData() {
         return this.deflated;
     }
 
 
-    protected byte[] getAlpha() {
+    public byte[] getAlpha() {
         return this.deflatedAlpha;
     }
 
 
     private void processPNG(
-            List< Chunk> chunks, java.io.InputStream inputStream )
-        throws Exception {
+            List< Chunk> chunks, java.io.InputStream inputStream)
+            throws Exception {
 
-        while ( true ) {
-            Chunk chunk = getChunk( inputStream );
-            chunks.add( chunk );
-            if ( chunk.type[0] == 'I'
+        while (true) {
+            Chunk chunk = getChunk(inputStream);
+            chunks.add(chunk);
+            if (chunk.type[0] == 'I'
                     && chunk.type[1] == 'E'
                     && chunk.type[2] == 'N'
-                    && chunk.type[3] == 'D' ) {
+                    && chunk.type[3] == 'D') {
                 break;
             }
         }
@@ -268,12 +293,12 @@ public class PNGImage {
 
     private Chunk getChunk(InputStream inputStream) throws Exception {
         Chunk chunk = new Chunk();
-        chunk.setLength(getLong( inputStream));     // The length of the data chunk.
+        chunk.setLength(getLong(inputStream));      // The length of the data chunk.
         chunk.setType(getBytes(inputStream, 4));    // The chunk type.
         chunk.setData(getBytes(inputStream, chunk.getLength()));    // The chunk data.
         chunk.setCrc(getLong(inputStream));         // CRC of the type and data chunks.
         if (!chunk.hasGoodCRC()) {
-            throw new Exception( "Chunk has bad CRC." );
+            throw new Exception("Chunk has bad CRC.");
         }
         return chunk;
     }
@@ -295,6 +320,7 @@ public class PNGImage {
 
 
     private int toIntValue(byte[] buf, int off) {
+/*
         long val = 0L;
 
         val |= (long) buf[off] & 0xff;
@@ -306,6 +332,18 @@ public class PNGImage {
         val |= (long) buf[3 + off] & 0xff;
 
         return (int) val;
+*/
+        int val = 0;
+
+        val |= buf[off]     & 0xff;
+        val <<= 8;
+        val |= buf[off + 1] & 0xff;
+        val <<= 8;
+        val |= buf[off + 2] & 0xff;
+        val <<= 8;
+        val |= buf[off + 3] & 0xff;
+
+        return val;
     }
 
 
@@ -313,37 +351,37 @@ public class PNGImage {
     private byte[] getImageColorType2BitDepth16() {
 
         int j = 0;
-        byte[] image = new byte[ inflated.length - this.h ];
+        byte[] image = new byte[inflated.length - this.h];
 
         byte filter = 0x00;
         int scanLineLength = 6 * this.w;
 
-        for ( int i = 0; i < inflated.length; i++ ) {
+        for (int i = 0; i < inflated.length; i++) {
 
-            if ( i % ( scanLineLength + 1 ) == 0 ) {
-                filter = inflated[ i ];
+            if (i % (scanLineLength + 1) == 0) {
+                filter = inflated[i];
                 continue;
             }
 
-            image[ j ] = inflated[ i ];
+            image[j] = inflated[i];
 
             int a = 0;
             int b = 0;
             int c = 0;
 
-            if ( j % scanLineLength >= 6 ) {
-                a = ( image[ j - 6 ] & 0x000000ff );
+            if (j % scanLineLength >= 6) {
+                a = (image[j - 6] & 0x000000ff);
             }
 
-            if ( j >= scanLineLength ) {
-                b = ( image[ j - scanLineLength ] & 0x000000ff );
+            if (j >= scanLineLength) {
+                b = (image[j - scanLineLength] & 0x000000ff);
             }
 
-            if ( j % scanLineLength >= 6 && j >= scanLineLength) {
-                c = ( image[ j - ( scanLineLength + 6 ) ] & 0x000000ff );
+            if (j % scanLineLength >= 6 && j >= scanLineLength) {
+                c = (image[j - (scanLineLength + 6)] & 0x000000ff);
             }
 
-            applyFilters( filter, image, j, a, b, c );
+            applyFilters(filter, image, j, a, b, c);
 
             j++;
         }
@@ -356,37 +394,37 @@ public class PNGImage {
     private byte[] getImageColorType2BitDepth8() {
 
         int j = 0;
-        byte[] image = new byte[ inflated.length - this.h ];
+        byte[] image = new byte[inflated.length - this.h];
 
         byte filter = 0x00;
         int scanLineLength = 3 * this.w;
 
-        for ( int i = 0; i < inflated.length; i++ ) {
+        for (int i = 0; i < inflated.length; i++) {
 
-            if ( i % ( scanLineLength + 1 ) == 0 ) {
-                filter = inflated[ i ];
+            if (i % (scanLineLength + 1) == 0) {
+                filter = inflated[i];
                 continue;
             }
 
-            image[ j ] = inflated[ i ];
+            image[j] = inflated[i];
 
             int a = 0;
             int b = 0;
             int c = 0;
 
-            if ( j % scanLineLength >= 3 ) {
-                a = ( image[ j - 3 ] & 0x000000ff );
+            if (j % scanLineLength >= 3) {
+                a = (image[j - 3] & 0x000000ff);
             }
 
-            if ( j >= scanLineLength ) {
-                b = ( image[ j - scanLineLength ] & 0x000000ff );
+            if (j >= scanLineLength) {
+                b = (image[j - scanLineLength] & 0x000000ff);
             }
 
-            if ( j % scanLineLength >= 3 && j >= scanLineLength ) {
-                c = ( image[ j - ( scanLineLength + 3 ) ] & 0x000000ff );
+            if (j % scanLineLength >= 3 && j >= scanLineLength) {
+                c = (image[j - (scanLineLength + 3)] & 0x000000ff);
             }
 
-            applyFilters( filter, image, j, a, b, c );
+            applyFilters(filter, image, j, a, b, c);
 
             j++;
         }
@@ -464,24 +502,20 @@ public class PNGImage {
         byte[] image = new byte[3*(inflated.length - this.h)];
         int scanLineLength = this.w + 1;
         for (int i = 0; i < inflated.length; i++) {
-            if (i % scanLineLength == 0) {
-                // Skip the filter byte
-                continue;
-            }
+            if (i % scanLineLength != 0) {
+                int k = ((int) inflated[i] & 0x000000ff);
+                image[j++] = rgb[3*k];
+                image[j++] = rgb[3*k + 1];
+                image[j++] = rgb[3*k + 2];
 
-            int k = ((int) inflated[i] & 0x000000ff);
-            image[j++] = rgb[3*k];
-            image[j++] = rgb[3*k + 1];
-            image[j++] = rgb[3*k + 2];
-
-            if (alphaForPalette != null) {
-                alpha[n++] = alphaForPalette[k];
+                if (alphaForPalette != null) {
+                    alpha[n++] = alphaForPalette[k];
+                }
             }
         }
 
         if (alphaForPalette != null) {
-            Compressor compressor = new Compressor(alpha);
-            deflatedAlpha = compressor.getCompressedData();
+            deflatedAlpha = (new Compressor(alpha)).getCompressedData();
         }
 
         return image;
@@ -494,15 +528,15 @@ public class PNGImage {
         int j = 0;
         int k;
 
-        byte[] image = new byte[ 6 * ( inflated.length - this.h ) ];
+        byte[] image = new byte[6 * (inflated.length - this.h)];
         int scanLineLength = this.w / 2 + 1;
-        if ( this.w % 2 > 0 ) {
+        if (this.w % 2 > 0) {
             scanLineLength += 1;
         }
 
-        for ( int i = 0; i < inflated.length; i++ ) {
+        for (int i = 0; i < inflated.length; i++) {
 
-            if ( i % scanLineLength == 0 ) {
+            if (i % scanLineLength == 0) {
                 // Skip the filter byte.
                 continue;
             }
@@ -510,16 +544,16 @@ public class PNGImage {
             int l = (int) inflated[i];
 
             k = 3 * ((l >> 4) & 0x0000000f);
-            image[ j++ ] = rgb[ k ];
-            image[ j++ ] = rgb[ k + 1 ];
-            image[ j++ ] = rgb[ k + 2 ];
+            image[j++] = rgb[k];
+            image[j++] = rgb[k + 1];
+            image[j++] = rgb[k + 2];
 
-            if ( j % ( 3 * this.w ) == 0 ) continue;
+            if (j % (3 * this.w) == 0) continue;
 
             k = 3 * (l & 0x0000000f);
-            image[ j++ ] = rgb[ k ];
-            image[ j++ ] = rgb[ k + 1 ];
-            image[ j++ ] = rgb[ k + 2 ];
+            image[j++] = rgb[k];
+            image[j++] = rgb[k + 1];
+            image[j++] = rgb[k + 2];
 
         }
 
@@ -532,46 +566,46 @@ public class PNGImage {
         int j = 0;
         int k;
 
-        byte[] image = new byte[ 12 * ( inflated.length - this.h ) ];
+        byte[] image = new byte[12 * (inflated.length - this.h)];
         int scanLineLength = this.w / 4 + 1;
-        if ( this.w % 4 > 0 ) {
+        if (this.w % 4 > 0) {
             scanLineLength += 1;
         }
 
-        for ( int i = 0; i < inflated.length; i++ ) {
+        for (int i = 0; i < inflated.length; i++) {
 
-            if ( i % scanLineLength == 0 ) {
+            if (i % scanLineLength == 0) {
                 // Skip the filter byte.
                 continue;
             }
 
-            int l = ( int ) inflated[ i ];
+            int l = (int) inflated[i];
 
-            k = 3 * ( ( l >> 6 ) & 0x00000003 );
-            image[ j++ ] = rgb[ k ];
-            image[ j++ ] = rgb[ k + 1 ];
-            image[ j++ ] = rgb[ k + 2 ];
+            k = 3 * ((l >> 6) & 0x00000003);
+            image[j++] = rgb[k];
+            image[j++] = rgb[k + 1];
+            image[j++] = rgb[k + 2];
 
-            if ( j % ( 3 * this.w ) == 0 ) continue;
+            if (j % (3 * this.w) == 0) continue;
 
-            k = 3 * ( ( l >> 4 ) & 0x00000003 );
-            image[ j++ ] = rgb[ k ];
-            image[ j++ ] = rgb[ k + 1 ];
-            image[ j++ ] = rgb[ k + 2 ];
+            k = 3 * ((l >> 4) & 0x00000003);
+            image[j++] = rgb[k];
+            image[j++] = rgb[k + 1];
+            image[j++] = rgb[k + 2];
 
-            if ( j % ( 3 * this.w ) == 0 ) continue;
+            if (j % (3 * this.w) == 0) continue;
 
-            k = 3 * ( ( l >> 2 ) & 0x00000003 );
-            image[ j++ ] = rgb[ k ];
-            image[ j++ ] = rgb[ k + 1 ];
-            image[ j++ ] = rgb[ k + 2 ];
+            k = 3 * ((l >> 2) & 0x00000003);
+            image[j++] = rgb[k];
+            image[j++] = rgb[k + 1];
+            image[j++] = rgb[k + 2];
 
-            if ( j % ( 3 * this.w ) == 0 ) continue;
+            if (j % (3 * this.w) == 0) continue;
 
             k = 3 * (l & 0x00000003);
-            image[ j++ ] = rgb[ k ];
-            image[ j++ ] = rgb[ k + 1 ];
-            image[ j++ ] = rgb[ k + 2 ];
+            image[j++] = rgb[k];
+            image[j++] = rgb[k + 1];
+            image[j++] = rgb[k + 2];
 
         }
 
@@ -584,74 +618,74 @@ public class PNGImage {
         int j = 0;
         int k;
 
-        byte[] image = new byte[ 24 * ( inflated.length - this.h ) ];
+        byte[] image = new byte[24 * (inflated.length - this.h)];
         int scanLineLength = this.w / 8 + 1;
-        if ( this.w % 8 > 0 ) {
+        if (this.w % 8 > 0) {
             scanLineLength += 1;
         }
 
-        for ( int i = 0; i < inflated.length; i++ ) {
+        for (int i = 0; i < inflated.length; i++) {
 
-            if ( i % scanLineLength == 0 ) {
+            if (i % scanLineLength == 0) {
                 // Skip the filter byte.
                 continue;
             }
 
-            int l = ( int ) inflated[ i ];
+            int l = (int) inflated[i];
 
-            k = 3 * ( ( l >> 7 ) & 0x00000001 );
-            image[ j++ ] = rgb[ k ];
-            image[ j++ ] = rgb[ k + 1 ];
-            image[ j++ ] = rgb[ k + 2 ];
+            k = 3 * ((l >> 7) & 0x00000001);
+            image[j++] = rgb[k];
+            image[j++] = rgb[k + 1];
+            image[j++] = rgb[k + 2];
 
-            if ( j % ( 3 * this.w ) == 0 ) continue;
+            if (j % (3 * this.w) == 0) continue;
 
-            k = 3 * ( ( l >> 6 ) & 0x00000001 );
-            image[ j++ ] = rgb[ k ];
-            image[ j++ ] = rgb[ k + 1 ];
-            image[ j++ ] = rgb[ k + 2 ];
+            k = 3 * ((l >> 6) & 0x00000001);
+            image[j++] = rgb[k];
+            image[j++] = rgb[k + 1];
+            image[j++] = rgb[k + 2];
 
-            if ( j % ( 3 * this.w ) == 0 ) continue;
+            if (j % (3 * this.w) == 0) continue;
 
-            k = 3 * ( ( l >> 5 ) & 0x00000001 );
-            image[ j++ ] = rgb[ k ];
-            image[ j++ ] = rgb[ k + 1 ];
-            image[ j++ ] = rgb[ k + 2 ];
+            k = 3 * ((l >> 5) & 0x00000001);
+            image[j++] = rgb[k];
+            image[j++] = rgb[k + 1];
+            image[j++] = rgb[k + 2];
 
-            if ( j % ( 3 * this.w ) == 0 ) continue;
+            if (j % (3 * this.w) == 0) continue;
 
-            k = 3 * ( ( l >> 4 ) & 0x00000001 );
-            image[ j++ ] = rgb[ k ];
-            image[ j++ ] = rgb[ k + 1 ];
-            image[ j++ ] = rgb[ k + 2 ];
+            k = 3 * ((l >> 4) & 0x00000001);
+            image[j++] = rgb[k];
+            image[j++] = rgb[k + 1];
+            image[j++] = rgb[k + 2];
 
-            if ( j % ( 3 * this.w ) == 0 ) continue;
+            if (j % (3 * this.w) == 0) continue;
 
-            k = 3 * ( ( l >> 3 ) & 0x00000001 );
-            image[ j++ ] = rgb[ k ];
-            image[ j++ ] = rgb[ k + 1 ];
-            image[ j++ ] = rgb[ k + 2 ];
+            k = 3 * ((l >> 3) & 0x00000001);
+            image[j++] = rgb[k];
+            image[j++] = rgb[k + 1];
+            image[j++] = rgb[k + 2];
 
-            if ( j % ( 3 * this.w ) == 0 ) continue;
+            if (j % (3 * this.w) == 0) continue;
 
-            k = 3 * ( ( l >> 2 ) & 0x00000001 );
-            image[ j++ ] = rgb[ k ];
-            image[ j++ ] = rgb[ k + 1 ];
-            image[ j++ ] = rgb[ k + 2 ];
+            k = 3 * ((l >> 2) & 0x00000001);
+            image[j++] = rgb[k];
+            image[j++] = rgb[k + 1];
+            image[j++] = rgb[k + 2];
 
-            if ( j % ( 3 * this.w ) == 0 ) continue;
+            if (j % (3 * this.w) == 0) continue;
 
-            k = 3 * ( ( l >> 1 ) & 0x00000001 );
-            image[ j++ ] = rgb[ k ];
-            image[ j++ ] = rgb[ k + 1 ];
-            image[ j++ ] = rgb[ k + 2 ];
+            k = 3 * ((l >> 1) & 0x00000001);
+            image[j++] = rgb[k];
+            image[j++] = rgb[k + 1];
+            image[j++] = rgb[k + 2];
 
-            if ( j % ( 3 * this.w ) == 0 ) continue;
+            if (j % (3 * this.w) == 0) continue;
 
             k = 3 * (l & 0x00000001);
-            image[ j++ ] = rgb[ k ];
-            image[ j++ ] = rgb[ k + 1 ];
-            image[ j++ ] = rgb[ k + 2 ];
+            image[j++] = rgb[k];
+            image[j++] = rgb[k + 1];
+            image[j++] = rgb[k + 2];
 
         }
 
@@ -663,37 +697,37 @@ public class PNGImage {
     private byte[] getImageColorType0BitDepth16() {
 
         int j = 0;
-        byte[] image = new byte[ inflated.length - this.h ];
+        byte[] image = new byte[inflated.length - this.h];
 
         byte filter = 0x00;
         int scanLineLength = 2 * this.w;
 
-        for ( int i = 0; i < inflated.length; i++ ) {
+        for (int i = 0; i < inflated.length; i++) {
 
-            if ( i % ( scanLineLength + 1 ) == 0 ) {
-                filter = inflated[ i ];
+            if (i % (scanLineLength + 1) == 0) {
+                filter = inflated[i];
                 continue;
             }
 
-            image[ j ] = inflated[ i ];
+            image[j] = inflated[i];
 
             int a = 0;
             int b = 0;
             int c = 0;
 
-            if ( j % scanLineLength >= 2 ) {
-                a = ( image[ j - 2 ] & 0x000000ff );
+            if (j % scanLineLength >= 2) {
+                a = (image[j - 2] & 0x000000ff);
             }
 
-            if ( j >= scanLineLength ) {
-                b = ( image[ j - scanLineLength ] & 0x000000ff );
+            if (j >= scanLineLength) {
+                b = (image[j - scanLineLength] & 0x000000ff);
             }
 
-            if ( j % scanLineLength >= 2 && j >= scanLineLength) {
-                c = ( image[ j - ( scanLineLength + 2 ) ] & 0x000000ff );
+            if (j % scanLineLength >= 2 && j >= scanLineLength) {
+                c = (image[j - (scanLineLength + 2)] & 0x000000ff);
             }
 
-            applyFilters( filter, image, j, a, b, c );
+            applyFilters(filter, image, j, a, b, c);
 
             j++;
         }
@@ -706,37 +740,37 @@ public class PNGImage {
     private byte[] getImageColorType0BitDepth8() {
 
         int j = 0;
-        byte[] image = new byte[ inflated.length - this.h ];
+        byte[] image = new byte[inflated.length - this.h];
 
         byte filter = 0x00;
         int scanLineLength = this.w;
 
-        for ( int i = 0; i < inflated.length; i++ ) {
+        for (int i = 0; i < inflated.length; i++) {
 
-            if ( i % ( scanLineLength + 1 ) == 0 ) {
-                filter = inflated[ i ];
+            if (i % (scanLineLength + 1) == 0) {
+                filter = inflated[i];
                 continue;
             }
 
-            image[ j ] = inflated[ i ];
+            image[j] = inflated[i];
 
             int a = 0;
             int b = 0;
             int c = 0;
 
-            if ( j % scanLineLength >= 1 ) {
-                a = ( image[ j - 1 ] & 0x000000ff );
+            if (j % scanLineLength >= 1) {
+                a = (image[j - 1] & 0x000000ff);
             }
 
-            if ( j >= scanLineLength ) {
-                b = ( image[ j - scanLineLength ] & 0x000000ff );
+            if (j >= scanLineLength) {
+                b = (image[j - scanLineLength] & 0x000000ff);
             }
 
-            if ( j % scanLineLength >= 1 && j >= scanLineLength) {
-                c = ( image[ j - ( scanLineLength + 1 ) ] & 0x000000ff );
+            if (j % scanLineLength >= 1 && j >= scanLineLength) {
+                c = (image[j - (scanLineLength + 1)] & 0x000000ff);
             }
 
-            applyFilters( filter, image, j, a, b, c );
+            applyFilters(filter, image, j, a, b, c);
 
             j++;
         }
@@ -749,20 +783,20 @@ public class PNGImage {
     private byte[] getImageColorType0BitDepth4() {
 
         int j = 0;
-        byte[] image = new byte[ inflated.length - this.h ];
+        byte[] image = new byte[inflated.length - this.h];
 
         int scanLineLength = this.w / 2 + 1;
-        if ( this.w % 2 > 0 ) {
+        if (this.w % 2 > 0) {
             scanLineLength += 1;
         }
 
-        for ( int i = 0; i < inflated.length; i++ ) {
+        for (int i = 0; i < inflated.length; i++) {
 
-            if ( i % scanLineLength == 0 ) {
+            if (i % scanLineLength == 0) {
                 continue;
             }
 
-            image[ j++ ] = inflated[ i ];
+            image[j++] = inflated[i];
         }
 
         return image;
@@ -773,20 +807,20 @@ public class PNGImage {
     private byte[] getImageColorType0BitDepth2() {
 
         int j = 0;
-        byte[] image = new byte[ inflated.length - this.h ];
+        byte[] image = new byte[inflated.length - this.h];
 
         int scanLineLength = this.w / 4 + 1;
-        if ( this.w % 4 > 0 ) {
+        if (this.w % 4 > 0) {
             scanLineLength += 1;
         }
 
-        for ( int i = 0; i < inflated.length; i++ ) {
+        for (int i = 0; i < inflated.length; i++) {
 
-            if ( i % scanLineLength == 0 ) {
+            if (i % scanLineLength == 0) {
                 continue;
             }
 
-            image[ j++ ] = inflated[ i ];
+            image[j++] = inflated[i];
         }
 
         return image;
@@ -797,57 +831,50 @@ public class PNGImage {
     private byte[] getImageColorType0BitDepth1() {
 
         int j = 0;
-        byte[] image = new byte[ inflated.length - this.h ];
+        byte[] image = new byte[inflated.length - this.h];
 
         int scanLineLength = this.w / 8 + 1;
-        if ( this.w % 8 > 0 ) {
+        if (this.w % 8 > 0) {
             scanLineLength += 1;
         }
 
-        for ( int i = 0; i < inflated.length; i++ ) {
-
-            if ( i % scanLineLength == 0 ) {
-                continue;
+        for (int i = 0; i < inflated.length; i++) {
+            if (i % scanLineLength != 0) {
+                image[j++] = inflated[i];
             }
-
-            image[ j++ ] = inflated[ i ];
         }
 
         return image;
     }
 
 
-    private void applyFilters( byte filter, byte[] image, int j, int a, int b, int c ) {
+    private void applyFilters(byte filter, byte[] image, int j, int a, int b, int c) {
 
-        if ( filter == 0x00 ) {             // None
+        if (filter == 0x00) {             // None
             // Nothing to do.
         }
-        else if ( filter == 0x01 ) {        // Sub
-            image[ j ] += ( byte ) a;
+        else if (filter == 0x01) {        // Sub
+            image[j] += (byte) a;
         }
-        else if ( filter == 0x02 ) {        // Up
-            image[ j ] += ( byte ) b;
+        else if (filter == 0x02) {        // Up
+            image[j] += (byte) b;
         }
-        else if ( filter == 0x03 ) {        // Average
-            image[ j ] += ( byte ) Math.floor( ( double ) ( a + b ) / 2 );
+        else if (filter == 0x03) {        // Average
+            image[j] += (byte) Math.floor((double) (a + b) / 2);
         }
-        else if ( filter == 0x04 ) {        // Paeth
-            int pr;
+        else if (filter == 0x04) {        // Paeth
+            int pr = c;
             int p = a + b - c;
-            int pa = Math.abs( p - a );
-            int pb = Math.abs( p - b );
-            int pc = Math.abs( p - c );
-            if ( pa <= pb && pa <= pc ) {
+            int pa = Math.abs(p - a);
+            int pb = Math.abs(p - b);
+            int pc = Math.abs(p - c);
+            if (pa <= pb && pa <= pc) {
                 pr = a;
             }
-            else if ( pb <= pc ) {
+            else if (pb <= pc) {
                 pr = b;
             }
-            else {
-                pr = c;
-            }
-
-            image[ j ] += ( byte ) ( pr & 0x000000ff );
+            image[j] += (byte) (pr & 0x000000ff);
         }
 
     }
@@ -868,7 +895,8 @@ public class PNGImage {
     private byte[] appendIdatChunk(byte[] array1, byte[] array2) {
         if (array1 == null) {
             return array2;
-        } else if (array2 == null) {
+        }
+        else if (array2 == null) {
             return array1;
         }
         byte[] joinedArray = new byte[array1.length + array2.length];
@@ -877,48 +905,44 @@ public class PNGImage {
         return joinedArray;
     }
 
-
+/*
     public static void main(String[] args) throws Exception {
-
         FileInputStream fis = new FileInputStream(args[0]);
-        BufferedInputStream bis = new BufferedInputStream(fis);
-
-        PNGImage png = new PNGImage(bis);
-        byte[] data = png.getData();
+        PNGImage png = new PNGImage(fis);
+        byte[] image = png.getData();
         byte[] alpha = png.getAlpha();
         int w = png.getWidth();
         int h = png.getHeight();
-        int b = png.bitDepth;
-        int c = png.colorType;
-        bis.close();
+        int c = png.getColorType();
+        fis.close();
 
+        String fileName = args[0].substring(0, args[0].lastIndexOf("."));
+        FileOutputStream fos = new FileOutputStream(fileName + ".jet");
+        BufferedOutputStream bos = new BufferedOutputStream(fos);
+        writeInt(w, bos);   // Width
+        writeInt(h, bos);   // Height
+        bos.write(c);       // Color Space
         if (alpha != null) {
-            throw new Exception("PNG images with Alpha Channel are not supported.");
-        }
-
-        int index = args[0].lastIndexOf("/") + 1;
-        String fileName = args[0].substring(index, args[0].indexOf(".", index));
-        StringBuilder buf = new StringBuilder();
-        buf.append(fileName);
-        if (c == 0) {
-            buf.append(".grayscale.");
+            bos.write(1);
+            writeInt(alpha.length, bos);
+            bos.write(alpha);
         }
         else {
-            buf.append(".rgb.");
+            bos.write(0);
         }
-        buf.append(w);
-        buf.append("x");
-        buf.append(h);
-        buf.append("x");
-        buf.append(b);
-        buf.append(".raw");
-
-        FileOutputStream fos = new FileOutputStream(buf.toString());
-        BufferedOutputStream bos = new BufferedOutputStream(fos);
-        bos.write(data);
-
+        writeInt(image.length, bos);
+        bos.write(image);
         bos.flush();
         bos.close();
     }
+
+
+    private static void writeInt(int i, OutputStream os) throws IOException {
+        os.write((i >> 24) & 0xff);
+        os.write((i >> 16) & 0xff);
+        os.write((i >>  8) & 0xff);
+        os.write((i >>  0) & 0xff);
+    }
+*/
 
 }   // End of PNGImage.java

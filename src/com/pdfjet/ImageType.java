@@ -32,7 +32,7 @@ package com.pdfjet;
 
 /**
  *  Used to specify the image type of an image.
- *  Supported types: ImageType.JPG, ImageType.PNG, ImageType.BMP and ImageType.PDF.
+ *  Supported types: ImageType.JPG, ImageType.PNG, ImageType.BMP and ImageType.JET
  *  See the Image class for more information.
  *
  */
@@ -40,5 +40,5 @@ public class ImageType {
     public static final int JPG = 0;
     public static final int PNG = 1;
     public static final int BMP = 2;
-    public static final int PDF = 3;
+    public static final int JET = 3;
 }

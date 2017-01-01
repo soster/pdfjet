@@ -1,7 +1,7 @@
 /**
  *  CheckBox.java
  *
-Copyright (c) 2014, Innovatics Inc.
+Copyright (c) 2015, Innovatics Inc.
 All rights reserved.
 
 Portions provided by Shirley C. Christenson
@@ -35,71 +35,47 @@ package com.pdfjet;
 
 /**
  *  Creates a CheckBox, which can be set checked or unchecked.
- *  Default is checked, with a blue check mark.
- *  Default box is black, default font size is 14.0f.
+ *  By default the check box is unchecked.
  */
-public class CheckBox {
+public class CheckBox implements Drawable {
 
-    private boolean boxChecked = true;
     private float x;
     private float y;
-    private float w = 12.0f;
-    private float h = 12.0f;
-    private int checkColor = Color.blue;
+    private float w;
+    private float h;
     private int boxColor = Color.black;
-    private float penWidth = 0.3f;
-    private float checkWidth = 3.0f;
-    private int mark = 1;
+    private int checkColor = Color.black;
+    private float penWidth;
+    private float checkWidth;
+    private int mark = 0;
     private Font font = null;
-    private String text = null;
+    private String label = "";
     private String uri = null;
 
+    private String language = null;
+    private String altDescription = Single.space;
+    private String actualText = Single.space;
+
 
     /**
-     *  Creates a CheckBox with blue check mark.
+     *  Creates a CheckBox with black check mark.
      *
      */
-    public CheckBox() {
-    }
-
-
-    public CheckBox(Font font, String text) {
+    public CheckBox(Font font, String label) {
         this.font = font;
-        this.text = text;
-        this.boxChecked = false;
+        this.label = label;
     }
 
 
     /**
-     *  Creates a CheckBox.
+     *  Sets the font size to use for this text line.
      *
-     *  @param boxChecked boolean - true or false. Default is true. 
-     *  @param checkColor the color of the check mark. Default is blue.
+     *  @param fontSize the fontSize to use.
+     *  @return this CheckBox.
      */
-    public CheckBox(boolean boxChecked, int checkColor) {
-        this.boxChecked = boxChecked;
-        this.checkColor = checkColor;
-    }
-
-
-    /**
-     *  Creates a CheckBox.
-     *
-     *  @param boxChecked boolean - If true box is checked. If false no check mark.
-     *  Use default green check mark. 
-     */
-    public CheckBox(boolean boxChecked) {
-        this.boxChecked = boxChecked;
-    }
-
-
-    /**
-     *  Sets the color of the check mark.
-     *
-     *  @param checkColor the check mark color specified as an 0xRRGGBB integer.
-     */
-    public void setCheckColor(int checkColor) {
-        this.checkColor = checkColor;
+    public CheckBox setFontSize(float fontSize) {
+        this.font.setSize(fontSize);
+        return this;
     }
 
 
@@ -107,9 +83,23 @@ public class CheckBox {
      *  Sets the color of the check box.
      *
      *  @param boxColor the check box color specified as an 0xRRGGBB integer.
+     *  @return this CheckBox.
      */
-    public void setBoxColor(int boxColor) {
+    public CheckBox setBoxColor(int boxColor) {
         this.boxColor = boxColor;
+        return this;
+    }
+
+
+    /**
+     *  Sets the color of the check mark.
+     *
+     *  @param checkColor the check mark color specified as an 0xRRGGBB integer.
+     *  @return this CheckBox.
+     */
+    public CheckBox setCheckmark(int checkColor) {
+        this.checkColor = checkColor;
+        return this;
     }
 
 
@@ -118,20 +108,10 @@ public class CheckBox {
      *
      *  @param x the x coordinate on the Page.
      *  @param y the y coordinate on the Page.
+     *  @return this CheckBox.
      */
-    public void setPosition(double x, double y) {
-    	setPosition((float) x, (float) y);
-    }
-
-    
-    /**
-     *  Set the x,y position on the Page.
-     *
-     *  @param x the x coordinate on the Page.
-     *  @param y the y coordinate on the Page.
-     */
-    public void setPosition(float x, float y) {
-        setLocation(x, y);
+    public CheckBox setPosition(float x, float y) {
+        return setLocation(x, y);
     }
 
 
@@ -140,48 +120,12 @@ public class CheckBox {
      *
      *  @param x the x coordinate on the Page.
      *  @param y the y coordinate on the Page.
+     *  @return this CheckBox.
      */
-    public void setLocation(float x, float y) {
+    public CheckBox setLocation(float x, float y) {
         this.x = x;
         this.y = y;
-    }
-
-
-    /**
-     *  Set the size of the CheckBox.
-     *
-     *  @param size the size of the CheckBox.
-     */
-    public void setSize(double size) {
-    	setSize((float) size);
-    }
-
-
-    /**
-     *  Set the size of the CheckBox.
-     *
-     *  @param size the size of the CheckBox.
-     */
-    public void setSize(float size) {
-        this.h = size;
-        this.w = size;
-        this.checkWidth = size / 4.0f;
-        this.penWidth = size / 40.0f;
-    }
-
-    
-    /**
-     *  Sets the type of check mark.
-     *
-     *  @param mark the type of check mark.
-     *  1 = check (the default)
-     *  2 = X
-     *  
-     */
-    public void setMarkType(int mark) {
-    	if (mark > 0 && mark < 3) {
-    		this.mark = mark;
-    	}
+        return this;
     }
 
 
@@ -204,25 +148,13 @@ public class CheckBox {
 
 
     /**
-     *  Get the x coordinate of the upper left corner.
+     *  Checks or unchecks this check box. See the Mark class for available options.
      *
+     *  @return this CheckBox.
      */
-    public float getX() {
-        return this.x;
-    }
-
-
-    /**
-     *  Get the y coordinate of the upper left corner.
-     *
-     */
-    public float getY() {
-        return this.y;
-    }
-
-
-    public void setChecked(boolean boxChecked) {
-        this.boxChecked = boxChecked;
+    public CheckBox check(int mark) {
+        this.mark = mark;
+        return this;
     }
 
 
@@ -230,9 +162,35 @@ public class CheckBox {
      *  Sets the URI for the "click text line" action.
      *
      *  @param uri the URI.
+     *  @return this CheckBox.
      */
-    public void setURIAction(String uri) {
+    public CheckBox setURIAction(String uri) {
         this.uri = uri;
+        return this;
+    }
+
+
+    /**
+     *  Sets the alternate description of this check box.
+     *
+     *  @param altDescription the alternate description of the check box.
+     *  @return this Checkbox.
+     */
+    public CheckBox setAltDescription(String altDescription) {
+        this.altDescription = altDescription;
+        return this;
+    }
+
+
+    /**
+     *  Sets the actual text for this check box.
+     *
+     *  @param actualText the actual text for the check box.
+     *  @return this CheckBox.
+     */
+    public CheckBox setActualText(String actualText) {
+        this.actualText = actualText;
+        return this;
     }
 
 
@@ -241,55 +199,65 @@ public class CheckBox {
      *
      *  @param page the Page where the CheckBox is to be drawn.
      */
-    public void drawOn(Page page) throws Exception {
+    public float[] drawOn(Page page) throws Exception {
+        page.addBMC(StructElem.SPAN, language, altDescription, actualText);
 
+        this.w = font.getAscent();
+        this.h = this.w;
+        this.penWidth = this.w/15;
+        this.checkWidth = this.w/5;
+
+        float y_box = y - font.getAscent();
         page.setPenWidth(penWidth);
-        page.moveTo(x, y);
-        page.lineTo(x + w, y);
-        page.lineTo(x + w, y + h);
-        page.lineTo(x, y + h);
-        page.closePath();
         page.setPenColor(boxColor);
-        page.strokePath();
-        
-        if (this.boxChecked) {
+        page.setLinePattern("[] 0");
+        page.drawRect(x, y_box, w, h);
+
+        if (mark == Mark.CHECK || mark == Mark.X) {
         	page.setPenWidth(checkWidth);
-        	if (mark == 1) {
-                // Draw check mark
-        		page.moveTo(x + checkWidth/2, y + h/2);
-        		page.lineTo(x + w/3, (y + h) - checkWidth/2);
-        		page.lineTo(x + w - checkWidth/2, y + checkWidth/2);
-        	}
-        	else {
-                // Draw 'X' mark
-        		page.moveTo(x + checkWidth/2, y + checkWidth/2);
-        		page.lineTo((x + w) - checkWidth/2, (y + h) - checkWidth/2);
-        		page.moveTo((x + w) - checkWidth/2, y + checkWidth/2);
-        		page.lineTo(x + checkWidth/2, (y + h) - checkWidth/2);
-        	}
         	page.setPenColor(checkColor);
-        	page.setLineCapStyle(Cap.ROUND);
-        	page.strokePath();
+        	if (mark == Mark.CHECK) {
+                // Draw check mark
+        		page.moveTo(x + checkWidth, y_box + h/2);
+        		page.lineTo(x + w/6 + checkWidth, (y_box + h) - 4f*checkWidth/3f);
+        		page.lineTo((x + w) - checkWidth, y_box + checkWidth);
+        	    page.strokePath();
+        	}
+        	else if (mark == Mark.X) {
+                // Draw 'X' mark
+                page.moveTo(x + checkWidth, y_box + checkWidth);
+                page.lineTo((x + w) - checkWidth, (y_box + h) - checkWidth);
+                page.moveTo((x + w) - checkWidth, y_box + checkWidth);
+                page.lineTo(x + checkWidth, (y_box + h) - checkWidth);
+                page.strokePath();
+        	}
         }
 
-        if (font != null && text != null) {
-            float x_text = x + 5f*w/4f;
-            float y_text = (page.height - y) - 7f*h/8f;
-            page.drawString(font, text, x_text, y + h);
-            if (uri != null) {
-                // Please note: The font descent is a negative number.
-                page.annots.add(new Annotation(
-                        uri,
-                        text,   // The destination name
-                        x_text,
-                        y_text + font.descent,
-                        x_text + font.stringWidth(text),
-                        y_text + font.ascent));
-            }
+        if (uri != null) {
+            page.setBrushColor(Color.blue);
         }
-
+        page.drawString(font, label, x + 3f*w/2f, y);
         page.setPenWidth(0f);
         page.setPenColor(Color.black);
+        page.setBrushColor(Color.black);
+
+        page.addEMC();
+
+        if (uri != null) {
+            // Please note: The font descent is a negative number.
+            page.addAnnotation(new Annotation(
+                    uri,
+                    null,
+                    x + 3f*w/2f,
+                    page.height - y,
+                    x + 3f*w/2f + font.stringWidth(label),
+                    page.height - (y - font.getAscent()),
+                    language,
+                    altDescription,
+                    actualText));
+        }
+
+        return new float[] { x + 3f*w + font.stringWidth(label), y + font.getDescent() };
     }
 
 }   // End of CheckBox.java

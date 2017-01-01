@@ -1,31 +1,31 @@
 /**
  *  Line.java
  *
-Copyright (c) 2014, Innovatics Inc.
-All rights reserved.
+ Copyright (c) 2015, Innovatics Inc.
+ All rights reserved.
 
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
+ Redistribution and use in source and binary forms, with or without modification,
+ are permitted provided that the following conditions are met:
 
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
- 
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and / or other materials provided with the distribution.
+ * Redistributions of source code must retain the above copyright notice,
+ this list of conditions and the following disclaimer.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+ * Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and / or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+ LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 
 package com.pdfjet;
 
@@ -50,6 +50,10 @@ public class Line implements Drawable {
     private String pattern = "[] 0";
     private int capStyle = 0;
 
+    private String language = null;
+    private String altDescription = Single.space;
+    private String actualText = Single.space;
+
 
     /**
      *  The default constructor.
@@ -66,7 +70,7 @@ public class Line implements Drawable {
      *  @param x1 the x coordinate of the start point.
      *  @param y1 the y coordinate of the start point.
      *  @param x2 the x coordinate of the end point.
-     *  @param y2 the y coordinate of the end point.     
+     *  @param y2 the y coordinate of the end point.
      */
     public Line(double x1, double y1, double x2, double y2) {
         this.x1 = (float) x1;
@@ -82,7 +86,7 @@ public class Line implements Drawable {
      *  @param x1 the x coordinate of the start point.
      *  @param y1 the y coordinate of the start point.
      *  @param x2 the x coordinate of the end point.
-     *  @param y2 the y coordinate of the end point.     
+     *  @param y2 the y coordinate of the end point.
      */
     public Line(float x1, float y1, float x2, float y2) {
         this.x1 = x1;
@@ -114,9 +118,11 @@ public class Line implements Drawable {
      *  </pre>
      *
      *  @param pattern the line dash pattern.
+     *  @return this Line object.
      */
-    public void setPattern(String pattern) {
+    public Line setPattern(String pattern) {
         this.pattern = pattern;
+        return this;
     }
 
 
@@ -125,10 +131,12 @@ public class Line implements Drawable {
      *
      *  @param x the x coordinate of the start point.
      *  @param y the y coordinate of the start point.
+     *  @return this Line object.
      */
-    public void setStartPoint(double x, double y) {
+    public Line setStartPoint(double x, double y) {
         this.x1 = (float) x;
         this.y1 = (float) y;
+        return this;
     }
 
 
@@ -137,10 +145,12 @@ public class Line implements Drawable {
      *
      *  @param x the x coordinate of the start point.
      *  @param y the y coordinate of the start point.
+     *  @return this Line object.
      */
-    public void setStartPoint(float x, float y) {
+    public Line setStartPoint(float x, float y) {
         this.x1 = x;
         this.y1 = y;
+        return this;
     }
 
 
@@ -149,10 +159,12 @@ public class Line implements Drawable {
      *
      *  @param x the x coordinate of the start point.
      *  @param y the y coordinate of the start point.
+     *  @return this Line object.
      */
-    public void setPointA(float x, float y) {
+    public Line setPointA(float x, float y) {
         this.x1 = x;
         this.y1 = y;
+        return this;
     }
 
 
@@ -171,10 +183,12 @@ public class Line implements Drawable {
      *
      *  @param x the x coordinate of the end point.
      *  @param y the y coordinate of the end point.
+     *  @return this Line object.
      */
-    public void setEndPoint(double x, double y) {
+    public Line setEndPoint(double x, double y) {
         this.x2 = (float) x;
         this.y2 = (float) y;
+        return this;
     }
 
 
@@ -183,10 +197,12 @@ public class Line implements Drawable {
      *
      *  @param x the x coordinate of the end point.
      *  @param y the t coordinate of the end point.
+     *  @return this Line object.
      */
-    public void setEndPoint(float x, float y) {
+    public Line setEndPoint(float x, float y) {
         this.x2 = x;
         this.y2 = y;
+        return this;
     }
 
 
@@ -195,13 +211,15 @@ public class Line implements Drawable {
      *
      *  @param x the x coordinate of the end point.
      *  @param y the t coordinate of the end point.
+     *  @return this Line object.
      */
-    public void setPointB(float x, float y) {
+    public Line setPointB(float x, float y) {
         this.x2 = x;
         this.y2 = y;
+        return this;
     }
 
-    
+
     /**
      *  Returns the end point of this line.
      *
@@ -216,9 +234,11 @@ public class Line implements Drawable {
      *  Sets the width of this line.
      *
      *  @param width the width.
+     *  @return this Line object.
      */
-    public void setWidth(double width) {
+    public Line setWidth(double width) {
         this.width = (float) width;
+        return this;
     }
 
 
@@ -226,9 +246,11 @@ public class Line implements Drawable {
      *  Sets the width of this line.
      *
      *  @param width the width.
+     *  @return this Line object.
      */
-    public void setWidth(float width) {
+    public Line setWidth(float width) {
         this.width = width;
+        return this;
     }
 
 
@@ -236,9 +258,11 @@ public class Line implements Drawable {
      *  Sets the color for this line.
      *
      *  @param color the color specified as an integer.
+     *  @return this Line object.
      */
-    public void setColor(int color) {
+    public Line setColor(int color) {
         this.color = color;
+        return this;
     }
 
 
@@ -246,9 +270,11 @@ public class Line implements Drawable {
      *  Sets the line cap style.
      *
      *  @param style the cap style of the current line. Supported values: Cap.BUTT, Cap.ROUND and Cap.PROJECTING_SQUARE
+     *  @return this Line object.
      */
-    public void setCapStyle(int style) {
+    public Line setCapStyle(int style) {
         this.capStyle = style;
+        return this;
     }
 
 
@@ -263,12 +289,37 @@ public class Line implements Drawable {
 
 
     /**
+     *  Sets the alternate description of this line.
+     *
+     *  @param altDescription the alternate description of the line.
+     *  @return this Line.
+     */
+    public Line setAltDescription(String altDescription) {
+        this.altDescription = altDescription;
+        return this;
+    }
+
+
+    /**
+     *  Sets the actual text for this line.
+     *
+     *  @param actualText the actual text for the line.
+     *  @return this Line.
+     */
+    public Line setActualText(String actualText) {
+        this.actualText = actualText;
+        return this;
+    }
+
+
+    /**
      *  Places this line in the specified box at position (0.0f, 0.0f).
      *
      *  @param box the specified box.
+     *  @return this Line object.
      */
-    public void placeIn(Box box) throws Exception {
-        placeIn(box, 0.0f, 0.0f);
+    public Line placeIn(Box box) throws Exception {
+        return placeIn(box, 0f, 0f);
     }
 
 
@@ -278,12 +329,14 @@ public class Line implements Drawable {
      *  @param box the specified box.
      *  @param x_offset the x offset from the top left corner of the box.
      *  @param y_offset the y offset from the top left corner of the box.
+     *  @return this Line object.
      */
-    public void placeIn(
+    public Line placeIn(
             Box box,
             double x_offset,
             double y_offset) throws Exception {
         placeIn(box, (float) x_offset, (float) y_offset);
+        return this;
     }
 
 
@@ -293,13 +346,15 @@ public class Line implements Drawable {
      *  @param box the specified box.
      *  @param x_offset the x offset from the top left corner of the box.
      *  @param y_offset the y offset from the top left corner of the box.
+     *  @return this Line object.
      */
-    public void placeIn(
+    public Line placeIn(
             Box box,
             float x_offset,
             float y_offset) throws Exception {
         box_x = box.x + x_offset;
         box_y = box.y + y_offset;
+        return this;
     }
 
 
@@ -307,9 +362,10 @@ public class Line implements Drawable {
      *  Scales this line by the spacified factor.
      *
      *  @param factor the factor used to scale the line.
+     *  @return this Line object.
      */
-    public void scaleBy(double factor) throws Exception {
-        scaleBy((float) factor);
+    public Line scaleBy(double factor) throws Exception {
+        return scaleBy((float) factor);
     }
 
 
@@ -317,12 +373,14 @@ public class Line implements Drawable {
      *  Scales this line by the spacified factor.
      *
      *  @param factor the factor used to scale the line.
+     *  @return this Line object.
      */
-    public void scaleBy(float factor) throws Exception {
+    public Line scaleBy(float factor) throws Exception {
         this.x1 *= factor;
         this.x2 *= factor;
         this.y1 *= factor;
         this.y2 *= factor;
+        return this;
     }
 
 
@@ -330,17 +388,25 @@ public class Line implements Drawable {
      *  Draws this line on the specified page.
      *
      *  @param page the page to draw this line on.
+     *  @return x and y coordinates of the bottom right corner of this component.
+     *  @throws Exception
      */
-    public void drawOn(Page page) throws Exception {
+    public float[] drawOn(Page page) throws Exception {
         page.setPenColor(color);
         page.setPenWidth(width);
         page.setLineCapStyle(capStyle);
         page.setLinePattern(pattern);
+        page.addBMC(StructElem.SPAN, language, altDescription, actualText);
         page.drawLine(
                 x1 + box_x,
                 y1 + box_y,
                 x2 + box_x,
                 y2 + box_y);
+        page.addEMC();
+
+        float x_max = Math.max(x1 + box_x, x2 + box_x);
+        float y_max = Math.max(y1 + box_y, y2 + box_y);
+        return new float[] {x_max, y_max};
     }
 
 }   // End of Line.java

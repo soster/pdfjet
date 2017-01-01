@@ -52,9 +52,9 @@ The Original Specification:
 
 Test input:
         int[] a_in = new int[] {
-                0x61707865, 0x04030201, 0x08070605, 0x0c0b0a09, 
-                0x100f0e0d, 0x3320646e, 0x01040103, 0x06020905, 
-                0x00000007, 0x00000000, 0x79622d32, 0x14131211, 
+                0x61707865, 0x04030201, 0x08070605, 0x0c0b0a09,
+                0x100f0e0d, 0x3320646e, 0x01040103, 0x06020905,
+                0x00000007, 0x00000000, 0x79622d32, 0x14131211,
                 0x18171615, 0x1c1b1a19, 0x201f1e1d, 0x6b206574};
 
 The expected output:
@@ -85,7 +85,7 @@ The expected output:
             buf.append('0');
         }
 
-        for (int i = 0; i < 128; i += 8) { 
+        for (int i = 0; i < 128; i += 8) {
             a_in[i/8] = (int) Long.parseLong(buf.substring(i, i + 8), 16);
         }
 

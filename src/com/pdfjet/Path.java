@@ -1,31 +1,31 @@
 /**
  *  Path.java
  *
-Copyright (c) 2014, Innovatics Inc.
-All rights reserved.
+ Copyright (c) 2015, Innovatics Inc.
+ All rights reserved.
 
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
+ Redistribution and use in source and binary forms, with or without modification,
+ are permitted provided that the following conditions are met:
 
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
- 
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and / or other materials provided with the distribution.
+ * Redistributions of source code must retain the above copyright notice,
+ this list of conditions and the following disclaimer.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+ * Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and / or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+ LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 
 package com.pdfjet;
 
@@ -204,7 +204,7 @@ public class Path implements Drawable {
         placeIn(box, 0.0f, 0.0f);
     }
 
-    
+
     /**
      *  Places the path inside the spacified box at coordinates (x_offset, y_offset) of the top left corner.
      *
@@ -216,7 +216,7 @@ public class Path implements Drawable {
             Box box,
             double x_offset,
             double y_offset) throws Exception {
-    	placeIn(box, (float) x_offset, (float) y_offset);
+        placeIn(box, (float) x_offset, (float) y_offset);
     }
 
 
@@ -258,12 +258,12 @@ public class Path implements Drawable {
             point.y *= factor;
         }
     }
-    
+
 
     /**
      * Returns a list containing the start point, first control point, second control point and the end point of elliptical curve segment.
      * Please see Example_18.
-     * 
+     *
      * @param x the x coordinate of the center of the ellipse.
      * @param y the y coordinate of the center of the ellipse.
      * @param r1 the horizontal radius of the ellipse.
@@ -315,8 +315,10 @@ public class Path implements Drawable {
      *  Draws this path on the page using the current selected color, pen width, line pattern and line join style.
      *
      *  @param page the page to draw this path on.
+     *  @return x and y coordinates of the bottom right corner of this component.
+     *  @throws Exception
      */
-    public void drawOn(Page page) throws Exception {
+    public float[] drawOn(Page page) throws Exception {
         if (fill_shape) {
             page.setBrushColor(color);
         }
@@ -346,11 +348,17 @@ public class Path implements Drawable {
             }
         }
 
+        float x_max = 0f;
+        float y_max = 0f;
         for (int i = 0; i < points.size(); i++) {
             Point point = points.get(i);
+            if (point.x > x_max) { x_max = point.x; }
+            if (point.y > y_max) { y_max = point.y; }
             point.x -= box_x;
             point.y -= box_y;
         }
+
+        return new float[] {x_max, y_max};
     }
 
 }   // End of Path.java

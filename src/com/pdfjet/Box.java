@@ -1,7 +1,7 @@
 /**
  *  Box.java
  *
-Copyright (c) 2014, Innovatics Inc.
+Copyright (c) 2015, Innovatics Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,
@@ -35,7 +35,7 @@ package com.pdfjet;
  *  Also used to for layout purposes. See the placeIn method in the Image and TextLine classes.
  *
  */
-public class Box {
+public class Box implements Drawable {
 
     protected float x;
     protected float y;
@@ -49,6 +49,10 @@ public class Box {
     private String pattern = "[] 0";
     private boolean fill_shape = false;
     
+    private String language = null;
+    private String altDescription = Single.space;
+    private String actualText = Single.space;
+
     protected String uri = null;
     protected String key = null;
 
@@ -99,20 +103,8 @@ public class Box {
      *  @param x the x coordinate of the top left corner of this box when drawn on the page.
      *  @param y the y coordinate of the top left corner of this box when drawn on the page.
      */
-    public void setPosition(double x, double y) {
-        setLocation(x, y);
-    }
-
-
-    /**
-     *  Sets the location of this box on the page.
-     *
-     *  @param x the x coordinate of the top left corner of this box when drawn on the page.
-     *  @param y the y coordinate of the top left corner of this box when drawn on the page.
-     */
-    public void setLocation(double x, double y) {
-        this.x = (float) x;
-        this.y = (float) y;
+    public Box setPosition(double x, double y) {
+        return setLocation((float) x, (float) y);
     }
 
 
@@ -122,9 +114,21 @@ public class Box {
      *  @param x the x coordinate of the top left corner of this box when drawn on the page.
      *  @param y the y coordinate of the top left corner of this box when drawn on the page.
      */
-    public void setPosition(float x, float y) {
+    public Box setPosition(float x, float y) {
+        return setLocation(x, y);
+    }
+
+
+    /**
+     *  Sets the location of this box on the page.
+     *
+     *  @param x the x coordinate of the top left corner of this box when drawn on the page.
+     *  @param y the y coordinate of the top left corner of this box when drawn on the page.
+     */
+    public Box setLocation(float x, float y) {
         this.x = x;
         this.y = y;
+        return this;
     }
 
 
@@ -199,6 +203,30 @@ public class Box {
      */
     public void setGoToAction(String key) {
         this.key = key;
+    }
+
+
+    /**
+     *  Sets the alternate description of this box.
+     *
+     *  @param altDescription the alternate description of the box.
+     *  @return this Box.
+     */
+    public Box setAltDescription(String altDescription) {
+        this.altDescription = altDescription;
+        return this;
+    }
+
+
+    /**
+     *  Sets the actual text for this box.
+     *
+     *  @param actualText the actual text for the box.
+     *  @return this Box.
+     */
+    public Box setActualText(String actualText) {
+        this.actualText = actualText;
+        return this;
     }
 
 
@@ -297,32 +325,45 @@ public class Box {
      *  Draws this box on the specified page.
      *
      *  @param page the page to draw this box on.
+     *  @return x and y coordinates of the bottom right corner of this component.
+     *  @throws Exception
      */
-    public void drawOn(Page page) throws Exception {
+    public float[] drawOn(Page page) throws Exception {
+        page.addBMC(StructElem.SPAN, language, altDescription, actualText);
         page.setPenWidth(width);
         page.setLinePattern(pattern);
+        if (fill_shape) {
+            page.setBrushColor(color);
+        }
+        else {
+            page.setPenColor(color);
+        }
         page.moveTo(x, y);
         page.lineTo(x + w, y);
         page.lineTo(x + w, y + h);
         page.lineTo(x, y + h);
         if (fill_shape) {
-            page.setBrushColor(color);
             page.fillPath();
         }
         else {
-            page.setPenColor(color);
             page.closePath();
         }
-        
+        page.addEMC();
+
         if (uri != null || key != null) {
-            page.annots.add(new Annotation(
+            page.addAnnotation(new Annotation(
                     uri,
                     key,    // The destination name
                     x,
                     page.height - y,
                     x + w,
-                    page.height - (y + h)));
+                    page.height - (y + h),
+                    language,
+                    altDescription,
+                    actualText));
         }
+
+        return new float[] {x + w, y + h};
     }
 
 }   // End of Box.java

@@ -35,8 +35,9 @@ import java.util.zip.*;
 
 class Chunk {
 
-    private long chunkLength;
     protected byte[] type;
+
+    private long chunkLength;
     private byte[] data;
     private long crc;
     

@@ -1,7 +1,7 @@
 /**
  *  Font.java
  *
-Copyright (c) 2014, Innovatics Inc.
+Copyright (c) 2016, Innovatics Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,
@@ -42,6 +42,20 @@ import java.util.Map;
  */
 public class Font {
 
+    // Chinese (Traditional) font
+    public static final String AdobeMingStd_Light = "AdobeMingStd-Light";
+
+    // Chinese (Simplified) font
+    public static final String STHeitiSC_Light = "STHeitiSC-Light";
+
+    // Japanese font
+    public static final String KozMinProVI_Regular = "KozMinProVI-Regular";
+
+    // Korean font
+    public static final String AdobeMyungjoStd_Medium = "AdobeMyungjoStd-Medium";
+
+    public static final boolean STREAM = true;
+
     protected String name;
     protected int objNumber;
 
@@ -60,13 +74,13 @@ public class Font {
     protected int[][] metrics = null;
 
     // Don't change the following default values!
-    protected boolean isStandard = true;
-    protected boolean kernPairs = false;
-    protected boolean isComposite = false;
+    protected boolean isCoreFont = false;
+    protected boolean isCJK = false;
     protected int firstChar = 32;
     protected int lastChar = 255;
     protected boolean skew15 = false;
-    protected boolean isCJK = false;
+    protected boolean kernPairs = false;
+    public boolean isDevanagari = false;
 
     // Font bounding box
     protected float bBoxLLx;
@@ -82,6 +96,7 @@ public class Font {
     protected int[] advanceWidth = null;
     protected int[] glyphWidth = null;
     protected int[] unicodeToGID;
+    protected int[] halfForm;
 
     protected String fontID;
 
@@ -91,7 +106,7 @@ public class Font {
     private int toUnicodeCMapObjNumber = -1;
     private int widthsArrayObjNumber = -1;
     private int encodingObjNumber = -1;
-    private int codePage = CodePage.CP1252;
+    private int codePage = CodePage.UNICODE;
     private int fontUnderlinePosition = 0;
     private int fontUnderlineThickness = 0;
 
@@ -112,6 +127,7 @@ public class Font {
      *  @param coreFont the core font. Must be one the names defined in the CoreFont class.
      */
     public Font(PDF pdf, CoreFont coreFont) throws Exception {
+        this.isCoreFont = true;
         StandardFont font = StandardFont.getInstance(coreFont);
         this.name = font.name;
         this.bBoxLLx = font.bBoxLLx;
@@ -144,8 +160,10 @@ public class Font {
         pdf.fonts.add(this);
     }
 
+
     // Used by PDFobj
     protected Font(CoreFont coreFont) {
+        this.isCoreFont = true;
         StandardFont font = StandardFont.getInstance(coreFont);
         this.name = font.name;
         this.bBoxLLx = font.bBoxLLx;
@@ -163,6 +181,11 @@ public class Font {
     }
 
 
+    public Font(PDF pdf, String fontName) throws Exception {
+        this(pdf, fontName, CodePage.UNICODE);
+    }
+
+
     /**
      *  Constructor for CJK - Chinese, Japanese and Korean fonts.
      *  Please see Example_04.
@@ -173,10 +196,7 @@ public class Font {
      */
     public Font(PDF pdf, String fontName, int codePage) throws Exception {
         this.name = fontName;
-        this.codePage = codePage;
         isCJK = true;
-        isStandard = false;
-        isComposite = true;
 
         firstChar = 0x0020;
         lastChar = 0xFFEE;
@@ -263,12 +283,14 @@ public class Font {
     }
 
 
-    // Constructor for the DejaVuLGCSerif.ttf font.
-    public Font(PDF pdf, InputStream inputStream) throws Exception {
-        this.isStandard = false;
-        this.isComposite = true;
-        this.codePage = CodePage.UNICODE;
-
+    // Constructor for the following fonts:
+    // DejaVuLGCSans-Bold.ttf.stream
+    // DejaVuLGCSans-Oblique.ttf.stream
+    // DejaVuLGCSans.ttf.stream
+    // DejaVuLGCSerif-Bold.ttf.stream
+    // DejaVuLGCSerif-Italic.ttf.stream
+    // DejaVuLGCSerif.ttf.stream
+    public Font(PDF pdf, InputStream inputStream, boolean flag) throws Exception {
         FastFont.register(pdf, this, inputStream);
 
         this.ascent = bBoxURy * size / unitsPerEm;
@@ -311,6 +333,16 @@ public class Font {
     }
 
 
+    public float getUnderlinePosition() {
+        return underlinePosition;
+    }
+
+
+    public float getUnderlineThickness() {
+        return underlineThickness;
+    }
+
+
     protected void setFontDescriptorObjNumber(int fontDescriptorObjNumber) {
         this.fontDescriptorObjNumber = fontDescriptorObjNumber;
     }
@@ -345,9 +377,10 @@ public class Font {
      *  Sets the size of this font.
      *
      *  @param fontSize specifies the size of this font.
+     *  @return the font.
      */
-    public void setSize(double fontSize) {
-        setSize((float) fontSize);
+    public Font setSize(double fontSize) {
+        return setSize((float) fontSize);
     }
 
 
@@ -355,19 +388,21 @@ public class Font {
      *  Sets the size of this font.
      *
      *  @param fontSize specifies the size of this font.
+     *  @return the font.
      */
-    public void setSize(float fontSize) {
+    public Font setSize(float fontSize) {
         size = fontSize;
         if (isCJK) {
             ascent = size;
             descent = -ascent/4;
-            return;
+            return this;
         }
         this.ascent = bBoxURy * size / unitsPerEm;
         this.descent = bBoxLLy * size / unitsPerEm;
         this.body_height = ascent - descent;
         this.underlineThickness = fontUnderlineThickness * size / unitsPerEm;
         this.underlinePosition = fontUnderlinePosition * size / -unitsPerEm + underlineThickness / 2.0f;
+        return this;
     }
 
 
@@ -401,7 +436,7 @@ public class Font {
      */
     public float stringWidth(String str) {
         if (str == null) {
-            return 0.0f;
+            return 0f;
         }
 
         if (isCJK) {
@@ -411,13 +446,14 @@ public class Font {
         int width = 0;
         for (int i = 0; i < str.length(); i++) {
             int c1 = str.charAt(i);
-            if (isStandard) {
+            if (isCoreFont) {
                 if (c1 < firstChar || c1 > lastChar) {
-                    c1 = mapUnicodeChar(c1);
+                    c1 = 0x20;
                 }
                 c1 -= 32;
+
                 width += metrics[c1][1];
-    
+
                 if (kernPairs && i < (str.length() - 1)) {
                     int c2 = str.charAt(i + 1);
                     if (c2 < firstChar || c2 > lastChar) {
@@ -435,41 +471,12 @@ public class Font {
                 if (c1 < firstChar || c1 > lastChar) {
                     width += advanceWidth[0];
                 } else {
-                    width += nonStandardFontGlyphWidth(c1);
+                    width += glyphWidth[c1];
                 }
             }
         }
 
         return width * size / unitsPerEm;
-    }
-
-
-    private int nonStandardFontGlyphWidth(int c1) {
-        int width = 0;
-
-        if (isComposite) {
-            width = glyphWidth[c1];
-        } else {
-            if (c1 < 127) {
-                width = glyphWidth[c1];
-            } else {
-                if (codePage == 0) {
-                    width = glyphWidth[CP1250.codes[c1 - 127]];
-                } else if (codePage == 1) {
-                    width = glyphWidth[CP1251.codes[c1 - 127]];
-                } else if (codePage == 2) {
-                    width = glyphWidth[CP1252.codes[c1 - 127]];
-                } else if (codePage == 3) {
-                    width = glyphWidth[CP1253.codes[c1 - 127]];
-                } else if (codePage == 4) {
-                    width = glyphWidth[CP1254.codes[c1 - 127]];
-                } else if (codePage == 7) {
-                    width = glyphWidth[CP1257.codes[c1 - 127]];
-                }
-            }
-        }
-
-        return width;
     }
 
 
@@ -542,20 +549,19 @@ public class Font {
             return (int) (w / ascent);
         }
 
-        if (isStandard) {
+        if (isCoreFont) {
             return getStandardFontFitChars(str, w);
         }
 
         int i;
         for (i = 0; i < str.length(); i++) {
-
             int c1 = str.charAt(i);
 
             if (c1 < firstChar || c1 > lastChar) {
                 w -= advanceWidth[0];
             }
             else {
-                w -= nonStandardFontGlyphWidth(c1);
+                w -= glyphWidth[c1];
             }
 
             if (w < 0) break;
@@ -589,7 +595,7 @@ public class Font {
                 if (c2 < firstChar || c2 > lastChar) {
                     c2 = 32;
                 }
-    
+
                 for (int j = 2; j < metrics[c1].length; j += 2) {
                     if (metrics[c1][j] == c2) {
                         w -= metrics[c1][j + 1];
@@ -608,41 +614,6 @@ public class Font {
     }
 
 
-    protected int mapUnicodeChar(int c1) {
-
-        int[] codes = null;
-
-        if (codePage == CodePage.CP1250) {
-            codes = CP1250.codes;
-        }
-        else if (codePage == CodePage.CP1251) {
-            codes = CP1251.codes;
-        }
-        else if (codePage == CodePage.CP1252) {
-            codes = CP1252.codes;
-        }
-        else if (codePage == CodePage.CP1253) {
-            codes = CP1253.codes;
-        }
-        else if (codePage == CodePage.CP1254) {
-            codes = CP1254.codes;
-        }
-        else if (codePage == CodePage.CP1257) {
-            codes = CP1257.codes;
-        }
-
-        if (codes != null) {
-            for (int i = 0; i < codes.length; i++) {
-                if (codes[i] == c1) {
-                    return 127 + i;
-                }
-            }
-        }
-
-        return 0x0020;
-    }
-
-
     /**
      * Sets the skew15 private variable.
      * When the variable is set to 'true' all glyphs in the font are skewed on 15 degrees.
@@ -650,7 +621,7 @@ public class Font {
      * Use this method when you don't have real italic font in the font family,
      * or when you want to generate smaller PDF files.
      * For example you could embed only the Regular and Bold fonts and synthesize the RegularItalic and BoldItalic.
-     * 
+     *
      * @param skew15 the skew flag.
      */
     public void setItalic(boolean skew15) {
@@ -660,42 +631,39 @@ public class Font {
 
     /**
      * Returns the width of a string drawn using two fonts.
-     * 
+     *
      * @param font2 the fallback font.
      * @param str the string.
      * @return the width.
      */
     public float stringWidth(Font font2, String str) {
+        if (font2 == null) {
+            return stringWidth(str);
+        }
         float width = 0f;
 
-        boolean usingFont1 = true;
+        Font activeFont = this;
         StringBuilder buf = new StringBuilder();
         for (int i = 0; i < str.length(); i++) {
             int ch = str.charAt(i);
             if ((isCJK && ch >= 0x4E00 && ch <= 0x9FCC)
                     || (!isCJK && unicodeToGID[ch] != 0)) {
-                if (!usingFont1) {
-                    width += font2.stringWidth(buf.toString());
-                    buf = new StringBuilder();
-                    usingFont1 = true;
+                if (this != activeFont) {
+                    width += activeFont.stringWidth(buf.toString());
+                    buf.setLength(0);
+                    activeFont = this;
                 }
             }
             else {
-                if (usingFont1) {
-                    width += stringWidth(buf.toString());
-                    buf = new StringBuilder();
-                    usingFont1 = false;
+                if (font2 != activeFont) {
+                    width += activeFont.stringWidth(buf.toString());
+                    buf.setLength(0);
+                    activeFont = font2;
                 }
             }
             buf.append((char) ch);
         }
-
-        if (usingFont1) {
-            width += stringWidth(buf.toString());
-        }
-        else {
-            width += font2.stringWidth(buf.toString());
-        }
+        width += activeFont.stringWidth(buf.toString());
 
         return width;
     }
