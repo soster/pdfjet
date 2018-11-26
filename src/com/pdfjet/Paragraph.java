@@ -1,9 +1,9 @@
 /**
  *  Paragraph.java
  *
- Copyright (c) 2015, Innovatics Inc.
- All rights reserved.
- */
+Copyright (c) 2018, Innovatics Inc.
+All rights reserved.
+*/
 
 package com.pdfjet;
 

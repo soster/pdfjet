@@ -1,16 +1,16 @@
 /**
  *
- Copyright (c) 2009 Kazuhiko Arase
+Copyright (c) 2009 Kazuhiko Arase
 
- URL: http://www.d-project.com/
+URL: http://www.d-project.com/
 
- Licensed under the MIT license:
- http://www.opensource.org/licenses/mit-license.php
+Licensed under the MIT license:
+  http://www.opensource.org/licenses/mit-license.php
 
- The word "QR Code" is registered trademark of
- DENSO WAVE INCORPORATED
- http://www.denso-wave.com/qrcode/faqpatent-e.html
- */
+The word "QR Code" is registered trademark of 
+DENSO WAVE INCORPORATED
+  http://www.denso-wave.com/qrcode/faqpatent-e.html
+*/
 
 package com.pdfjet;
 
@@ -61,14 +61,14 @@ class RSBlock {
 
     private static int[] getRsBlockTable(int errorCorrectLevel) {
         switch(errorCorrectLevel) {
-            case ErrorCorrectLevel.L :
-                return new int[] {1, 100, 80};
-            case ErrorCorrectLevel.M :
-                return new int[] {2, 50, 32};
-            case ErrorCorrectLevel.Q :
-                return new int[] {2, 50, 24};
-            case ErrorCorrectLevel.H :
-                return new int[] {4, 25, 9};
+        case ErrorCorrectLevel.L :
+            return new int[] {1, 100, 80};
+        case ErrorCorrectLevel.M :
+            return new int[] {2, 50, 32};
+        case ErrorCorrectLevel.Q :
+            return new int[] {2, 50, 24};
+        case ErrorCorrectLevel.H :
+            return new int[] {4, 25, 9};
         }
         return null;
     }

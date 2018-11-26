@@ -1,7 +1,7 @@
 /**
  *  Bookmark.java
  *
-Copyright (c) 2015, Innovatics Inc.
+Copyright (c) 2018, Innovatics Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,
@@ -148,7 +148,7 @@ public class Bookmark {
     protected List<Bookmark> toArrayList() {
         int objNumber = 0;
         List<Bookmark> list = new ArrayList<Bookmark>();
-        Queue<Bookmark> queue = new LinkedList<Bookmark>();
+        Queue<Bookmark> queue = new java.util.LinkedList<Bookmark>();
         queue.add(this);
         while (!queue.isEmpty()) {
             Bookmark bm = queue.poll();

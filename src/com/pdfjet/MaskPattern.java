@@ -1,16 +1,16 @@
 /**
  *
- Copyright (c) 2009 Kazuhiko Arase
+Copyright (c) 2009 Kazuhiko Arase
 
- URL: http://www.d-project.com/
+URL: http://www.d-project.com/
 
- Licensed under the MIT license:
- http://www.opensource.org/licenses/mit-license.php
+Licensed under the MIT license:
+  http://www.opensource.org/licenses/mit-license.php
 
- The word "QR Code" is registered trademark of
- DENSO WAVE INCORPORATED
- http://www.denso-wave.com/qrcode/faqpatent-e.html
- */
+The word "QR Code" is registered trademark of 
+DENSO WAVE INCORPORATED
+  http://www.denso-wave.com/qrcode/faqpatent-e.html
+*/
 
 package com.pdfjet;
 

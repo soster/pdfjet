@@ -1,31 +1,31 @@
 /**
  *  Table.java
  *
- Copyright (c) 2015, Innovatics Inc.
- All rights reserved.
+Copyright (c) 2018, Innovatics Inc.
+All rights reserved.
 
- Redistribution and use in source and binary forms, with or without modification,
- are permitted provided that the following conditions are met:
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
 
- * Redistributions of source code must retain the above copyright notice,
- this list of conditions and the following disclaimer.
+    * Redistributions of source code must retain the above copyright notice,
+      this list of conditions and the following disclaimer.
 
- * Redistributions in binary form must reproduce the above copyright notice,
- this list of conditions and the following disclaimer in the documentation
- and / or other materials provided with the distribution.
+    * Redistributions in binary form must reproduce the above copyright notice,
+      this list of conditions and the following disclaimer in the documentation
+      and / or other materials provided with the distribution.
 
- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
- CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
- PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
- LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
 
 package com.pdfjet;
 
@@ -606,6 +606,15 @@ public class Table {
 
 
     /**
+     *  Just calls the wrapAroundCellText method.
+     */
+    @Deprecated
+    public void wrapAroundCellText2() {
+        wrapAroundCellText();
+    }
+
+
+    /**
      *  Wraps around the text in all cells so it fits the column width.
      *  This method should be called after all calls to setColumnWidth and autoAdjustColumnWidths.
      *
@@ -653,6 +662,7 @@ public class Table {
                     cell2.setBrushColor(cell.getBrushColor());
                     cell2.setProperties(cell.getProperties());
                     cell2.setVerTextAlignment(cell.getVerTextAlignment());
+                    cell2.setIgnoreImageHeight(cell.getIgnoreImageHeight());
 
                     if (j == 0) {
                         cell2.setImage(cell.getImage());
@@ -775,102 +785,35 @@ public class Table {
     }
 
 
-    public void wrapAroundCellText2() {
-        List<List<Cell>> tableData2 = new ArrayList<List<Cell>>();
-
+    /**
+     * This method removes borders that have the same color and overlap 100%.
+     * The result is improved onscreen rendering of thin border lines by some PDF viewers.
+     */
+    public void mergeOverlaidBorders() {
         for (int i = 0; i < tableData.size(); i++) {
-            List<Cell> row = tableData.get(i);
-            int maxNumVerCells = 1;
-            for (int j = 0; j < row.size(); j++) {
-                Cell cell = row.get(j);
-                int colspan = cell.getColSpan();
-                for (int n = 1; n < colspan; n++) {
-                    Cell next = row.get(j + n);
-                    cell.setWidth(cell.getWidth() + next.getWidth());
-                    next.setWidth(0f);
+            List<Cell> currentRow = tableData.get(i);
+            for (int j = 0; j < currentRow.size(); j++) {
+                Cell currentCell = currentRow.get(j);
+                if (j < currentRow.size() - 1) {
+                    Cell cellAtRight = currentRow.get(j + 1);
+                    if (cellAtRight.getBorder(Border.LEFT) &&
+                            currentCell.getPenColor() == cellAtRight.getPenColor() &&
+                            currentCell.getLineWidth() == cellAtRight.getLineWidth() &&
+                            (currentCell.getColSpan() + j) < (currentRow.size() - 1)) {
+                        currentCell.setBorder(Border.RIGHT, false);
+                    }
                 }
-                int numVerCells = cell.getNumVerCells2();
-                if (numVerCells > maxNumVerCells) {
-                    maxNumVerCells = numVerCells;
-                }
-            }
-
-            for (int j = 0; j < maxNumVerCells; j++) {
-                List<Cell> row2 = new ArrayList<Cell>();
-                for (int k = 0; k < row.size(); k++) {
-                    Cell cell = row.get(k);
-
-                    Cell cell2 = new Cell(cell.getFont(), "");
-                    cell2.setFallbackFont(cell.getFallbackFont());
-                    cell2.setPoint(cell.getPoint());
-                    cell2.setWidth(cell.getWidth());
-                    if (j == 0) {
-                        cell2.setTopPadding(cell.top_padding);
+                if (i < tableData.size() - 1) {
+                    List<Cell> nextRow = tableData.get(i + 1);
+                    Cell cellBelow = nextRow.get(j);
+                    if (cellBelow.getBorder(Border.TOP) &&
+                            currentCell.getPenColor() == cellBelow.getPenColor() &&
+                            currentCell.getLineWidth() == cellBelow.getLineWidth()) {
+                        currentCell.setBorder(Border.BOTTOM, false);
                     }
-                    if (j == (maxNumVerCells - 1)) {
-                        cell2.setBottomPadding(cell.bottom_padding);
-                    }
-                    cell2.setLeftPadding(cell.left_padding);
-                    cell2.setRightPadding(cell.right_padding);
-                    cell2.setLineWidth(cell.lineWidth);
-                    cell2.setBgColor(cell.getBgColor());
-                    cell2.setPenColor(cell.getPenColor());
-                    cell2.setBrushColor(cell.getBrushColor());
-                    cell2.setProperties(cell.getProperties());
-                    cell2.setVerTextAlignment(cell.getVerTextAlignment());
-
-                    if (j == 0) {
-                        cell2.setImage(cell.getImage());
-                        if (cell.getCompositeTextLine() != null) {
-                            cell2.setCompositeTextLine(cell.getCompositeTextLine());
-                        }
-                        else {
-                            cell2.setText(cell.getText());
-                        }
-                        if (maxNumVerCells > 1) {
-                            cell2.setBorder(Border.BOTTOM, false);
-                        }
-                    }
-                    else  {
-                        cell2.setBorder(Border.TOP, false);
-                        if (j < (maxNumVerCells - 1)) {
-                            cell2.setBorder(Border.BOTTOM, false);
-                        }
-                    }
-                    row2.add(cell2);
-                }
-                tableData2.add(row2);
-            }
-        }
-
-        for (int i = 0; i < tableData2.size(); i++) {
-            List<Cell> row = tableData2.get(i);
-            for (int j = 0; j < row.size(); j++) {
-                Cell cell = row.get(j);
-                if (cell.text != null) {
-                    String text = cell.text;
-                    int n = 0;
-                    StringBuilder sb = new StringBuilder();
-                    for (int k = 0; k < text.length(); k++) {
-                        String str = new String(
-                                new char[] { text.charAt(k) });
-                        if (cell.font.stringWidth(cell.fallbackFont, sb.toString() + str) >
-                                (cell.getWidth() - (cell.left_padding + cell.right_padding))) {
-                            tableData2.get(i + n).get(j).setText(sb.toString());
-                            n++;
-                            sb.setLength(0);
-                        }
-                        sb.append(str);
-                    }
-                    tableData2.get(i + n).get(j).setText(sb.toString());
-                }
-                else {
-                    tableData2.get(i).get(j).setCompositeTextLine(cell.getCompositeTextLine());
                 }
             }
         }
-
-        tableData = tableData2;
     }
 
-}
+}   // End of Table.java

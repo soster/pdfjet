@@ -7,9 +7,9 @@ public class GraphicsState {
     private float CA = 1f;
     private float ca = 1f;
 
-    public void set_CA(float paramFloat) {
-        if ((paramFloat >= 0.0F) && (paramFloat <= 1.0F)) {
-            this.CA = paramFloat;
+    public void set_CA(float CA) {
+        if (CA >= 0f && CA <= 1f) {
+            this.CA = CA;
         }
     }
 
@@ -17,15 +17,14 @@ public class GraphicsState {
         return this.CA;
     }
 
-    public void set_ca(float paramFloat) {
-        if ((paramFloat >= 0.0F) && (paramFloat <= 1.0F)) {
-            this.ca = paramFloat;
+    public void set_ca(float ca) {
+        if (ca >= 0f && ca <= 1f) {
+            this.ca = ca;
         }
     }
 
     public float get_ca() {
         return this.ca;
     }
+
 }
-
-

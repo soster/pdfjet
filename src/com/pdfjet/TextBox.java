@@ -1,31 +1,31 @@
 /**
  *  TextBox.java
  *
- Copyright (c) 2016, Innovatics Inc.
- All rights reserved.
+Copyright (c) 2018, Innovatics Inc.
+All rights reserved.
 
- Redistribution and use in source and binary forms, with or without modification,
- are permitted provided that the following conditions are met:
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
 
- * Redistributions of source code must retain the above copyright notice,
- this list of conditions and the following disclaimer.
+    * Redistributions of source code must retain the above copyright notice,
+      this list of conditions and the following disclaimer.
 
- * Redistributions in binary form must reproduce the above copyright notice,
- this list of conditions and the following disclaimer in the documentation
- and / or other materials provided with the distribution.
+    * Redistributions in binary form must reproduce the above copyright notice,
+      this list of conditions and the following disclaimer in the documentation
+      and / or other materials provided with the distribution.
 
- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
- CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
- PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
- LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
 package com.pdfjet;
 
 import java.util.*;
@@ -61,7 +61,7 @@ public class TextBox implements Drawable {
     protected float margin = 1f;
     private float lineWidth = 0f;
 
-    private int background = Color.white;
+    private int background = Color.transparent;
     private int pen = Color.black;
     private int brush = Color.black;
     private int valign = 0;
@@ -746,68 +746,35 @@ public class TextBox implements Drawable {
 
     private float[] drawTextAndBorders(Page page, boolean draw) throws Exception {
 
-        if (draw) {
-            if (getBgColor() != Color.white) {
-                drawBackground(page);
-            }
-
-            page.setPenColor(this.pen);
-            page.setBrushColor(this.brush);
-            page.setPenWidth(this.font.underlineThickness);
-        }
-
-        float textAreaWidth = width - 2*margin;
+        float textAreaWidth = width - (font.stringWidth("w") + 2*margin);
         List<String> list = new ArrayList<String>();
         StringBuilder buf = new StringBuilder();
         String[] lines = text.split("\\r?\\n");
         for (int i = 0; i < lines.length; i++) {
             String line = lines[i];
-/*
             if (font.stringWidth(line) < textAreaWidth) {
                 list.add(line);
             }
             else {
-                buf.setLength(0);
-                String[] tokens = line.split("\\s+");
-                for (String token : tokens) {
-                    if (font.stringWidth(buf.toString() + " " + token) < textAreaWidth) {
-                        buf.append(" " + token);
-                    }
-                    else {
-                        list.add(buf.toString().trim());
-                        buf.setLength(0);
-                        buf.append(token);
-                    }
-                }
-                if (!buf.toString().trim().equals("")) {
-                    list.add(buf.toString().trim());
-                }
-            }
-*/
-            String spaces = "  ";
-            if (font.stringWidth(line) < (textAreaWidth - font.stringWidth(spaces))) {
-                list.add(line);
-            }
-            else {
+                String str = null;
                 buf.setLength(0);
                 for (int j = 0; j < line.length(); j++) {
                     buf.append(line.charAt(j));
-                    if (font.stringWidth(buf.toString()) >= (textAreaWidth - font.stringWidth(spaces))) {
-                        while (j > 0 && line.charAt(j) != ' ') {
-                            j -= 1;
+                    str = buf.toString();
+                    if (font.stringWidth(str) > textAreaWidth) {
+                        if ((str.charAt(str.length() - 1) == ' ') ||
+                                str.split("\\s+").length <= 1) {
+                            list.add(str);
                         }
-                        String str = line.substring(0, j).replaceAll("\\s+$", "");
-                        list.add(str);
+                        else {
+                            list.add(str.substring(0, str.lastIndexOf(' ')));
+                            while (line.charAt(j) != ' ') { j -= 1; }
+                        }
                         buf.setLength(0);
-                        while (j < line.length() && line.charAt(j) == ' ') {
-                            j += 1;
-                        }
-                        line = line.substring(j);
-                        j = 0;
                     }
                 }
-                if (!line.equals("")) {
-                    list.add(line);
+                if (!str.equals("")) {
+                    list.add(str);
                 }
             }
         }
@@ -816,6 +783,16 @@ public class TextBox implements Drawable {
         float lineHeight = font.getBodyHeight() + spacing;
         float x_text;
         float y_text = y + font.ascent + margin;
+
+        if (draw) {
+            if (getBgColor() != Color.transparent) {
+                this.height = lines.length * lineHeight;
+                drawBackground(page);
+            }
+            page.setPenColor(this.pen);
+            page.setBrushColor(this.brush);
+            page.setPenWidth(this.font.underlineThickness);
+        }
 
         if (height > 0f) {
 

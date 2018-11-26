@@ -1,31 +1,31 @@
 /**
  *  TextFrame.java
  *
- Copyright (c) 2015, Innovatics Inc.
- All rights reserved.
+Copyright (c) 2018, Innovatics Inc.
+All rights reserved.
 
- Redistribution and use in source and binary forms, with or without modification,
- are permitted provided that the following conditions are met:
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
 
- * Redistributions of source code must retain the above copyright notice,
- this list of conditions and the following disclaimer.
+    * Redistributions of source code must retain the above copyright notice,
+      this list of conditions and the following disclaimer.
+ 
+    * Redistributions in binary form must reproduce the above copyright notice,
+      this list of conditions and the following disclaimer in the documentation
+      and / or other materials provided with the distribution.
 
- * Redistributions in binary form must reproduce the above copyright notice,
- this list of conditions and the following disclaimer in the documentation
- and / or other materials provided with the distribution.
-
- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
- CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
- PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
- LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
 
 package com.pdfjet;
 
@@ -136,6 +136,7 @@ public class TextFrame {
             StringBuilder buf = new StringBuilder();
             for (TextLine textLine : paragraph.list) {
                 buf.append(textLine.getText());
+                buf.append(Single.space);
             }
 
             int numOfTextLines = paragraph.list.size();
@@ -149,18 +150,19 @@ public class TextFrame {
 
                 TextLine textLine2 = drawTextLine(
                         page, x_text, y_text, textLine1, draw);
-
-                if (textLine2.getText() != null) {
+                if (!textLine2.getText().equals("")) {
                     List<Paragraph> theRest = new ArrayList<Paragraph>();
                     Paragraph paragraph2 = new Paragraph(textLine2);
                     j++;
-                    for (; j < numOfTextLines; j++) {
+                    while (j < numOfTextLines) {
                         paragraph2.add(paragraph.list.get(j));
+                        j++;
                     }
                     theRest.add(paragraph2);
                     i++;
-                    for (; i < paragraphs.size(); i++) {
+                    while (i < paragraphs.size()) {
                         theRest.add(paragraphs.get(i));
+                        i++;
                     }
                     return new TextFrame(theRest);
                 }
@@ -180,7 +182,6 @@ public class TextFrame {
 
         TextFrame textFrame = new TextFrame(null);
         textFrame.setLocation(x_text, y_text + font.getDescent());
-
         return textFrame;
     }
 
@@ -193,7 +194,6 @@ public class TextFrame {
             boolean draw) throws Exception {
 
         TextLine textLine2 = null;
-
         Font font = textLine.getFont();
         Font fallbackFont = textLine.getFallbackFont();
         int color = textLine.getColor();
@@ -229,9 +229,10 @@ public class TextFrame {
 
                 if (y_text + font.getDescent() > (y + h)) {
                     i++;
-                    for (; i < tokens.length; i++) {
+                    while (i < tokens.length) {
                         buf.append(Single.space);
                         buf.append(tokens[i]);
+                        i++;
                     }
                     textLine2 = new TextLine(font, buf.toString());
                     textLine2.setLocation(x, y_text);
@@ -254,9 +255,9 @@ public class TextFrame {
             firstTextSegment = false;
         }
 
-        textLine2 = new TextLine(font, null);
+        textLine2 = new TextLine(font, "");
         textLine2.setLocation(x_text, y_text);
         return textLine2;
     }
 
-}
+}   // End of TextFrame.java

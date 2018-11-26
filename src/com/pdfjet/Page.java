@@ -1,38 +1,38 @@
 /**
  *  Page.java
  *
- Copyright (c) 2016, Innovatics Inc.
- All rights reserved.
+Copyright (c) 2018, Innovatics Inc.
+All rights reserved.
 
- Redistribution and use in source and binary forms, with or without modification,
- are permitted provided that the following conditions are met:
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
 
- * Redistributions of source code must retain the above copyright notice,
- this list of conditions and the following disclaimer.
+    * Redistributions of source code must retain the above copyright notice,
+      this list of conditions and the following disclaimer.
 
- * Redistributions in binary form must reproduce the above copyright notice,
- this list of conditions and the following disclaimer in the documentation
- and / or other materials provided with the distribution.
+    * Redistributions in binary form must reproduce the above copyright notice,
+      this list of conditions and the following disclaimer in the documentation
+      and / or other materials provided with the distribution.
 
- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
- CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
- PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
- LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
 package com.pdfjet;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.io.*;
+import java.text.*;
+import java.util.*;
+
 
 /**
  *  Used to create PDF page objects.
@@ -46,12 +46,12 @@ import java.util.Map;
  *
  */
 public class Page {
+
     protected PDF pdf;
-    protected Map<Integer, PDFobj> objects;
     protected PDFobj pageObj;
     protected int objNumber;
     protected ByteArrayOutputStream buf;
-    protected float[] tm = {1.0F, 0.0F, 0.0F, 1.0F};
+    protected float[] tm = new float[] {1f, 0f, 0f, 1f};
     protected int renderingMode = 0;
     protected float width;
     protected float height;
@@ -62,19 +62,29 @@ public class Page {
     protected float[] bleedBox = null;
     protected float[] trimBox = null;
     protected float[] artBox = null;
-    protected List<StructElem> structures = new ArrayList();
+    protected List<StructElem> structures = new ArrayList<StructElem>();
 
-    private float[] pen = {0.0F, 0.0F, 0.0F};
-    private float[] brush = {0.0F, 0.0F, 0.0F};
-    private float pen_width = -1.0F;
+    private float[] pen = {0f, 0f, 0f};
+    private float[] brush = {0f, 0f, 0f};
+    private float pen_width = -1.0f;
     private int line_cap_style = 0;
     private int line_join_style = 0;
     private String linePattern = "[] 0";
     private Font font;
-    private List<State> savedStates = new ArrayList();
+    private List<State> savedStates = new ArrayList<State>();
     private int mcid = 0;
 
-    protected float savedHeight = 0;
+    protected float savedHeight = Float.MAX_VALUE;
+
+    /*
+     * From Androids Matrix object:
+     */
+    public static final int MSCALE_X = 0;
+    public static final int MSKEW_X  = 1;
+    public static final int MTRANS_X = 2;
+    public static final int MSKEW_Y  = 3;
+    public static final int MSCALE_Y = 4;
+    public static final int MTRANS_Y = 5;
 
 
     /**
@@ -117,28 +127,45 @@ public class Page {
         width = pageSize[0];
         height = pageSize[1];
         buf = new ByteArrayOutputStream(8192);
-
         if (addPageToPDF) {
             pdf.addPage(this);
         }
     }
 
 
-    public Page(PDF pdf, Map<Integer, PDFobj> objects, PDFobj pageObj) throws Exception {
+    public Page(PDF pdf, PDFobj pageObj) throws Exception {
         this.pdf = pdf;
-        this.objects = objects;
         this.pageObj = pageObj;
         width = pageObj.getPageSize()[0];
         height = pageObj.getPageSize()[1];
         buf = new ByteArrayOutputStream(8192);
+        append("Q\n");
+        append("q\n");
+        if (pageObj.gsNumber != -1) {
+            append("/GS");
+            append(pageObj.gsNumber + 1);
+            append(" gs\n");
+        }
     }
 
-    public Font addFontResource(CoreFont coreFont) {
-        return pageObj.addFontResource(coreFont, objects);
+
+    public Font addResource(CoreFont coreFont, Map<Integer, PDFobj> objects) {
+        return pageObj.addResource(coreFont, objects);
     }
 
 
-    public void complete() {
+    public void addResource(Image image, Map<Integer, PDFobj> objects) {
+        pageObj.addResource(image, objects);
+    }
+
+
+    public void addResource(Font font, Map<Integer, PDFobj> objects) {
+        pageObj.addResource(font, objects);
+    }
+
+
+    public void complete(Map<Integer, PDFobj> objects) throws Exception {
+        append("Q\n");
         pageObj.addContent(getContent(), objects);
     }
 
@@ -146,6 +173,7 @@ public class Page {
     public byte[] getContent() {
         return buf.toByteArray();
     }
+
 
     /**
      *  Adds destination to this page.
@@ -217,6 +245,7 @@ public class Page {
         strokePath();
     }
 
+
     /**
      *  Draws the text given by the specified string,
      *  using the specified main font and the current brush color.
@@ -225,53 +254,86 @@ public class Page {
      *
      *  @param font1 the main font.
      *  @param font2 the fallback font.
-     *  @param text the string to be drawn.
+     *  @param str the string to be drawn.
      *  @param x the x coordinate.
      *  @param y the y coordinate.
      */
-    public void drawString(Font font1, Font font2, String text, float x, float y)
-            throws IOException {
+    public void drawString(
+            Font font1,
+            Font font2,
+            String str,
+            float x,
+            float y) throws IOException {
         if (font2 == null) {
-            drawString(font1, text, x, y);
-        } else {
-            Font localFont = font1;
-            StringBuilder localStringBuilder = new StringBuilder();
-            for (int i = 0; i < text.length(); i++) {
-                int j = text.charAt(i);
-                String str;
-                if (((font1.isCJK) && (j >= 19968) && (j <= 40908)) || ((!font1.isCJK) && (font1.unicodeToGID[j] != 0))) {
-                    if (font1 != localFont) {
-                        str = localStringBuilder.toString();
-                        drawString(localFont, str, x, y);
-                        x += localFont.stringWidth(str);
-                        localStringBuilder.setLength(0);
-                        localFont = font1;
+            drawString(font1, str, x, y);
+        }
+        else {
+            Font activeFont = font1;
+            StringBuilder buf = new StringBuilder();
+            for (int i = 0; i < str.length(); i++) {
+                int ch = str.charAt(i);
+                if ((font1.isCJK && ch >= 0x4E00 && ch <= 0x9FCC)
+                        || (!font1.isCJK && font1.unicodeToGID[ch] != 0)) {
+                    if (font1 != activeFont) {
+                        String str2 = buf.toString();
+                        drawString(activeFont, str2, x, y);
+                        x += activeFont.stringWidth(str2);
+                        buf.setLength(0);
+                        activeFont = font1;
                     }
-
-                } else if (font2 != localFont) {
-                    str = localStringBuilder.toString();
-                    drawString(localFont, str, x, y);
-                    x += localFont.stringWidth(str);
-                    localStringBuilder.setLength(0);
-                    localFont = font2;
                 }
-
-                localStringBuilder.append((char) j);
+                else {
+                    if (font2 != activeFont) {
+                        String str2 = buf.toString();
+                        drawString(activeFont, str2, x, y);
+                        x += activeFont.stringWidth(str2);
+                        buf.setLength(0);
+                        activeFont = font2;
+                    }
+                }
+                buf.append((char) ch);
             }
-            drawString(localFont, localStringBuilder.toString(), x, y);
+            drawString(activeFont, buf.toString(), x, y);
         }
     }
 
 
-    public void drawString(Font font, String str, double x, double y)
-            throws IOException {
+    /**
+     *  Draws the text given by the specified string,
+     *  using the specified font and the current brush color.
+     *  The baseline of the leftmost character is at position (x, y) on the page.
+     *
+     *  @param font the font to use.
+     *  @param str the string to be drawn.
+     *  @param x the x coordinate.
+     *  @param y the y coordinate.
+     */
+    public void drawString(
+            Font font,
+            String str,
+            double x,
+            double y) throws IOException {
         drawString(font, str, (float) x, (float) y);
     }
 
 
-    public void drawString(Font font, String text, float x, float y)
-            throws IOException {
-        if ((text == null) || (text.equals(""))) {
+    /**
+     *  Draws the text given by the specified string,
+     *  using the specified font and the current brush color.
+     *  The baseline of the leftmost character is at position (x, y) on the page.
+     *
+     *  @param font the font to use.
+     *  @param str the string to be drawn.
+     *  @param x the x coordinate.
+     *  @param y the y coordinate.
+     */
+    public void drawString(
+            Font font,
+            String str,
+            float x,
+            float y) throws IOException {
+
+        if (str == null || str.equals("")) {
             return;
         }
 
@@ -279,7 +341,8 @@ public class Page {
 
         if (font.fontID == null) {
             setTextFont(font);
-        } else {
+        }
+        else {
             append('/');
             append(font.fontID);
             append(' ');
@@ -287,67 +350,72 @@ public class Page {
             append(" Tf\n");
         }
 
-        if (this.renderingMode != 0) {
-            append(this.renderingMode);
+        if (renderingMode != 0) {
+            append(renderingMode);
             append(" Tr\n");
         }
 
-        float f = 0.0F;
-        if ((font.skew15) && (this.tm[0] == 1.0F) && (this.tm[1] == 0.0F) && (this.tm[2] == 0.0F) && (this.tm[3] == 1.0F)) {
-
-
-            f = 0.26F;
+        float skew = 0f;
+        if (font.skew15 &&
+                tm[0] == 1f &&
+                tm[1] == 0f &&
+                tm[2] == 0f &&
+                tm[3] == 1f) {
+            skew = 0.26f;
         }
 
-        append(this.tm[0]);
+        append(tm[0]);
         append(' ');
-        append(this.tm[1]);
+        append(tm[1]);
         append(' ');
-        append(this.tm[2] + f);
+        append(tm[2] + skew);
         append(' ');
-        append(this.tm[3]);
+        append(tm[3]);
         append(' ');
         append(x);
         append(' ');
-        append(this.height - y);
+        append(height - y);
         append(" Tm\n");
 
         append("[<");
-        drawString(font, text);
+        drawString(font, str);
         append(">] TJ\n");
 
         append("ET\n");
     }
 
-    private void drawString(Font font, String text) throws IOException {
-        int i = text.length();
-        for (int j = 0; j < i; j++) {
+
+    private void drawString(Font font, String str) throws IOException {
+        int len = str.length();
+        for (int i = 0; i < len; i++) {
             if (font.isCoreFont) {
-                drawOneByteChar(text.charAt(j), font, text, j);
-            } else {
-                drawTwoByteChar(text.charAt(j), font);
+                drawOneByteChar(str.charAt(i), font, str, i);
+            }
+            else {
+                drawTwoByteChar(str.charAt(i), font);
             }
         }
     }
 
-    private void drawOneByteChar(int c1, Font font, String text, int iv)
-            throws IOException {
-        if ((c1 < font.firstChar) || (c1 > font.lastChar)) {
-            append(String.format("%02X", new Object[]{Integer.valueOf(32)}));
+
+    private void drawOneByteChar(
+            int c1, Font font, String str, int i) throws IOException {
+        if (c1 < font.firstChar || c1 > font.lastChar) {
+            append(String.format("%02X", 0x20));
             return;
         }
-        append(String.format("%02X", new Object[]{Integer.valueOf(c1)}));
+        append(String.format("%02X", c1));
 
-        if ((font.isCoreFont) && (font.kernPairs) && (iv < text.length() - 1)) {
+        if (font.isCoreFont && font.kernPairs && i < (str.length() - 1)) {
             c1 -= 32;
-            int i = text.charAt(iv + 1);
-            if ((i < font.firstChar) || (i > font.lastChar)) {
-                i = 32;
+            int c2 = str.charAt(i + 1);
+            if (c2 < font.firstChar || c2 > font.lastChar) {
+                c2 = 32;
             }
             for (int j = 2; j < font.metrics[c1].length; j += 2) {
-                if (font.metrics[c1][j] == i) {
+                if (font.metrics[c1][j] == c2) {
                     append(">");
-                    append(-font.metrics[c1][(j + 1)]);
+                    append(-font.metrics[c1][j + 1]);
                     append("<");
                     break;
                 }
@@ -355,68 +423,52 @@ public class Page {
         }
     }
 
+
     private void drawTwoByteChar(int c1, Font font) throws IOException {
-        if ((c1 < font.firstChar) || (c1 > font.lastChar)) {
+        if (c1 < font.firstChar || c1 > font.lastChar) {
             if (font.isCJK) {
-                append(String.format("%04X", new Object[]{Integer.valueOf(32)}));
-            } else {
-                append(String.format("%04X", new Object[]{Integer.valueOf(font.unicodeToGID[32])}));
+                append(String.format("%04X", 0x0020));
             }
-
-        } else if (font.isCJK) {
-            append(String.format("%04X", new Object[]{Integer.valueOf(c1)}));
-        } else {
-            append(String.format("%04X", new Object[]{Integer.valueOf(font.unicodeToGID[c1])}));
+            else {
+                append(String.format("%04X", font.unicodeToGID[0x0020]));
+            }
+        }
+        else {
+            if (font.isCJK) {
+                append(String.format("%04X", c1));
+            }
+            else {
+                append(String.format("%04X", font.unicodeToGID[c1]));
+            }
         }
     }
 
 
-    public void setGraphicsState(GraphicsState gs)
-            throws IOException {
-        StringBuilder localStringBuilder = new StringBuilder();
-        localStringBuilder.append("/CA ");
-        localStringBuilder.append(gs.get_CA());
-        localStringBuilder.append(" ");
-        localStringBuilder.append("/ca ");
-        localStringBuilder.append(gs.get_ca());
-        setGraphicsState(localStringBuilder.toString());
+    /**
+     *  Sets the graphics state. Please see Example_31.
+     *
+     *  @param gs the graphics state to use.
+     */
+    public void setGraphicsState(GraphicsState gs) throws IOException {
+        StringBuilder buf = new StringBuilder();
+        buf.append("/CA ");
+        buf.append(gs.get_CA());
+        buf.append(" ");
+        buf.append("/ca ");
+        buf.append(gs.get_ca());
+        setGraphicsState(buf.toString());
     }
 
-    private void setGraphicsState(String gs)
-            throws IOException {
-        //FIXME
-        if (this.pdf == null)
-            return;
-        Integer localInteger = (Integer) this.pdf.states.get(gs);
-        if (localInteger == null) {
-            localInteger = Integer.valueOf(this.pdf.states.size() + 1);
-            this.pdf.states.put(gs, localInteger);
-        }
-        append("/GS");
-        append(localInteger.intValue());
-        append(" gs\n");
-    }
 
-    public void setGraphicsState(GraphicsState gs, PDF pdf)
-            throws IOException {
-        StringBuilder localStringBuilder = new StringBuilder();
-        localStringBuilder.append("/CA ");
-        localStringBuilder.append(gs.get_CA());
-        localStringBuilder.append(" ");
-        localStringBuilder.append("/ca ");
-        localStringBuilder.append(gs.get_ca());
-        setGraphicsState(localStringBuilder.toString(), pdf);
-    }
-
-    private void setGraphicsState(String gs, PDF pdf)
-            throws IOException {
-        Integer localInteger = (Integer) pdf.states.get(gs);
-        if (localInteger == null) {
-            localInteger = Integer.valueOf(pdf.states.size() + 1);
-            pdf.states.put(gs, localInteger);
+    // String state = "/CA 0.5 /ca 0.5";
+    private void setGraphicsState(String state) throws IOException {
+        Integer n = pdf.states.get(state);
+        if (n == null) {
+            n = pdf.states.size() + 1;
+            pdf.states.put(state, n);
         }
         append("/GS");
-        append(localInteger.intValue());
+        append(n);
         append(" gs\n");
     }
 
@@ -531,9 +583,9 @@ public class Page {
      * @throws IOException
      */
     public void setPenColor(int color) throws IOException {
-        float r = ((color >> 16) & 0xff)/255.0f;
-        float g = ((color >>  8) & 0xff)/255.0f;
-        float b = ((color)       & 0xff)/255.0f;
+        float r = ((color >> 16) & 0xff)/255f;
+        float g = ((color >>  8) & 0xff)/255f;
+        float b = ((color)       & 0xff)/255f;
         setPenColor(r, g, b);
     }
 
@@ -545,24 +597,25 @@ public class Page {
      * @throws IOException
      */
     public void setBrushColor(int color) throws IOException {
-        float r = ((color >> 16) & 0xff)/255.0f;
-        float g = ((color >>  8) & 0xff)/255.0f;
-        float b = ((color)       & 0xff)/255.0f;
+        float r = ((color >> 16) & 0xff)/255f;
+        float g = ((color >>  8) & 0xff)/255f;
+        float b = ((color)       & 0xff)/255f;
         setBrushColor(r, g, b);
     }
+
 
     /**
      *  Sets the line width to the default.
      *  The default is the finest line width.
      */
-    public void setDefaultLineWidth()
-            throws IOException {
-        if (this.pen_width != 0.0F) {
-            this.pen_width = 0.0F;
-            append(this.pen_width);
+    public void setDefaultLineWidth() throws IOException {
+        if (pen_width != 0f) {
+            pen_width = 0f;
+            append(pen_width);
             append(" w\n");
         }
     }
+
 
     /**
      *  The line dash pattern controls the pattern of dashes and gaps used to stroke paths.
@@ -587,20 +640,19 @@ public class Page {
      *
      *  @param pattern the line dash pattern.
      */
-    public void setLinePattern(String pattern)
-            throws IOException {
-        if (!pattern.equals(this.linePattern)) {
-            this.linePattern = pattern;
-            append(this.linePattern);
+    public void setLinePattern(String pattern) throws IOException {
+        if (!pattern.equals(linePattern)) {
+            linePattern = pattern;
+            append(linePattern);
             append(" d\n");
         }
     }
 
+
     /**
      *  Sets the default line dash pattern - solid line.
      */
-    public void setDefaultLinePattern()
-            throws IOException {
+    public void setDefaultLinePattern() throws IOException {
         append("[] 0");
         append(" d\n");
     }
@@ -706,20 +758,26 @@ public class Page {
     }
 
 
-    public void strokePath()
-            throws IOException {
+    /**
+     *  Draws the path using the current pen color.
+     */
+    public void strokePath() throws IOException {
         append("S\n");
     }
 
 
-    public void closePath()
-            throws IOException {
+    /**
+     *  Closes the path and draws it using the current pen color.
+     */
+    public void closePath() throws IOException {
         append("s\n");
     }
 
 
-    public void fillPath()
-            throws IOException {
+    /**
+     *  Closes and fills the path with the current brush color.
+     */
+    public void fillPath() throws IOException {
         append("f\n");
     }
 
@@ -800,30 +858,38 @@ public class Page {
     }
 
 
-    public void drawPath(List<Point> path, char operation)
-            throws Exception {
+    /**
+     *  Draws or fills the specified path using the current pen or brush.
+     *
+     *  @param path the path.
+     *  @param operation specifies 'stroke' or 'fill' operation.
+     */
+    public void drawPath(
+            List<Point> path, char operation) throws Exception {
         if (path.size() < 2) {
-            throw new Exception("The Path object must contain at least 2 points");
+            throw new Exception(
+                    "The Path object must contain at least 2 points");
         }
-
-        Point localPoint = (Point) path.get(0);
-        moveTo(localPoint.x, localPoint.y);
-        int i = 0;
-        for (int j = 1; j < path.size(); j++) {
-            localPoint = (Point) path.get(j);
-            if (localPoint.isControlPoint) {
-                i = 1;
-                append(localPoint);
-
-            } else if (i != 0) {
-                i = 0;
-                append(localPoint);
-                append("c\n");
-            } else {
-                lineTo(localPoint.x, localPoint.y);
+        Point point = path.get(0);
+        moveTo(point.x, point.y);
+        boolean curve = false;
+        for (int i = 1; i < path.size(); i++) {
+            point = path.get(i);
+            if (point.isControlPoint) {
+                curve = true;
+                append(point);
+            }
+            else {
+                if (curve) {
+                    curve = false;
+                    append(point);
+                    append("c\n");
+                }
+                else {
+                    lineTo(point.x, point.y);
+                }
             }
         }
-
 
         append(operation);
         append('\n');
@@ -878,6 +944,23 @@ public class Page {
             double r,
             char operation) throws Exception {
         drawEllipse((float) x, (float) y, (float) r, (float) r, operation);
+    }
+
+
+    /**
+     *  Draws the specified circle on the page and fills it with the current brush color.
+     *
+     *  @param x the x coordinate of the center of the circle to be drawn.
+     *  @param y the y coordinate of the center of the circle to be drawn.
+     *  @param r the radius of the circle to be drawn.
+     *  @param operation must be Operation.STROKE, Operation.CLOSE or Operation.FILL.
+     */
+    public void drawCircle(
+            float x,
+            float y,
+            float r,
+            char operation) throws Exception {
+        drawEllipse(x, y, r, r, operation);
     }
 
 
@@ -995,123 +1078,151 @@ public class Page {
     }
 
 
-    public void drawPoint(Point point)
-            throws Exception {
-        if (point.shape != -1) {
-            if (point.shape == 0) {
-                if (point.fillShape) {
-                    drawCircle(point.x, point.y, point.r, 'f');
-                } else
-                    drawCircle(point.x, point.y, point.r, 'S');
-            } else {
-                ArrayList localArrayList;
-                if (point.shape == 1) {
-                    localArrayList = new ArrayList();
-                    localArrayList.add(new Point(point.x, point.y - point.r));
-                    localArrayList.add(new Point(point.x + point.r, point.y));
-                    localArrayList.add(new Point(point.x, point.y + point.r));
-                    localArrayList.add(new Point(point.x - point.r, point.y));
-                    if (point.fillShape) {
-                        drawPath(localArrayList, 'f');
-                    } else {
-                        drawPath(localArrayList, 's');
-                    }
-                } else if (point.shape == 2) {
-                    localArrayList = new ArrayList();
-                    localArrayList.add(new Point(point.x - point.r, point.y - point.r));
-                    localArrayList.add(new Point(point.x + point.r, point.y - point.r));
-                    localArrayList.add(new Point(point.x + point.r, point.y + point.r));
-                    localArrayList.add(new Point(point.x - point.r, point.y + point.r));
-                    if (point.fillShape) {
-                        drawPath(localArrayList, 'f');
-                    } else {
-                        drawPath(localArrayList, 's');
-                    }
-                } else if (point.shape == 3) {
-                    drawLine(point.x - point.r, point.y, point.x + point.r, point.y);
-                    drawLine(point.x, point.y - point.r, point.x, point.y + point.r);
-                } else if (point.shape == 9) {
-                    localArrayList = new ArrayList();
-                    localArrayList.add(new Point(point.x, point.y - point.r));
-                    localArrayList.add(new Point(point.x + point.r, point.y + point.r));
-                    localArrayList.add(new Point(point.x - point.r, point.y + point.r));
-                    if (point.fillShape) {
-                        drawPath(localArrayList, 'f');
-                    } else {
-                        drawPath(localArrayList, 's');
-                    }
-                } else if (point.shape == 10) {
-                    localArrayList = new ArrayList();
-                    localArrayList.add(new Point(point.x - point.r, point.y - point.r));
-                    localArrayList.add(new Point(point.x + point.r, point.y - point.r));
-                    localArrayList.add(new Point(point.x, point.y + point.r));
-                    if (point.fillShape) {
-                        drawPath(localArrayList, 'f');
-                    } else {
-                        drawPath(localArrayList, 's');
-                    }
-                } else if (point.shape == 11) {
-                    localArrayList = new ArrayList();
-                    localArrayList.add(new Point(point.x + point.r, point.y + point.r));
-                    localArrayList.add(new Point(point.x - point.r, point.y));
-                    localArrayList.add(new Point(point.x + point.r, point.y - point.r));
-                    if (point.fillShape) {
-                        drawPath(localArrayList, 'f');
-                    } else {
-                        drawPath(localArrayList, 's');
-                    }
-                } else if (point.shape == 12) {
-                    localArrayList = new ArrayList();
-                    localArrayList.add(new Point(point.x - point.r, point.y - point.r));
-                    localArrayList.add(new Point(point.x + point.r, point.y));
-                    localArrayList.add(new Point(point.x - point.r, point.y + point.r));
-                    if (point.fillShape) {
-                        drawPath(localArrayList, 'f');
-                    } else {
-                        drawPath(localArrayList, 's');
-                    }
-                } else if (point.shape == 4) {
-                    drawLine(point.x - point.r, point.y, point.x + point.r, point.y);
-                } else if (point.shape == 5) {
-                    drawLine(point.x, point.y - point.r, point.x, point.y + point.r);
-                } else if (point.shape == 8) {
-                    drawLine(point.x - point.r, point.y - point.r, point.x + point.r, point.y + point.r);
-                    drawLine(point.x - point.r, point.y + point.r, point.x + point.r, point.y - point.r);
-                } else if (point.shape == 6) {
-                    drawLine(point.x - point.r, point.y - point.r, point.x + point.r, point.y + point.r);
-                    drawLine(point.x - point.r, point.y + point.r, point.x + point.r, point.y - point.r);
-                    drawLine(point.x - point.r, point.y, point.x + point.r, point.y);
-                    drawLine(point.x, point.y - point.r, point.x, point.y + point.r);
-                } else if (point.shape == 7) {
-                    float f1 = 0.31415927F;
-                    float f2 = (float) Math.sin(f1);
-                    float f3 = (float) Math.cos(f1);
-                    float f4 = point.r * f3;
-                    float f5 = point.r * f2;
-                    float f6 = 2.0F * f4 * f2;
-                    float f7 = 2.0F * f4 * f3 - point.r;
-                    localArrayList = new ArrayList();
-                    localArrayList.add(new Point(point.x, point.y - point.r));
-                    localArrayList.add(new Point(point.x + f6, point.y + f7));
-                    localArrayList.add(new Point(point.x - f4, point.y - f5));
-                    localArrayList.add(new Point(point.x + f4, point.y - f5));
-                    localArrayList.add(new Point(point.x - f6, point.y + f7));
-                    if (point.fillShape) {
-                        drawPath(localArrayList, 'f');
-                    } else {
-                        drawPath(localArrayList, 's');
-                    }
+    /**
+     *  Draws a point on the page using the current pen color.
+     *
+     *  @param p the point.
+     */
+    public void drawPoint(Point p) throws Exception {
+        if (p.shape != Point.INVISIBLE)  {
+            List<Point> list;
+            if (p.shape == Point.CIRCLE) {
+                if (p.fillShape) {
+                    drawCircle(p.x, p.y, p.r, 'f');
+                }
+                else {
+                    drawCircle(p.x, p.y, p.r, 'S');
+                }
+            }
+            else if (p.shape == Point.DIAMOND) {
+                list = new ArrayList<Point>();
+                list.add(new Point(p.x, p.y - p.r));
+                list.add(new Point(p.x + p.r, p.y));
+                list.add(new Point(p.x, p.y + p.r));
+                list.add(new Point(p.x - p.r, p.y));
+                if (p.fillShape) {
+                    drawPath(list, 'f');
+                }
+                else {
+                    drawPath(list, 's');
+                }
+            }
+            else if (p.shape == Point.BOX) {
+                list = new ArrayList<Point>();
+                list.add(new Point(p.x - p.r, p.y - p.r));
+                list.add(new Point(p.x + p.r, p.y - p.r));
+                list.add(new Point(p.x + p.r, p.y + p.r));
+                list.add(new Point(p.x - p.r, p.y + p.r));
+                if (p.fillShape) {
+                    drawPath(list, 'f');
+                }
+                else {
+                    drawPath(list, 's');
+                }
+            }
+            else if (p.shape == Point.PLUS) {
+                drawLine(p.x - p.r, p.y, p.x + p.r, p.y);
+                drawLine(p.x, p.y - p.r, p.x, p.y + p.r);
+            }
+            else if (p.shape == Point.UP_ARROW) {
+                list = new ArrayList<Point>();
+                list.add(new Point(p.x, p.y - p.r));
+                list.add(new Point(p.x + p.r, p.y + p.r));
+                list.add(new Point(p.x - p.r, p.y + p.r));
+                if (p.fillShape) {
+                    drawPath(list, 'f');
+                }
+                else {
+                    drawPath(list, 's');
+                }
+            }
+            else if (p.shape == Point.DOWN_ARROW) {
+                list = new ArrayList<Point>();
+                list.add(new Point(p.x - p.r, p.y - p.r));
+                list.add(new Point(p.x + p.r, p.y - p.r));
+                list.add(new Point(p.x, p.y + p.r));
+                if (p.fillShape) {
+                    drawPath(list, 'f');
+                }
+                else {
+                    drawPath(list, 's');
+                }
+            }
+            else if (p.shape == Point.LEFT_ARROW) {
+                list = new ArrayList<Point>();
+                list.add(new Point(p.x + p.r, p.y + p.r));
+                list.add(new Point(p.x - p.r, p.y));
+                list.add(new Point(p.x + p.r, p.y - p.r));
+                if (p.fillShape) {
+                    drawPath(list, 'f');
+                }
+                else {
+                    drawPath(list, 's');
+                }
+            }
+            else if (p.shape == Point.RIGHT_ARROW) {
+                list = new ArrayList<Point>();
+                list.add(new Point(p.x - p.r, p.y - p.r));
+                list.add(new Point(p.x + p.r, p.y));
+                list.add(new Point(p.x - p.r, p.y + p.r));
+                if (p.fillShape) {
+                    drawPath(list, 'f');
+                }
+                else {
+                    drawPath(list, 's');
+                }
+            }
+            else if (p.shape == Point.H_DASH) {
+                drawLine(p.x - p.r, p.y, p.x + p.r, p.y);
+            }
+            else if (p.shape == Point.V_DASH) {
+                drawLine(p.x, p.y - p.r, p.x, p.y + p.r);
+            }
+            else if (p.shape == Point.X_MARK) {
+                drawLine(p.x - p.r, p.y - p.r, p.x + p.r, p.y + p.r);
+                drawLine(p.x - p.r, p.y + p.r, p.x + p.r, p.y - p.r);
+            }
+            else if (p.shape == Point.MULTIPLY) {
+                drawLine(p.x - p.r, p.y - p.r, p.x + p.r, p.y + p.r);
+                drawLine(p.x - p.r, p.y + p.r, p.x + p.r, p.y - p.r);
+                drawLine(p.x - p.r, p.y, p.x + p.r, p.y);
+                drawLine(p.x, p.y - p.r, p.x, p.y + p.r);
+            }
+            else if (p.shape == Point.STAR) {
+                float angle = (float) Math.PI / 10;
+                float sin18 = (float) Math.sin(angle);
+                float cos18 = (float) Math.cos(angle);
+                float a = p.r * cos18;
+                float b = p.r * sin18;
+                float c = 2 * a * sin18;
+                float d = 2 * a * cos18 - p.r;
+                list = new ArrayList<Point>();
+                list.add(new Point(p.x, p.y - p.r));
+                list.add(new Point(p.x + c, p.y + d));
+                list.add(new Point(p.x - a, p.y - b));
+                list.add(new Point(p.x + a, p.y - b));
+                list.add(new Point(p.x - c, p.y + d));
+                if (p.fillShape) {
+                    drawPath(list, 'f');
+                }
+                else {
+                    drawPath(list, 's');
                 }
             }
         }
     }
 
 
-    public void setTextRenderingMode(int mode)
-            throws Exception {
-        if ((mode >= 0) && (mode <= 7)) {
+    /**
+     *  Sets the text rendering mode.
+     *
+     *  @param mode the rendering mode.
+     */
+    public void setTextRenderingMode(int mode) throws Exception {
+        if (mode >= 0 && mode <= 7) {
             this.renderingMode = mode;
-        } else {
+        }
+        else {
             throw new Exception("Invalid text rendering mode: " + mode);
         }
     }
@@ -1164,8 +1275,11 @@ public class Page {
     }
 
 
-    public void setTextStart()
-            throws IOException {
+    /**
+     *  Sets the start of text block.
+     *  Please see Example_32. This method must have matching call to setTextEnd().
+     */
+    public void setTextStart() throws IOException {
         append("BT\n");
     }
 
@@ -1192,6 +1306,7 @@ public class Page {
         append(height - y);
         append(" Td\n");
     }
+
 
     /**
      *  Sets the text leading.
@@ -1239,32 +1354,44 @@ public class Page {
     }
 
 
-    public void println(String str)
-            throws IOException {
+    /**
+     *  Prints a line of text and moves to the next line.
+     *  Please see Example_32.
+     */
+    public void println(String str) throws IOException {
         print(str);
         println();
     }
 
 
-    public void print(String str)
-            throws IOException {
-        if (this.font == null) {
+    /**
+     *  Prints a line of text.
+     *  Please see Example_32.
+     */
+    public void print(String str) throws IOException {
+        if (font == null) {
             return;
         }
         append("[<");
-        drawString(this.font, str);
+        drawString(font, str);
         append(">] TJ\n");
     }
 
 
-    public void println()
-            throws IOException {
+    /**
+     *  Move to the next line.
+     *  Please see Example_32.
+     */
+    public void println() throws IOException {
         append("T*\n");
     }
 
 
-    public void setTextEnd()
-            throws IOException {
+    /**
+     *  Sets the end of text block.
+     *  Please see Example_32.
+     */
+    public void setTextEnd() throws IOException {
         append("ET\n");
     }
 
@@ -1274,7 +1401,7 @@ public class Page {
     // <<
     public void drawRectRoundCorners(
             float x, float y, float w, float h, float r1, float r2, char operation)
-            throws Exception {
+        throws Exception {
 
         // The best 4-spline magic number
         float m4 = 0.551784f;
@@ -1306,6 +1433,7 @@ public class Page {
         drawPath(list, operation);
     }
 
+
     /**
      *  Clips the path.
      */
@@ -1324,28 +1452,33 @@ public class Page {
         clipPath();
     }
 
+
     public void save() throws IOException {
         append("q\n");
-        this.savedStates.add(new State(this.pen, this.brush, this.pen_width, this.line_cap_style, this.line_join_style, this.linePattern));
+        savedStates.add(new State(
+                pen, brush, pen_width, line_cap_style, line_join_style, linePattern));
         savedHeight = height;
     }
 
-    public void restore()
-            throws IOException {
+
+    public void restore() throws IOException {
         append("Q\n");
-        if (this.savedStates.size() > 0) {
-            State localState = (State) this.savedStates.remove(this.savedStates.size() - 1);
-            this.pen = localState.getPen();
-            this.brush = localState.getBrush();
-            this.pen_width = localState.getPenWidth();
-            this.line_cap_style = localState.getLineCapStyle();
-            this.line_join_style = localState.getLineJoinStyle();
-            this.linePattern = localState.getLinePattern();
+        if (savedStates.size() > 0) {
+            State savedState = savedStates.remove(savedStates.size() - 1);
+            pen = savedState.getPen();
+            brush = savedState.getBrush();
+            pen_width = savedState.getPenWidth();
+            line_cap_style = savedState.getLineCapStyle();
+            line_join_style = savedState.getLineJoinStyle();
+            linePattern = savedState.getLinePattern();
         }
-        if (savedHeight != 0) {
+        if (savedHeight != Float.MAX_VALUE) {
             height = savedHeight;
+            savedHeight = Float.MAX_VALUE;
         }
+
     }
+    // <<
 
 
     /**
@@ -1406,6 +1539,7 @@ public class Page {
             float upperLeftX, float upperLeftY, float lowerRightX, float lowerRightY) {
         this.artBox = new float[] {upperLeftX, upperLeftY, lowerRightX, lowerRightY};
     }
+
 
     private void appendPointXY(float x, float y) throws IOException {
         append(x);
@@ -1488,31 +1622,36 @@ public class Page {
     }
 
 
-    private void printBuffer(StringBuilder buf, Map<String, Integer> colors)
-            throws Exception {
+    private void printBuffer(
+            StringBuilder buf,
+            Map<String, Integer> colors) throws Exception {
         String str = buf.toString();
         if (str.length() > 0) {
             if (colors.containsKey(str)) {
-                setBrushColor(((Integer) colors.get(str)).intValue());
-            } else {
-                setBrushColor(0);
+                setBrushColor(colors.get(str));
+            }
+            else {
+                setBrushColor(Color.black);
             }
         }
         print(str);
         buf.setLength(0);
     }
 
-    protected void setStructElementsPageObjNumber(int pageObjNumber)
-            throws Exception {
-        for (StructElem localStructElem : this.structures) {
-            localStructElem.pageObjNumber = pageObjNumber;
+
+    protected void setStructElementsPageObjNumber(
+            int pageObjNumber) throws Exception {
+        for (StructElem element : structures) {
+            element.pageObjNumber = pageObjNumber;
         }
     }
 
 
-    public void addBMC(String paramString1, String paramString2, String paramString3)
-            throws Exception {
-        addBMC(paramString1, null, paramString2, paramString3);
+    public void addBMC(
+            String structure,
+            String altDescription,
+            String actualText) throws Exception {
+        addBMC(structure, null, altDescription, actualText);
     }
 
 
@@ -1539,11 +1678,13 @@ public class Page {
         }
     }
 
+
     public void addEMC() throws Exception {
         if (pdf.compliance == Compliance.PDF_UA) {
             append("EMC\n");
         }
     }
+
 
     protected void addAnnotation(Annotation annotation) {
         annots.add(annotation);
@@ -1558,19 +1699,87 @@ public class Page {
         }
     }
 
-    /*
-     * From Androids Matrix object:
-     */
-    public static final int MSCALE_X = 0;
-    public static final int MSKEW_X  = 1;
-    public static final int MTRANS_X = 2;
-    public static final int MSKEW_Y  = 3;
-    public static final int MSCALE_Y = 4;
-    public static final int MTRANS_Y = 5;
+
+    protected void beginTransform(
+            float x, float y, float xScale, float yScale) throws Exception {
+        append("q\n");
+
+        append(xScale);
+        append(" 0 0 ");
+        append(yScale);
+        append(' ');
+        append(x);
+        append(' ');
+        append(y);
+        append(" cm\n");
+
+        append(xScale);
+        append(" 0 0 ");
+        append(yScale);
+        append(' ');
+        append(x);
+        append(' ');
+        append(y);
+        append(" Tm\n");
+    }
+
+
+    protected void endTransform() throws Exception {
+        append("Q\n");
+    }
+
+
+    public void drawContents(
+            byte[] content,
+            float h,    // The height of the graphics object in points.
+            float x,
+            float y,
+            float xScale,
+            float yScale) throws Exception {
+        beginTransform(x, (this.height - yScale * h) - y, xScale, yScale);
+        append(content);
+        endTransform();
+    }
+
+
+    public void drawString(
+            Font font, String str, float x, float y, float dx) throws Exception {
+        float x1 = x;
+        for (int i = 0; i < str.length(); i++) {
+            drawString(font, str.substring(i, i + 1), x1, y);
+            x1 += dx;
+        }
+    }
+
+
+    public void addWatermark(
+            Font font, String text) throws Exception {
+        float hypotenuse = (float)
+                Math.sqrt(this.height * this.height + this.width * this.width);
+        float stringWidth = font.stringWidth(text);
+        float offset = (hypotenuse - stringWidth) / 2f;
+        double angle = Math.atan(this.height / this.width);
+        TextLine watermark = new TextLine(font);
+        watermark.setColor(Color.lightgrey);
+        watermark.setText(text);
+        watermark.setLocation(
+                (float) (offset * Math.cos(angle)),
+                (this.height - (float) (offset * Math.sin(angle))));
+        watermark.setTextDirection((int) (angle * (180.0 / Math.PI)));
+        watermark.drawOn(this);
+    }
+
+
+    public void invertYAxis() throws Exception {
+        append("1 0 0 -1 0 ");
+        append(this.height);
+        append(" cm\n");
+    }
 
 
     /**
-     * Transformation matrix. Use save before, restore afterwards!
+     * Transformation matrix.
+     * Use save before, restore afterwards!
      * 9 value array like generated by androids Matrix.getValues()
      *
      * @throws IOException
@@ -1578,7 +1787,6 @@ public class Page {
     public void transform(float[] values) throws IOException {
         float scalex = (values[MSCALE_X]);
         float scaley = (values[MSCALE_Y]);
-
 
         append(scalex);
         append(" ");
@@ -1597,42 +1805,13 @@ public class Page {
         append(transx);
         append(" ");
         float transy = values[MTRANS_Y];
+
         //- values[Matrix.MSKEW_X]*height/ values[Matrix.MSCALE_X];
         append(-transy);
         append(" cm\n");
 
         // Weil mit der Hoehe immer die Y-Koordinate im PDF-Koordinatensystem berechnet wird:
         height = height / scaley;
-
-
     }
 
-
-    protected void beginTransform(float paramFloat1, float paramFloat2, float paramFloat3, float paramFloat4)
-            throws Exception {
-        append("q\n");
-
-        append(paramFloat3);
-        append(" 0 0 ");
-        append(paramFloat4);
-        append(' ');
-        append(paramFloat1);
-        append(' ');
-        append(paramFloat2);
-        append(" cm\n");
-
-        append(paramFloat3);
-        append(" 0 0 ");
-        append(paramFloat4);
-        append(' ');
-        append(paramFloat1);
-        append(' ');
-        append(paramFloat2);
-        append(" Tm\n");
-    }
-
-    public void endTransform() throws Exception {
-        append("Q\n");
-    }
-
-}
+}   // End of Page.java

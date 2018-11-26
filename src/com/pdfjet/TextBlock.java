@@ -1,31 +1,31 @@
 /**
  *  TextBlock.java
  *
- Copyright (c) 2015, Innovatics Inc.
- All rights reserved.
+Copyright (c) 2018, Innovatics Inc.
+All rights reserved.
 
- Redistribution and use in source and binary forms, with or without modification,
- are permitted provided that the following conditions are met:
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
 
- * Redistributions of source code must retain the above copyright notice,
- this list of conditions and the following disclaimer.
+    * Redistributions of source code must retain the above copyright notice,
+      this list of conditions and the following disclaimer.
 
- * Redistributions in binary form must reproduce the above copyright notice,
- this list of conditions and the following disclaimer in the documentation
- and / or other materials provided with the distribution.
+    * Redistributions in binary form must reproduce the above copyright notice,
+      this list of conditions and the following disclaimer in the documentation
+      and / or other materials provided with the distribution.
 
- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
- CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
- PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
- LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
 package com.pdfjet;
 
 import java.util.*;
@@ -234,6 +234,25 @@ public class TextBlock {
     }
 
 
+    // Is the text Chinese, Japanese or Korean?
+    private boolean isCJK(String text) {
+        int cjk = 0;
+        int other = 0;
+        for (char ch : text.toCharArray()) {
+            if (ch >= 0x4E00 && ch <= 0x9FFF ||     // Unified CJK
+                ch >= 0xAC00 && ch <= 0xD7AF ||     // Hangul (Korean)
+                ch >= 0x30A0 && ch <= 0x30FF ||     // Katakana (Japanese)
+                ch >= 0x3040 && ch <= 0x309F) {     // Hiragana (Japanese)
+                cjk += 1;
+            }
+            else {
+                other += 1;
+            }
+        }
+        return cjk > other;
+    }
+
+
     /**
      *  Draws this text block on the specified page.
      *
@@ -258,30 +277,49 @@ public class TextBlock {
         StringBuilder buf = new StringBuilder();
         String[] lines = text.split("\\r?\\n");
         for (String line : lines) {
-            if (font.stringWidth(line) < this.w) {
-                list.add(line);
-            }
-            else {
+            if (isCJK(line)) {
                 buf.setLength(0);
-                String[] tokens = line.split("\\s+");
-                for (String token : tokens) {
-                    if (font.stringWidth(
-                            buf.toString() + " " + token) < this.w) {
-                        buf.append(" " + token);
+                for (int i = 0; i < line.length(); i++) {
+                    Character ch = line.charAt(i);
+                    if (font.stringWidth(fallbackFont, buf.toString() + ch) < this.w) {
+                        buf.append(ch);
                     }
                     else {
-                        list.add(buf.toString().trim());
+                        list.add(buf.toString());
                         buf.setLength(0);
-                        buf.append(token);
+                        buf.append(ch);
                     }
                 }
-
                 if (!buf.toString().trim().equals("")) {
                     list.add(buf.toString().trim());
                 }
             }
+            else {
+                if (font.stringWidth(fallbackFont, line) < this.w) {
+                    list.add(line);
+                }
+                else {
+                    buf.setLength(0);
+                    String[] tokens = line.split("\\s+");
+                    for (String token : tokens) {
+                        if (font.stringWidth(fallbackFont,
+                                buf.toString() + " " + token) < this.w) {
+                            buf.append(" " + token);
+                        }
+                        else {
+                            list.add(buf.toString().trim());
+                            buf.setLength(0);
+                            buf.append(token);
+                        }
+                    }
+
+                    if (!buf.toString().trim().equals("")) {
+                        list.add(buf.toString().trim());
+                    }
+                }
+            }
         }
-        lines = list.toArray(new String[] {} );
+        lines = list.toArray(new String[] {});
 
         float x_text;
         float y_text = y + font.getAscent();
@@ -291,10 +329,10 @@ public class TextBlock {
                 x_text = x;
             }
             else if (textAlign == Align.RIGHT) {
-                x_text = (x + this.w) - (font.stringWidth(lines[i]));
+                x_text = (x + this.w) - (font.stringWidth(fallbackFont, lines[i]));
             }
             else if (textAlign == Align.CENTER) {
-                x_text = x + (this.w - font.stringWidth(lines[i]))/2;
+                x_text = x + (this.w - font.stringWidth(fallbackFont, lines[i]))/2;
             }
             else {
                 throw new Exception("Invalid text alignment option.");
@@ -318,4 +356,4 @@ public class TextBlock {
         return this;
     }
 
-}
+}   // End of TextBlock.java

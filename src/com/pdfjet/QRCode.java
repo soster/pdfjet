@@ -1,16 +1,16 @@
 /**
  *
- Copyright (c) 2009 Kazuhiko Arase
+Copyright (c) 2009 Kazuhiko Arase
 
- URL: http://www.d-project.com/
+URL: http://www.d-project.com/
 
- Licensed under the MIT license:
- http://www.opensource.org/licenses/mit-license.php
+Licensed under the MIT license:
+  http://www.opensource.org/licenses/mit-license.php
 
- The word "QR Code" is registered trademark of
- DENSO WAVE INCORPORATED
- http://www.denso-wave.com/qrcode/faqpatent-e.html
- */
+The word "QR Code" is registered trademark of 
+DENSO WAVE INCORPORATED
+  http://www.denso-wave.com/qrcode/faqpatent-e.html
+*/
 
 package com.pdfjet;
 
@@ -19,7 +19,7 @@ import java.io.UnsupportedEncodingException;
 
 /**
  * Used to create 2D QR Code barcodes. Please see Example_20.
- *
+ * 
  * @author Kazuhiko Arase
  */
 public class QRCode implements Drawable {
@@ -39,7 +39,7 @@ public class QRCode implements Drawable {
 
     /**
      * Used to create 2D QR Code barcodes.
-     *
+     * 
      * @param str the string to encode.
      * @param errorCorrectLevel the desired error correction level.
      * @throws UnsupportedEncodingException
@@ -49,7 +49,7 @@ public class QRCode implements Drawable {
         this.errorCorrectLevel = errorCorrectLevel;
         this.make(false, getBestMaskPattern());
     }
-
+    
     /**
      *  Sets the position where this barcode will be drawn on the page.
      *
@@ -80,7 +80,7 @@ public class QRCode implements Drawable {
         this.x = x;
         this.y = y;
     }
-
+    
     /**
      *  Sets the module length of this barcode.
      *  The default value is 2.0f
@@ -246,8 +246,8 @@ public class QRCode implements Drawable {
 
                 modules[row + r][col + c] =
                         (0 <= r && r <= 6 && (c == 0 || c == 6)) ||
-                                (0 <= c && c <= 6 && (r == 0 || r == 6)) ||
-                                (2 <= r && r <= 4 && 2 <= c && c <= 4);
+                        (0 <= c && c <= 6 && (r == 0 || r == 6)) ||
+                        (2 <= r && r <= 4 && 2 <= c && c <= 4);
             }
         }
     }
@@ -317,10 +317,10 @@ public class QRCode implements Drawable {
 
         if (buffer.getLengthInBits() > totalDataCount * 8) {
             throw new IllegalArgumentException("String length overflow. ("
-                    + buffer.getLengthInBits()
-                    + ">"
-                    +  totalDataCount * 8
-                    + ")");
+                + buffer.getLengthInBits()
+                + ">"
+                +  totalDataCount * 8
+                + ")");
         }
 
         if (buffer.getLengthInBits() + 4 <= totalDataCount * 8) {

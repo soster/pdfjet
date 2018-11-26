@@ -1,7 +1,7 @@
 /**
  *  Font.java
  *
-Copyright (c) 2016, Innovatics Inc.
+Copyright (c) 2018, Innovatics Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,
@@ -57,6 +57,7 @@ public class Font {
     public static final boolean STREAM = true;
 
     protected String name;
+    protected String info;
     protected int objNumber;
 
     // The object number of the embedded font file
@@ -80,7 +81,6 @@ public class Font {
     protected int lastChar = 255;
     protected boolean skew15 = false;
     protected boolean kernPairs = false;
-    public boolean isDevanagari = false;
 
     // Font bounding box
     protected float bBoxLLx;
@@ -96,7 +96,7 @@ public class Font {
     protected int[] advanceWidth = null;
     protected int[] glyphWidth = null;
     protected int[] unicodeToGID;
-    protected int[] halfForm;
+    protected boolean cff;
 
     protected String fontID;
 
@@ -283,13 +283,7 @@ public class Font {
     }
 
 
-    // Constructor for the following fonts:
-    // DejaVuLGCSans-Bold.ttf.stream
-    // DejaVuLGCSans-Oblique.ttf.stream
-    // DejaVuLGCSans.ttf.stream
-    // DejaVuLGCSerif-Bold.ttf.stream
-    // DejaVuLGCSerif-Italic.ttf.stream
-    // DejaVuLGCSerif.ttf.stream
+    // Constructor for .ttf.stream fonts:
     public Font(PDF pdf, InputStream inputStream, boolean flag) throws Exception {
         FastFont.register(pdf, this, inputStream);
 
@@ -300,6 +294,18 @@ public class Font {
         this.underlinePosition = fontUnderlinePosition * size / -unitsPerEm + underlineThickness / 2f;
 
         pdf.fonts.add(this);
+    }
+
+
+    // Constructor for .ttf.stream fonts:
+    public Font(Map<Integer, PDFobj> objects, InputStream inputStream, boolean flag) throws Exception {
+        FastFont2.register(objects, this, inputStream);
+
+        this.ascent = bBoxURy * size / unitsPerEm;
+        this.descent = bBoxLLy * size / unitsPerEm;
+        this.body_height = ascent - descent;
+        this.underlineThickness = fontUnderlineThickness * size / unitsPerEm;
+        this.underlinePosition = fontUnderlinePosition * size / -unitsPerEm + underlineThickness / 2f;
     }
 
 

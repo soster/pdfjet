@@ -1,7 +1,7 @@
 /**
  *  CheckBox.java
  *
-Copyright (c) 2015, Innovatics Inc.
+Copyright (c) 2018, Innovatics Inc.
 All rights reserved.
 
 Portions provided by Shirley C. Christenson

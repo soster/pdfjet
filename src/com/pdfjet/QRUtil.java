@@ -1,16 +1,16 @@
 /**
  *
- Copyright (c) 2009 Kazuhiko Arase
+Copyright (c) 2009 Kazuhiko Arase
 
- URL: http://www.d-project.com/
+URL: http://www.d-project.com/
 
- Licensed under the MIT license:
- http://www.opensource.org/licenses/mit-license.php
+Licensed under the MIT license:
+  http://www.opensource.org/licenses/mit-license.php
 
- The word "QR Code" is registered trademark of
- DENSO WAVE INCORPORATED
- http://www.denso-wave.com/qrcode/faqpatent-e.html
- */
+The word "QR Code" is registered trademark of 
+DENSO WAVE INCORPORATED
+  http://www.denso-wave.com/qrcode/faqpatent-e.html
+*/
 
 package com.pdfjet;
 
@@ -32,17 +32,17 @@ class QRUtil {
     protected static boolean getMask(int maskPattern, int i, int j) {
         switch (maskPattern) {
 
-            case MaskPattern.PATTERN000 : return (i + j) % 2 == 0;
-            case MaskPattern.PATTERN001 : return (i % 2) == 0;
-            case MaskPattern.PATTERN010 : return (j % 3) == 0;
-            case MaskPattern.PATTERN011 : return (i + j) % 3 == 0;
-            case MaskPattern.PATTERN100 : return (i / 2 + j / 3) % 2 == 0;
-            case MaskPattern.PATTERN101 : return (i * j) % 2 + (i * j) % 3 == 0;
-            case MaskPattern.PATTERN110 : return ((i * j) % 2 + (i * j) % 3) % 2 == 0;
-            case MaskPattern.PATTERN111 : return ((i * j) % 3 + (i + j) % 2) % 2 == 0;
+        case MaskPattern.PATTERN000 : return (i + j) % 2 == 0;
+        case MaskPattern.PATTERN001 : return (i % 2) == 0;
+        case MaskPattern.PATTERN010 : return (j % 3) == 0;
+        case MaskPattern.PATTERN011 : return (i + j) % 3 == 0;
+        case MaskPattern.PATTERN100 : return (i / 2 + j / 3) % 2 == 0;
+        case MaskPattern.PATTERN101 : return (i * j) % 2 + (i * j) % 3 == 0;
+        case MaskPattern.PATTERN110 : return ((i * j) % 2 + (i * j) % 3) % 2 == 0;
+        case MaskPattern.PATTERN111 : return ((i * j) % 3 + (i + j) % 2) % 2 == 0;
 
-            default :
-                throw new IllegalArgumentException("mask: " + maskPattern);
+        default :
+            throw new IllegalArgumentException("mask: " + maskPattern);
         }
     }
 
