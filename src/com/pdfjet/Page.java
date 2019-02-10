@@ -77,7 +77,7 @@ public class Page {
     protected float savedHeight = Float.MAX_VALUE;
 
     /*
-     * From Androids Matrix object:
+     * From Android's Matrix object:
      */
     public static final int MSCALE_X = 0;
     public static final int MSKEW_X  = 1;
@@ -1476,7 +1476,6 @@ public class Page {
             height = savedHeight;
             savedHeight = Float.MAX_VALUE;
         }
-
     }
     // <<
 
@@ -1787,6 +1786,8 @@ public class Page {
     public void transform(float[] values) throws IOException {
         float scalex = (values[MSCALE_X]);
         float scaley = (values[MSCALE_Y]);
+        float transx = values[MTRANS_X];
+        float transy = values[MTRANS_Y];
 
         append(scalex);
         append(" ");
@@ -1797,16 +1798,12 @@ public class Page {
         append(scaley);
         append(" ");
 
-        float transx = values[MTRANS_X];
         if (Math.asin(values[MSKEW_Y]) != 0f) {
             transx -= values[MSKEW_Y] * height / scaley;
         }
 
         append(transx);
         append(" ");
-        float transy = values[MTRANS_Y];
-
-        //- values[Matrix.MSKEW_X]*height/ values[Matrix.MSCALE_X];
         append(-transy);
         append(" cm\n");
 

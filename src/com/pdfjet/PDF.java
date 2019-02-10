@@ -62,7 +62,7 @@ public class PDF {
     private String subject = "";
     private String keywords = "";
     private String creator = "";
-    private String producer = "PDFjet v5.97 (http://pdfjet.com)";
+    private String producer = "PDFjet v6.00 (http://pdfjet.com)";
     private String creationDate;
     private String modDate;
     private String createDate;
@@ -1215,17 +1215,25 @@ public class PDF {
         boolean done = false;
         while (!done && off < len) {
             char c2 = (char) buf[off++];
+            if (c1 == '\\') {
+                token.append(c2);
+                c1 = c2;
+                continue;
+            }
+
             if (c2 == '(') {
                 if (p == 0) {
                     done = process(obj, token, buf, off);
                 }
                 if (!done) {
                     token.append(c2);
+                    c1 = c2;
                     ++p;
                 }
             }
             else if (c2 == ')') {
                 token.append(c2);
+                c1 = c2;
                 --p;
                 if (p == 0) {
                     done = process(obj, token, buf, off);
@@ -1250,33 +1258,43 @@ public class PDF {
                 }
             }
             else if (c2 == '<' || c2 == '>' || c2 == '%') {
-                if (c2 != c1) {
-                    done = process(obj, token, buf, off);
-                    if (!done) {
-                        token.append(c2);
-                        c1 = c2;
-                    }
+                if (p > 0) {
+                    token.append(c2);
+                    c1 = c2;
                 }
                 else {
-                    token.append(c2);
-                    done = process(obj, token, buf, off);
-                    if (!done) {
-                        c1 = ' ';
+                    if (c2 != c1) {
+                        done = process(obj, token, buf, off);
+                        if (!done) {
+                            token.append(c2);
+                            c1 = c2;
+                        }
+                    }
+                    else {
+                        token.append(c2);
+                        done = process(obj, token, buf, off);
+                        if (!done) {
+                            c1 = ' ';
+                        }
                     }
                 }
             }
             else if (c2 == '[' || c2 == ']' || c2 == '{' || c2 == '}') {
-                done = process(obj, token, buf, off);
-                if (!done) {
-                    obj.dict.add(String.valueOf(c2));
+                if (p > 0) {
+                    token.append(c2);
                     c1 = c2;
+                }
+                else {
+                    done = process(obj, token, buf, off);
+                    if (!done) {
+                        obj.dict.add(String.valueOf(c2));
+                        c1 = c2;
+                    }
                 }
             }
             else {
                 token.append(c2);
-                if (p == 0) {
-                    c1 = c2;
-                }
+                c1 = c2;
             }
         }
 
