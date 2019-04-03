@@ -1101,15 +1101,21 @@ public class PDF {
         byte_count += baos.size();
     }
 
+    public Map<Integer, PDFobj> read(InputStream inputStream) throws Exception {
+        return read(inputStream, false);
+    }
+
 
     /**
      *  Returns a list of objects of type PDFobj read from input stream.
      *
      *  @param inputStream the PDF input stream.
+     *  @param suppressDecompression Avoid decompression of pdf objects. Can avoid OutOfMemory.
+     *                               Possible side effects unknown.
      *
      *  @return List<PDFobj> the list of PDF objects.
      */
-    public Map<Integer, PDFobj> read(InputStream inputStream) throws Exception {
+    public Map<Integer, PDFobj> read(InputStream inputStream, boolean suppressDecompression) throws Exception {
 
         List<PDFobj> objects = new ArrayList<PDFobj>();
 
@@ -1135,9 +1141,10 @@ public class PDF {
         for (PDFobj obj : objects) {
             if (obj.dict.contains("stream")) {
                 obj.setStream(pdf, obj.getLength(objects));
-                if (obj.getValue("/Filter").equals("/FlateDecode")) {
+                if (obj.getValue("/Filter").equals("/FlateDecode") && !suppressDecompression) {
                     Decompressor decompressor = new Decompressor(obj.stream);
                     obj.data = decompressor.getDecompressedData();
+
                 }
                 else {
                     // Assume no compression.
