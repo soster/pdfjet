@@ -30,7 +30,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.pdfjet;
 
 import java.io.*;
-import java.text.*;
 import java.util.*;
 
 
@@ -75,6 +74,7 @@ public class Page {
     private int mcid = 0;
 
     protected float savedHeight = Float.MAX_VALUE;
+    boolean heightTransformed = false;
 
     /*
      * From Android's Matrix object:
@@ -1476,6 +1476,7 @@ public class Page {
             height = savedHeight;
             savedHeight = Float.MAX_VALUE;
         }
+        heightTransformed = false;
     }
     // <<
 
@@ -1775,6 +1776,68 @@ public class Page {
         append(" cm\n");
     }
 
+    /**
+     * Rotates the content drawn to the page. Useful if the orientation of the pdf differs.
+     * @param deg Multiple of 90 degrees.
+     * @param width
+     * @param height
+     * @throws Exception
+     */
+    public void rotatePage(int deg, float width, float height) throws Exception {
+
+        float translateX = 0;
+        float translateY = 0;
+        float skewx = 0;
+        float skewy = 0;
+        float scalex = 1;
+        float scaley = 1;
+        switch (deg) {
+            case 90:
+                translateX = height;
+                scalex = 0;
+                skewx = -1;
+                scaley = 1;
+                skewy = 0;
+                break;
+            case 270:
+                translateY = width;
+                scalex = 0;
+                skewx = 1;
+                skewy = -1;
+                scaley = 0;
+                break;
+            case 180:
+                translateX = width;
+                translateY = height;
+                scalex = -1;
+                skewx = 0;
+                skewy = 0;
+                scaley = -1;
+                break;
+            default:
+                return;
+        }
+
+
+        append(scalex);
+        append(" ");
+        append(skewx);
+        append(" ");
+        append(skewy);
+        append(" ");
+        append(scaley);
+        append(" 0 0 cm\n");
+
+        append("1 0 0 1 ");
+        append(translateX);
+        append(" ");
+        append(-translateY);
+        append(" cm\n");
+
+
+
+    }
+
 
     /**
      * Transformation matrix.
@@ -1786,20 +1849,29 @@ public class Page {
     public void transform(float[] values) throws IOException {
         float scalex = (values[MSCALE_X]);
         float scaley = (values[MSCALE_Y]);
+        float skewx = values[MSKEW_X];
+        float skewy = values[MSKEW_Y];
         float transx = values[MTRANS_X];
         float transy = values[MTRANS_Y];
 
+
+        if (!heightTransformed && scaley != 0) {
+            // Because with the height the y coordinate in the pdf coordinate system gets calculated:
+            height = height / scaley;
+            heightTransformed = true;
+        }
+
         append(scalex);
         append(" ");
-        append(values[MSKEW_X]);
+        append(skewx);
         append(" ");
-        append(values[MSKEW_Y]);
+        append(skewy);
         append(" ");
         append(scaley);
         append(" ");
 
-        if (Math.asin(values[MSKEW_Y]) != 0f) {
-            transx -= values[MSKEW_Y] * height / scaley;
+        if (Math.asin(skewy) != 0f) {
+            transx -= skewy * height;
         }
 
         append(transx);
@@ -1807,8 +1879,7 @@ public class Page {
         append(-transy);
         append(" cm\n");
 
-        // Weil mit der Hoehe immer die Y-Koordinate im PDF-Koordinatensystem berechnet wird:
-        height = height / scaley;
+
     }
 
 }   // End of Page.java
