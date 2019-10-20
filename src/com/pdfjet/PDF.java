@@ -1352,6 +1352,10 @@ public class PDF {
                 String status = obj.dict.get(i++);      // Status keyword
                 if (!status.equals("f")) {
                     PDFobj o2 = getObject(pdf, Integer.valueOf(offset));
+                    // Avoid: java.lang.NumberFormatException: Invalid int: "%PDF-1.3"
+                    if (o2.dict.get(0).startsWith("%PDF")) {
+                        continue;
+                    }
                     o2.number = Integer.valueOf(o2.dict.get(0));
                     objects.add(o2);
                 }
