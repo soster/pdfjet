@@ -139,7 +139,6 @@ public class Page {
         width = pageObj.getPageSize()[0];
         height = pageObj.getPageSize()[1];
         buf = new ByteArrayOutputStream(8192);
-        append("Q\n");
         append("q\n");
         if (pageObj.gsNumber != -1) {
             append("/GS");

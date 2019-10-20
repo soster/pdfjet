@@ -62,7 +62,7 @@ public class PDF {
     private String subject = "";
     private String keywords = "";
     private String creator = "";
-    private String producer = "PDFjet v6.00 (http://pdfjet.com)";
+    private String producer = "PDFjet v6.05 (http://pdfjet.com)";
     private String creationDate;
     private String modDate;
     private String createDate;
@@ -1111,7 +1111,7 @@ public class PDF {
      *
      *  @param inputStream the PDF input stream.
      *  @param suppressDecompression Avoid decompression of pdf objects. Can avoid OutOfMemory.
-     *                               Possible side effects unknown.
+     *  Possible side effects unknown.
      *
      *  @return List<PDFobj> the list of PDF objects.
      */
@@ -1144,7 +1144,6 @@ public class PDF {
                 if (obj.getValue("/Filter").equals("/FlateDecode") && !suppressDecompression) {
                     Decompressor decompressor = new Decompressor(obj.stream);
                     obj.data = decompressor.getDecompressedData();
-
                 }
                 else {
                     // Assume no compression.
