@@ -881,8 +881,7 @@ public class PNGImage {
 
 
     private byte[] getDecompressedData() throws Exception {
-        Decompressor decompressor = new Decompressor(data);
-        return decompressor.getDecompressedData();
+        return Decompressor.inflate(data);
     }
 
 

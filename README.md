@@ -2,7 +2,9 @@ pdfjet
 ======
 PDFjet is a programming library that enables universal reporting in your web or desktop application, without forcing your user to install special software. Virtually all personal and business users will be able to see your reports exactly the way that you designed them.
 
-This is an enhanced version of the open source version of pdfjet in v6.0 (http://www.pdfjet.com/os/edition.html). 
+This is an enhanced version of the open source version of pdfjet in v6.0 (and in parts 7.0) (http://www.pdfjet.com/os/edition.html).
+
+You find the official pdfjet repo on github here: (https://github.com/edragoev1/pdfjet).
 
 This version has the following enhancements compared to the pdfjet release (partially even compared to the commercially available version):
 

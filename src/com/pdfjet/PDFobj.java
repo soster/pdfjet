@@ -29,8 +29,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.pdfjet;
 
-import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -43,7 +46,7 @@ public class PDFobj {
     protected int number;           // The object number
     protected int offset;           // The object offset
     protected List<String> dict;
-    protected int stream_offset;
+    protected int streamOffset;
     protected byte[] stream;        // The compressed stream
     protected byte[] data;          // The decompressed data
     protected int gsNumber = -1;
@@ -99,12 +102,27 @@ public class PDFobj {
 
     protected void setStream(byte[] pdf, int length) {
         stream = new byte[length];
-        System.arraycopy(pdf, this.stream_offset, stream, 0, length);
+        System.arraycopy(pdf, this.streamOffset, stream, 0, length);
     }
 
 
     protected void setStream(byte[] stream) {
         this.stream = stream;
+    }
+
+    protected void setStreamAndData(byte[] buf, int length) throws Exception {
+        if (this.stream == null) {
+            this.stream = new byte[length];
+            System.arraycopy(buf, streamOffset, stream, 0, length);
+            if (getValue("/Filter").equals("/FlateDecode")) {
+                this.data = Decompressor.inflate(stream);
+            }
+            else {
+                // Assume no compression for now.
+                // In the future we may handle LZW compression ...
+                this.data = stream;
+            }
+        }
     }
 
 

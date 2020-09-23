@@ -33,25 +33,17 @@ import java.io.*;
 import java.util.zip.*;
 
 
-class Decompressor extends Inflater {
-
-    private ByteArrayOutputStream bos = null;
-
-    
-    public Decompressor(byte[] data) throws Exception {
-    	super.setInput(data);
-        bos = new ByteArrayOutputStream(data.length);
-
-	    byte[] buf = new byte[2048];
-	    while (!super.finished()) {
-	        int count = super.inflate(buf);
-	        bos.write(buf, 0, count);
-	    }
-    }
-    
-    
-    public byte[] getDecompressedData() {
-    	return bos.toByteArray();
-    }
-
+class Decompressor {
+	static byte[] inflate(byte[] data) throws Exception {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream(data.length);
+		Inflater inflater = new Inflater();
+		inflater.setInput(data);
+		byte[] buf = new byte[4096];
+		while (!inflater.finished()) {
+			int count = inflater.inflate(buf);
+			bos.write(buf, 0, count);
+		}
+		inflater.end();
+		return bos.toByteArray();
+	}
 }

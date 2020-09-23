@@ -29,9 +29,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.pdfjet;
 
-import java.io.*;
-import java.util.*;
-import java.util.zip.*;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 
 class FastFont {
@@ -55,9 +56,9 @@ class FastFont {
 
         byte[] buf = new byte[getInt32(inputStream)];
         inputStream.read(buf, 0, buf.length);
-        Decompressor decompressor = new Decompressor(buf);
+
         ByteArrayInputStream stream =
-                new ByteArrayInputStream(decompressor.getDecompressedData());
+                new ByteArrayInputStream(Decompressor.inflate(buf));
 
         font.unitsPerEm = getInt32(stream);
         font.bBoxLLx = getInt32(stream);

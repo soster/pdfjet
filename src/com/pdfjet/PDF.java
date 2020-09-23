@@ -1142,8 +1142,7 @@ public class PDF {
             if (obj.dict.contains("stream")) {
                 obj.setStream(pdf, obj.getLength(objects));
                 if (obj.getValue("/Filter").equals("/FlateDecode") && !suppressDecompression) {
-                    Decompressor decompressor = new Decompressor(obj.stream);
-                    obj.data = decompressor.getDecompressedData();
+                    obj.data = Decompressor.inflate(obj.stream);
                 }
                 else {
                     // Assume no compression.
@@ -1193,9 +1192,9 @@ public class PDF {
             return true;
         }
         else if (str.equals("stream")) {
-            obj.stream_offset = off;
+            obj.streamOffset = off;
             if (buf[off] == '\n') {
-                obj.stream_offset += 1;
+                obj.streamOffset += 1;
             }
             return true;
         }
@@ -1366,65 +1365,77 @@ public class PDF {
 
 
     private void getObjects2(
-            byte[] pdf,
+            byte[] buf,
             PDFobj obj,
             List<PDFobj> objects) throws Exception {
 
         String prev = obj.getValue("/Prev");
         if (!prev.equals("")) {
             getObjects2(
-                    pdf,
-                    getObject(pdf, Integer.valueOf(prev)),
+                    buf,
+                    getObject(buf, Integer.parseInt(prev)),
                     objects);
         }
 
-        obj.setStream(pdf, obj.getLength(objects));
-        if (obj.getValue("/Filter").equals("/FlateDecode")) {
-            Decompressor decompressor = new Decompressor(obj.stream);
-            obj.data = decompressor.getDecompressedData();
-        }
-        else {
-            // Assume no compression.
-            obj.data = obj.stream;
-        }
-
-        int p1 = 0; // Predictor byte
-        int f1 = 0; // Field 1
-        int f2 = 0; // Field 2
-        int f3 = 0; // Field 3
+        // See page 50 in PDF32000_2008.pdf
+        int predictor = 0;  // Predictor byte
+        int n1 = 0;         // Field 1 number of bytes
+        int n2 = 0;         // Field 2 number of bytes
+        int n3 = 0;         // Field 3 number of bytes
+        int length = 0;
         for (int i = 0; i < obj.dict.size(); i++) {
             String token = obj.dict.get(i);
             if (token.equals("/Predictor")) {
-                if (obj.dict.get(i + 1).equals("12")) {
-                    p1 = 1;
-                }
+                predictor = Integer.valueOf(obj.dict.get(i + 1));
             }
-
-            if (token.equals("/W")) {
+            else if (token.equals("/Length")) {
+                length = Integer.parseInt(obj.dict.get(i + 1));
+            }
+            else if (token.equals("/W")) {
                 // "/W [ 1 3 1 ]"
-                f1 = Integer.valueOf(obj.dict.get(i + 2));
-                f2 = Integer.valueOf(obj.dict.get(i + 3));
-                f3 = Integer.valueOf(obj.dict.get(i + 4));
+                n1 = Integer.parseInt(obj.dict.get(i + 2));
+                n2 = Integer.parseInt(obj.dict.get(i + 3));
+                n3 = Integer.parseInt(obj.dict.get(i + 4));
             }
         }
 
-        int n = p1 + f1 + f2 + f3;          // Number of bytes per entry
+        obj.setStreamAndData(buf, length);
+
+        int n = n1 + n2 + n3;   // Number of bytes per entry
+        if (predictor > 0) {
+            n += 1;
+        }
+
         byte[] entry = new byte[n];
         for (int i = 0; i < obj.data.length; i += n) {
-            // Apply the 'Up' filter.
-            for (int j = 0; j < n; j++) {
-                entry[j] += obj.data[i + j];
+            if (predictor == 12) {
+                // Apply the 'Up' filter.
+                for (int j = 1; j < n; j++) {
+                    entry[j] += obj.data[i + j];
+                }
             }
-
-            // Process the entries in a cross-reference stream
+            else {
+                for (int j = 0; j < n; j++) {
+                    entry[j] = obj.data[i + j];
+                }
+            }
+            // Process the entries in a cross-reference stream.
             // Page 51 in PDF32000_2008.pdf
-            if (entry[p1] == 1) {           // Type 1 entry
-                PDFobj o2 = getObject(pdf, toInt(entry, p1 + f1, f2));
-                o2.number = Integer.valueOf(o2.dict.get(0));
-                objects.add(o2);
+            if (predictor > 0) {
+                if (entry[1] == 1) {    // Type 1 entry
+                    PDFobj o2 = getObject(buf, toInt(entry, 1 + n1, n2));
+                    o2.number = Integer.parseInt(o2.dict.get(0));
+                    objects.add(o2);
+                }
+            }
+            else {
+                if (entry[0] == 1) {    // Type 1 entry
+                    PDFobj o2 = getObject(buf, toInt(entry, n1, n2));
+                    o2.number = Integer.parseInt(o2.dict.get(0));
+                    objects.add(o2);
+                }
             }
         }
-
     }
 
 
