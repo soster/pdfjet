@@ -59,7 +59,7 @@ public class AfmCompiler {
             String className = fontName.replace('-', '_');
             BufferedWriter out = null;
             if (languageIsJava) {
-                out = new BufferedWriter(new FileWriter("com/pdfjet/" + className + ".java"));
+                out = new BufferedWriter(new FileWriter("pdfjet/src/pdfjet/" + className + ".java"));
                 out.write("package com.pdfjet;\n\n");
                 // out.write("class " + className + " extends CoreFont {\n");
                 out.write("class " + className + " {\n");
@@ -225,7 +225,7 @@ public class AfmCompiler {
 
             BufferedWriter out = null;
             if (languageIsJava) {
-                out = new BufferedWriter(new FileWriter("com/pdfjet/" + fontName + ".java"));
+                out = new BufferedWriter(new FileWriter("pdfjet/src/pdfjet/" + fontName + ".java"));
                 out.write("package com.pdfjet;\n\n");
                 // out.write("class " + fontName + " extends CoreFont {\n");
                 out.write("class " + fontName + " {\n");

@@ -31,7 +31,6 @@ package util;
 
 import java.lang.*;
 import java.io.*;
-import java.util.*;
 import java.util.zip.*;
 
 
@@ -44,7 +43,7 @@ public class GenerateICCProfile {
     public static void main(String[] args) throws Exception {
         BufferedOutputStream bos1 =
                 new BufferedOutputStream(
-                        new FileOutputStream("com/pdfjet/ICCBlackScaled.java"));
+                        new FileOutputStream("pdfjet/src/pdfjet/ICCBlackScaled.java"));
         BufferedOutputStream bos2 =
                 new BufferedOutputStream(
                         new FileOutputStream("net/pdfjet/ICCBlackScaled.cs"));

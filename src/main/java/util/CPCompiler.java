@@ -49,7 +49,7 @@ public class CPCompiler {
             BufferedWriter out = null;
             if (lang.equals("Java")) {
                 out = new BufferedWriter(new FileWriter(
-                        "com/pdfjet/CP" + className + ".java"));
+                        "pdfjet/src/pdfjet/CP" + className + ".java"));
                 out.write("package com.pdfjet;\n\n");
                 out.write("import java.lang.*;\n\n");
             }

@@ -59,7 +59,7 @@ public class Example_41 {
         int paragraphNumber = 1;
         for (int i = 0; i < beginParagraphPoints.size(); i++) {
             float[] point = beginParagraphPoints.get(i);
-            new TextLine(f1, String.valueOf(paragraphNumber) + ".")
+            new TextLine(f1, String.valueOf(paragraphNumber) + "")
                     .setLocation(point[0] - 30f, point[1])
                     .drawOn(page);
             paragraphNumber++;

@@ -134,7 +134,7 @@ public class Bookmark {
                     prefix = String.valueOf(Integer.valueOf(bm.prefix) + 1);
                 }
                 else {
-                    prefix = bm.prefix.substring(0, index) + ".";
+                    prefix = bm.prefix.substring(0, index) + "";
                     prefix += String.valueOf(Integer.valueOf(bm.prefix.substring(index + 1)) + 1);
                 }
             }

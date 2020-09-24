@@ -98,7 +98,7 @@ public class GenerateFontCopyright {
 
 
     public static void main(String[] args) {
-        new GenerateFontCopyright("com/pdfjet/AndroidFontsCopyright.java");
+        new GenerateFontCopyright("pdfjet/src/pdfjet/AndroidFontsCopyright.java");
         new GenerateFontCopyright("net/pdfjet/AndroidFontsCopyright.cs");
     }
 }
