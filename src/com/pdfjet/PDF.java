@@ -1325,15 +1325,15 @@ public class PDF {
 
 
     private void getObjects1(
-            byte[] pdf,
+            byte[] buf,
             PDFobj obj,
-            List<PDFobj> objects) throws Exception {
+            List<PDFobj> objects) {
 
         String xref = obj.getValue("/Prev");
         if (!xref.equals("")) {
             getObjects1(
-                    pdf,
-                    getObject(pdf, Integer.valueOf(xref)),
+                    buf,
+                    getObject(buf, Integer.parseInt(xref)),
                     objects);
         }
 
@@ -1344,13 +1344,13 @@ public class PDF {
                 break;
             }
 
-            int n = Integer.valueOf(obj.dict.get(i++)); // Number of entries
+            int n = Integer.parseInt(obj.dict.get(i++)); // Number of entries
             for (int j = 0; j < n; j++) {
                 String offset = obj.dict.get(i++);      // Object offset
                 String number = obj.dict.get(i++);      // Generation number
                 String status = obj.dict.get(i++);      // Status keyword
                 if (!status.equals("f")) {
-                    PDFobj o2 = getObject(pdf, Integer.valueOf(offset));
+                    PDFobj o2 = getObject(buf, Integer.valueOf(offset));
                     // Avoid: java.lang.NumberFormatException: Invalid int: "%PDF-1.3"
                     if (o2.dict.get(0).startsWith("%PDF")) {
                         continue;
