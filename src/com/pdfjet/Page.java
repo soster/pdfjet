@@ -467,19 +467,6 @@ public class Page {
     }
 
 
-    // String state = "/CA 0.5 /ca 0.5";
-    private void setGraphicsState(String state) throws IOException {
-        Integer n = pdf.states.get(state);
-        if (n == null) {
-            n = pdf.states.size() + 1;
-            pdf.states.put(state, n);
-        }
-        append("/GS");
-        append(n);
-        append(" gs\n");
-    }
-
-
     /**
      * Sets the color for stroking operations.
      * The pen color is used when drawing lines and splines.
@@ -489,7 +476,7 @@ public class Page {
      * @param b the blue component is float value from 0.0 to 1.0.
      */
     public void setPenColor(
-            double r, double g, double b) throws IOException {
+            double r, double g, double b)  {
         setPenColor((float) r, (float) g, (float) b);
     }
 
@@ -503,7 +490,7 @@ public class Page {
      * @param b the blue component is float value from 0.0f to 1.0f.
      */
     public void setPenColor(
-            float r, float g, float b) throws IOException {
+            float r, float g, float b) {
         if (pen[0] != r ||
                 pen[1] != g ||
                 pen[2] != b) {
@@ -525,7 +512,7 @@ public class Page {
      * @param b the blue component is float value from 0.0 to 1.0.
      */
     public void setBrushColor(
-            double r, double g, double b) throws IOException {
+            double r, double g, double b) {
         setBrushColor((float) r, (float) g, (float) b);
     }
 
@@ -539,7 +526,7 @@ public class Page {
      * @param b the blue component is float value from 0.0f to 1.0f.
      */
     public void setBrushColor(
-            float r, float g, float b) throws IOException {
+            float r, float g, float b) {
         if (brush[0] != r ||
                 brush[1] != g ||
                 brush[2] != b) {
@@ -558,7 +545,7 @@ public class Page {
      * @param color the color.
      * @throws IOException
      */
-    public void setBrushColor(float[] color) throws IOException {
+    public void setBrushColor(float[] color) {
         setBrushColor(color[0], color[1], color[2]);
     }
 
@@ -574,7 +561,7 @@ public class Page {
 
 
     private void setColor(
-            float r, float g, float b) throws IOException {
+            float r, float g, float b)  {
         append(r);
         append(' ');
         append(g);
@@ -589,7 +576,7 @@ public class Page {
      * @param color the color. See the Color class for predefined values or define your own using 0x00RRGGBB packed integers.
      * @throws IOException
      */
-    public void setPenColor(int color) throws IOException {
+    public void setPenColor(int color)  {
         float r = ((color >> 16) & 0xff)/255f;
         float g = ((color >>  8) & 0xff)/255f;
         float b = ((color)       & 0xff)/255f;
@@ -603,7 +590,7 @@ public class Page {
      * @param color the color. See the Color class for predefined values or define your own using 0x00RRGGBB packed integers.
      * @throws IOException
      */
-    public void setBrushColor(int color) throws IOException {
+    public void setBrushColor(int color) {
         float r = ((color >> 16) & 0xff)/255f;
         float g = ((color >>  8) & 0xff)/255f;
         float b = ((color)       & 0xff)/255f;
@@ -615,7 +602,7 @@ public class Page {
      *  Sets the line width to the default.
      *  The default is the finest line width.
      */
-    public void setDefaultLineWidth() throws IOException {
+    public void setDefaultLineWidth() {
         if (pen_width != 0f) {
             pen_width = 0f;
             append(pen_width);
@@ -647,7 +634,7 @@ public class Page {
      *
      *  @param pattern the line dash pattern.
      */
-    public void setLinePattern(String pattern) throws IOException {
+    public void setLinePattern(String pattern) {
         if (!pattern.equals(linePattern)) {
             linePattern = pattern;
             append(linePattern);
@@ -659,7 +646,7 @@ public class Page {
     /**
      *  Sets the default line dash pattern - solid line.
      */
-    public void setDefaultLinePattern() throws IOException {
+    public void setDefaultLinePattern()  {
         append("[] 0");
         append(" d\n");
     }
@@ -670,7 +657,7 @@ public class Page {
      *
      *  @param width the pen width.
      */
-    public void setPenWidth(double width) throws IOException {
+    public void setPenWidth(double width) {
         setPenWidth((float) width);
     }
 
@@ -680,7 +667,7 @@ public class Page {
      *
      *  @param width the pen width.
      */
-    public void setPenWidth(float width) throws IOException {
+    public void setPenWidth(float width) {
         if (pen_width != width) {
             pen_width = width;
             append(pen_width);
@@ -694,7 +681,7 @@ public class Page {
      *
      *  @param style the cap style of the current line. Supported values: Cap.BUTT, Cap.ROUND and Cap.PROJECTING_SQUARE
      */
-    public void setLineCapStyle(int style) throws IOException {
+    public void setLineCapStyle(int style) {
         if (line_cap_style != style) {
             line_cap_style = style;
             append(line_cap_style);
@@ -708,7 +695,7 @@ public class Page {
      *
      *  @param style the line join style code. Supported values: Join.MITER, Join.ROUND and Join.BEVEL
      */
-    public void setLineJoinStyle(int style) throws IOException {
+    public void setLineJoinStyle(int style) {
         if (line_join_style != style) {
             line_join_style = style;
             append(line_join_style);
@@ -734,7 +721,7 @@ public class Page {
      *  @param x the x coordinate of new pen position.
      *  @param y the y coordinate of new pen position.
      */
-    public void moveTo(float x, float y) throws IOException {
+    public void moveTo(float x, float y) {
         append(x);
         append(' ');
         append(height - y);
@@ -747,7 +734,7 @@ public class Page {
      *  using the current pen width and stroke color.
      *  Make sure you call strokePath(), closePath() or fillPath() after the last call to this method.
      */
-    public void lineTo(double x, double y) throws IOException {
+    public void lineTo(double x, double y) {
         lineTo((float) x, (float) y);
     }
 
@@ -757,7 +744,7 @@ public class Page {
      *  using the current pen width and stroke color.
      *  Make sure you call strokePath(), closePath() or fillPath() after the last call to this method.
      */
-    public void lineTo(float x, float y) throws IOException {
+    public void lineTo(float x, float y) {
         append(x);
         append(' ');
         append(height - y);
@@ -768,7 +755,7 @@ public class Page {
     /**
      *  Draws the path using the current pen color.
      */
-    public void strokePath() throws IOException {
+    public void strokePath() {
         append("S\n");
     }
 
@@ -776,7 +763,7 @@ public class Page {
     /**
      *  Closes the path and draws it using the current pen color.
      */
-    public void closePath() throws IOException {
+    public void closePath() {
         append("s\n");
     }
 
@@ -784,7 +771,7 @@ public class Page {
     /**
      *  Closes and fills the path with the current brush color.
      */
-    public void fillPath() throws IOException {
+    public void fillPath() {
         append("f\n");
     }
 
@@ -800,8 +787,7 @@ public class Page {
      *  @param w the width of the rectangle to be drawn.
      *  @param h the height of the rectangle to be drawn.
      */
-    public void drawRect(double x, double y, double w, double h)
-            throws IOException {
+    public void drawRect(double x, double y, double w, double h) {
         drawRect((float) x, (float) y, (float) w, (float) h);
     }
 
@@ -817,8 +803,7 @@ public class Page {
      *  @param w the width of the rectangle to be drawn.
      *  @param h the height of the rectangle to be drawn.
      */
-    public void drawRect(float x, float y, float w, float h)
-            throws IOException {
+    public void drawRect(float x, float y, float w, float h) {
         moveTo(x, y);
         lineTo(x+w, y);
         lineTo(x+w, y+h);
@@ -838,8 +823,7 @@ public class Page {
      *  @param w the width of the rectangle to be drawn.
      *  @param h the height of the rectangle to be drawn.
      */
-    public void fillRect(double x, double y, double w, double h)
-            throws IOException {
+    public void fillRect(double x, double y, double w, double h) {
         fillRect((float) x, (float) y, (float) w, (float) h);
     }
 
@@ -855,8 +839,7 @@ public class Page {
      *  @param w the width of the rectangle to be drawn.
      *  @param h the height of the rectangle to be drawn.
      */
-    public void fillRect(float x, float y, float w, float h)
-            throws IOException {
+    public void fillRect(float x, float y, float w, float h) {
         moveTo(x, y);
         lineTo(x+w, y);
         lineTo(x+w, y+h);
@@ -902,7 +885,6 @@ public class Page {
         append('\n');
     }
 
-
     /**
      *  Draws a circle on the page.
      *
@@ -915,7 +897,7 @@ public class Page {
     public void drawCircle(
             double x,
             double y,
-            double r) throws Exception {
+            double r) {
         drawEllipse((float) x, (float) y, (float) r, (float) r, Operation.STROKE);
     }
 
@@ -932,7 +914,7 @@ public class Page {
     public void drawCircle(
             float x,
             float y,
-            float r) throws Exception {
+            float r) {
         drawEllipse(x, y, r, r, Operation.STROKE);
     }
 
@@ -949,7 +931,7 @@ public class Page {
             double x,
             double y,
             double r,
-            char operation) throws Exception {
+            char operation) {
         drawEllipse((float) x, (float) y, (float) r, (float) r, operation);
     }
 
@@ -966,7 +948,7 @@ public class Page {
             float x,
             float y,
             float r,
-            char operation) throws Exception {
+            char operation) {
         drawEllipse(x, y, r, r, operation);
     }
 
@@ -983,7 +965,7 @@ public class Page {
             double x,
             double y,
             double r1,
-            double r2) throws Exception {
+            double r2) {
         drawEllipse((float) x, (float) y, (float) r1, (float) r2, Operation.STROKE);
     }
 
@@ -1000,7 +982,7 @@ public class Page {
             float x,
             float y,
             float r1,
-            float r2) throws Exception {
+            float r2) {
         drawEllipse(x, y, r1, r2, Operation.STROKE);
     }
 
@@ -1017,7 +999,7 @@ public class Page {
             double x,
             double y,
             double r1,
-            double r2) throws Exception {
+            double r2) {
         drawEllipse((float) x, (float) y, (float) r1, (float) r2, Operation.FILL);
     }
 
@@ -1034,7 +1016,7 @@ public class Page {
             float x,
             float y,
             float r1,
-            float r2) throws Exception {
+            float r2) {
         drawEllipse(x, y, r1, r2, Operation.FILL);
     }
 
@@ -1053,7 +1035,7 @@ public class Page {
             float y,
             float r1,
             float r2,
-            char operation) throws Exception {
+            char operation) {
         // The best 4-spline magic number
         float m4 = 0.551784f;
 
