@@ -448,14 +448,22 @@ public class Page {
      *
      *  @param gs the graphics state to use.
      */
-    public void setGraphicsState(GraphicsState gs) throws IOException {
+    public void setGraphicsState(GraphicsState gs) {
         StringBuilder buf = new StringBuilder();
         buf.append("/CA ");
-        buf.append(gs.get_CA());
+        buf.append(gs.getAlphaStroking());
         buf.append(" ");
         buf.append("/ca ");
-        buf.append(gs.get_ca());
-        setGraphicsState(buf.toString());
+        buf.append(gs.getAlphaNonStroking());
+        String state = buf.toString();
+        Integer n = pdf.states.get(state);
+        if (n == null) {
+            n = pdf.states.size() + 1;
+            pdf.states.put(state, n);
+        }
+        append("/GS");
+        append(n);
+        append(" gs\n");
     }
 
 
@@ -1540,7 +1548,7 @@ public class Page {
     }
 
 
-    private void appendPointXY(float x, float y) throws IOException {
+    private void appendPointXY(float x, float y) {
         append(x);
         append(' ');
         append(height - y);
@@ -1548,7 +1556,7 @@ public class Page {
     }
 
 
-    private void append(Point point) throws IOException {
+    private void append(Point point) {
         append(point.x);
         append(' ');
         append(height - point.y);
@@ -1556,7 +1564,7 @@ public class Page {
     }
 
 
-    protected void append(String str) throws IOException {
+    protected void append(String str) {
         int len = str.length();
         for (int i = 0; i < len; i++) {
             buf.write((byte) str.charAt(i));
@@ -1564,22 +1572,22 @@ public class Page {
     }
 
 
-    protected void append(int num) throws IOException {
+    protected void append(int num) {
         append(Integer.toString(num));
     }
 
 
-    protected void append(float val) throws IOException {
+    protected void append(float val){
         append(PDF.df.format(val));
     }
 
 
-    protected void append(char ch) throws IOException {
+    protected void append(char ch) {
         buf.write((byte) ch);
     }
 
 
-    protected void append(byte b) throws IOException {
+    protected void append(byte b) {
         buf.write(b);
     }
 

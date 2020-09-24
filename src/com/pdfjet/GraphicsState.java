@@ -7,23 +7,23 @@ public class GraphicsState {
     private float CA = 1f;
     private float ca = 1f;
 
-    public void set_CA(float CA) {
+    public void setAlphaStroking(float CA) {
         if (CA >= 0f && CA <= 1f) {
             this.CA = CA;
         }
     }
 
-    public float get_CA() {
+    public float getAlphaStroking() {
         return this.CA;
     }
 
-    public void set_ca(float ca) {
+    public void setAlphaNonStroking(float ca) {
         if (ca >= 0f && ca <= 1f) {
             this.ca = ca;
         }
     }
 
-    public float get_ca() {
+    public float getAlphaNonStroking() {
         return this.ca;
     }
 

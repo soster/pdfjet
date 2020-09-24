@@ -634,9 +634,9 @@ TODO: Test well this method and use instead of the method above.
         obj.dict.add(++index, "/GS" + String.valueOf(gsNumber + 1));
         obj.dict.add(++index, "<<");
         obj.dict.add(++index, "/CA");
-        obj.dict.add(++index, String.valueOf(gs.get_CA()));
+        obj.dict.add(++index, String.valueOf(gs.getAlphaStroking()));
         obj.dict.add(++index, "/ca");
-        obj.dict.add(++index, String.valueOf(gs.get_ca()));
+        obj.dict.add(++index, String.valueOf(gs.getAlphaNonStroking()));
         obj.dict.add(++index, ">>");
         if (gsNumber == 0) {
             obj.dict.add(++index, ">>");
