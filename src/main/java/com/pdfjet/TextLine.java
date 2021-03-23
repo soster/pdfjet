@@ -1,30 +1,25 @@
 /**
  *  TextLine.java
  *
-Copyright (c) 2018, Innovatics Inc.
-All rights reserved.
+Copyright 2020 Innovatics Inc.
 
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
- 
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and / or other materials provided with the distribution.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 */
 
 package com.pdfjet;
@@ -42,7 +37,7 @@ public class TextLine implements Drawable {
 
     protected Font font;
     protected Font fallbackFont;
-    protected String str;
+    protected String text;
     protected boolean trailingSpace = true;
 
     private String uri;
@@ -50,25 +45,22 @@ public class TextLine implements Drawable {
 
     private boolean underline = false;
     private boolean strikeout = false;
-    private String underlineTTS = "underline";
-    private String strikeoutTTS = "strikeout";
 
     private int degrees = 0;
     private int color = Color.black;
 
-    private float box_x;
-    private float box_y;
-    
+    private float xBox;
+    private float yBox;
+
     private int textEffect = Effect.NORMAL;
     private float verticalOffset = 0f;
 
     private String language = null;
     private String altDescription = null;
-    private String actualText = null;
 
     private String uriLanguage = null;
-    private String uriAltDescription = null;
     private String uriActualText = null;
+    private String uriAltDescription = null;
 
 
     /**
@@ -89,13 +81,8 @@ public class TextLine implements Drawable {
      */
     public TextLine(Font font, String text) {
         this.font = font;
-        this.str = text;
-        if (this.altDescription == null) {
-            this.altDescription = text;
-        }
-        if (this.actualText == null) {
-            this.actualText = text;
-        }
+        this.text = text;
+        this.altDescription = text;
     }
 
 
@@ -106,13 +93,8 @@ public class TextLine implements Drawable {
      *  @return this TextLine.
      */
     public TextLine setText(String text) {
-        this.str = text;
-        if (this.altDescription == null) {
-            this.altDescription = text;
-        }
-        if (this.actualText == null) {
-            this.actualText = text;
-        }
+        this.text = text;
+        this.altDescription = text;
         return this;
     }
 
@@ -123,33 +105,28 @@ public class TextLine implements Drawable {
      *  @return the text.
      */
     public String getText() {
-        return str;
+        return text;
     }
-
 
     /**
      *  Sets the position where this text line will be drawn on the page.
      *
      *  @param x the x coordinate of the text line.
      *  @param y the y coordinate of the text line.
-     *  @return this TextLine.
      */
-    public TextLine setPosition(double x, double y) {
-        return setLocation((float) x, (float) y);
+    public void setPosition(float x, float y) {
+        setLocation(x, y);
     }
-
 
     /**
      *  Sets the position where this text line will be drawn on the page.
      *
      *  @param x the x coordinate of the text line.
      *  @param y the y coordinate of the text line.
-     *  @return this TextLine.
      */
-    public TextLine setPosition(float x, float y) {
-        return setLocation(x, y);
+    public void setPosition(double x, double y) {
+        setLocation(x, y);
     }
-
 
     /**
      *  Sets the location where this text line will be drawn on the page.
@@ -162,6 +139,16 @@ public class TextLine implements Drawable {
         this.x = x;
         this.y = y;
         return this;
+    }
+
+    public TextLine setLocation(double x, double y) {
+        return setLocation((float) x, (float) y);
+    }
+
+
+    public float advance(float leading) {
+        this.y += leading;
+        return this.y;
     }
 
 
@@ -247,8 +234,9 @@ public class TextLine implements Drawable {
 
     /**
      *  Sets the pen color.
-     * 
-     *  @param color the color. See the Color class for predefined values or define your own using 0x00RRGGBB packed integers.
+     *  See the Color class for predefined values or define your own using 0x00RRGGBB packed integers.
+     *
+     *  @param color the color.
      *  @return this TextLine.
      */
     public TextLine setColor(int[] color) {
@@ -269,21 +257,11 @@ public class TextLine implements Drawable {
 
     /**
      * Returns the y coordinate of the destination.
-     * 
+     *
      * @return the y coordinate of the destination.
      */
     public float getDestinationY() {
         return y - font.getSize();
-    }
-
-
-    /**
-     * Returns the y coordinate of the destination.
-     * 
-     * @return the y coordinate of the destination.
-     */
-    public float getY() {
-        return getDestinationY();
     }
 
 
@@ -293,10 +271,12 @@ public class TextLine implements Drawable {
      *  @return the width.
      */
     public float getWidth() {
-        if (fallbackFont == null) {
-            return font.stringWidth(str);
-        }
-        return font.stringWidth(fallbackFont, str);
+        return font.stringWidth(fallbackFont, text);
+    }
+
+
+    public float getStringWidth(String text) {
+        return font.stringWidth(fallbackFont, text);
     }
 
 
@@ -324,7 +304,7 @@ public class TextLine implements Drawable {
 
     /**
      *  Returns the action URI.
-     * 
+     *
      *  @return the action URI.
      */
     public String getURIAction() {
@@ -346,7 +326,7 @@ public class TextLine implements Drawable {
 
     /**
      * Returns the GoTo action string.
-     * 
+     *
      * @return the GoTo action string.
      */
     public String getGoToAction() {
@@ -369,7 +349,7 @@ public class TextLine implements Drawable {
 
     /**
      * Returns the underline flag.
-     * 
+     *
      * @return the underline flag.
      */
     public boolean getUnderline() {
@@ -392,7 +372,7 @@ public class TextLine implements Drawable {
 
     /**
      *  Returns the strikeout flag.
-     * 
+     *
      *  @return the strikeout flag.
      */
     public boolean getStrikeout() {
@@ -414,7 +394,7 @@ public class TextLine implements Drawable {
 
     /**
      * Returns the text direction.
-     * 
+     *
      * @return the text direction.
      */
     public int getTextDirection() {
@@ -424,7 +404,7 @@ public class TextLine implements Drawable {
 
     /**
      *  Sets the text effect.
-     * 
+     *
      *  @param textEffect Effect.NORMAL, Effect.SUBSCRIPT or Effect.SUPERSCRIPT.
      *  @return this TextLine.
      */
@@ -436,7 +416,7 @@ public class TextLine implements Drawable {
 
     /**
      *  Returns the text effect.
-     * 
+     *
      *  @return the text effect.
      */
     public int getTextEffect() {
@@ -446,7 +426,7 @@ public class TextLine implements Drawable {
 
     /**
      *  Sets the vertical offset of the text.
-     * 
+     *
      *  @param verticalOffset the vertical offset.
      *  @return this TextLine.
      */
@@ -458,7 +438,7 @@ public class TextLine implements Drawable {
 
     /**
      *  Returns the vertical text offset.
-     * 
+     *
      *  @return the vertical text offset.
      */
     public float getVerticalOffset() {
@@ -468,7 +448,7 @@ public class TextLine implements Drawable {
 
     /**
      *  Sets the trailing space after this text line when used in paragraph.
-     * 
+     *
      *  @param trailingSpace the trailing space.
      *  @return this TextLine.
      */
@@ -480,7 +460,7 @@ public class TextLine implements Drawable {
 
     /**
      *  Returns the trailing space.
-     * 
+     *
      *  @return the trailing space.
      */
     public boolean getTrailingSpace() {
@@ -516,23 +496,6 @@ public class TextLine implements Drawable {
     }
 
 
-    /**
-     *  Sets the actual text for this text line.
-     *
-     *  @param actualText the actual text for the text line.
-     *  @return this TextLine.
-     */
-    public TextLine setActualText(String actualText) {
-        this.actualText = actualText;
-        return this;
-    }
-
-
-    public String getActualText() {
-        return actualText;
-    }
-
-
     public TextLine setURILanguage(String uriLanguage) {
         this.uriLanguage = uriLanguage;
         return this;
@@ -557,7 +520,7 @@ public class TextLine implements Drawable {
      *  @param box the specified box.
      *  @return this TextLine.
      */
-    public TextLine placeIn(Box box) throws Exception {
+    public TextLine placeIn(Box box) {
         placeIn(box, 0f, 0f);
         return this;
     }
@@ -567,15 +530,15 @@ public class TextLine implements Drawable {
      *  Places this text line in the box at the specified offset.
      *
      *  @param box the specified box.
-     *  @param x_offset the x offset from the top left corner of the box.
-     *  @param y_offset the y offset from the top left corner of the box.
+     *  @param xOffset the x offset from the top left corner of the box.
+     *  @param yOffset the y offset from the top left corner of the box.
      *  @return this TextLine.
      */
     public TextLine placeIn(
             Box box,
-            double x_offset,
-            double y_offset) throws Exception {
-        return placeIn(box, (float) x_offset, (float) y_offset);
+            double xOffset,
+            double yOffset) {
+        return placeIn(box, (float) xOffset, (float) yOffset);
     }
 
 
@@ -583,16 +546,16 @@ public class TextLine implements Drawable {
      *  Places this text line in the box at the specified offset.
      *
      *  @param box the specified box.
-     *  @param x_offset the x offset from the top left corner of the box.
-     *  @param y_offset the y offset from the top left corner of the box.
+     *  @param xOffset the x offset from the top left corner of the box.
+     *  @param yOffset the y offset from the top left corner of the box.
      *  @return this TextLine.
      */
     public TextLine placeIn(
             Box box,
-            float x_offset,
-            float y_offset) throws Exception {
-        box_x = box.x + x_offset;
-        box_y = box.y + y_offset;
+            float xOffset,
+            float yOffset) {
+        xBox = box.x + xOffset;
+        yBox = box.y + yOffset;
         return this;
     }
 
@@ -601,52 +564,36 @@ public class TextLine implements Drawable {
      *  Draws this text line on the specified page.
      *
      *  @param page the page to draw this text line on.
-     *  @return x and y coordinates of the bottom right corner of this component.
-     *  @throws Exception
+     *  @return float[] with the coordinates of the bottom right corner.
+     *  @throws Exception  If an input or output exception occurred
      */
     public float[] drawOn(Page page) throws Exception {
-        return drawOn(page, true);
-    }
-
-
-    /**
-     *  Draws this text line on the specified page if the draw parameter is true.
-     *
-     *  @param page the page to draw this text line on.
-     *  @param draw if draw is false - no action is performed.
-     */
-    protected float[] drawOn(Page page, boolean draw) throws Exception {
-        if (page == null || !draw || str == null || str.equals("")) {
+        if (page == null || text == null || text.equals("")) {
             return new float[] {x, y};
         }
 
         page.setTextDirection(degrees);
 
-        x += box_x;
-        y += box_y;
+        x += xBox;
+        y += yBox;
 
         page.setBrushColor(color);
-        page.addBMC(StructElem.SPAN, language, altDescription, actualText);
-        if (fallbackFont == null) {
-            page.drawString(font, str, x, y);
-        }
-        else {
-            page.drawString(font, fallbackFont, str, x, y);
-        }
+        page.addBMC(StructElem.P, language, text, altDescription);
+        page.drawString(font, fallbackFont, text, x, y);
         page.addEMC();
 
         double radians = Math.PI * degrees / 180.0;
         if (underline) {
             page.setPenWidth(font.underlineThickness);
             page.setPenColor(color);
-            float lineLength = font.stringWidth(str);
-            double x_adjust = font.underlinePosition * Math.sin(radians) + verticalOffset;
-            double y_adjust = font.underlinePosition * Math.cos(radians) + verticalOffset;
+            float lineLength = font.stringWidth(fallbackFont, text);
+            double xAdjust = font.underlinePosition * Math.sin(radians) + verticalOffset;
+            double yAdjust = font.underlinePosition * Math.cos(radians) + verticalOffset;
             double x2 = x + lineLength * Math.cos(radians);
             double y2 = y - lineLength * Math.sin(radians);
-            page.addBMC(StructElem.SPAN, language, underlineTTS, underlineTTS);
-            page.moveTo(x + x_adjust, y + y_adjust);
-            page.lineTo(x2 + x_adjust, y2 + y_adjust);
+            page.addBMC(StructElem.P, language, text, "Underlined text: " + text);
+            page.moveTo(x + xAdjust, y + yAdjust);
+            page.lineTo(x2 + xAdjust, y2 + yAdjust);
             page.strokePath();
             page.addEMC();
         }
@@ -654,14 +601,14 @@ public class TextLine implements Drawable {
         if (strikeout) {
             page.setPenWidth(font.underlineThickness);
             page.setPenColor(color);
-            float lineLength = font.stringWidth(str);
-            double x_adjust = ( font.body_height / 4.0 ) * Math.sin(radians);
-            double y_adjust = ( font.body_height / 4.0 ) * Math.cos(radians);
+            float lineLength = font.stringWidth(fallbackFont, text);
+            double xAdjust = (font.bodyHeight / 4.0) * Math.sin(radians);
+            double yAdjust = (font.bodyHeight / 4.0) * Math.cos(radians);
             double x2 = x + lineLength * Math.cos(radians);
             double y2 = y - lineLength * Math.sin(radians);
-            page.addBMC(StructElem.SPAN, language, strikeoutTTS, strikeoutTTS);
-            page.moveTo(x - x_adjust, y - y_adjust);
-            page.lineTo(x2 - x_adjust, y2 - y_adjust);
+            page.addBMC(StructElem.P, language, text, "Strikethrough text: " + text);
+            page.moveTo(x - xAdjust, y - yAdjust);
+            page.lineTo(x2 - xAdjust, y2 - yAdjust);
             page.strokePath();
             page.addEMC();
         }
@@ -671,20 +618,20 @@ public class TextLine implements Drawable {
                     uri,
                     key,    // The destination name
                     x,
-                    page.height - (y - font.ascent),
-                    x + font.stringWidth(str),
-                    page.height - (y - font.descent),
+                    y - font.ascent,
+                    x + font.stringWidth(fallbackFont, text),
+                    y + font.descent,
                     uriLanguage,
-                    uriAltDescription,
-                    uriActualText));
+                    uriActualText,
+                    uriAltDescription));
         }
         page.setTextDirection(0);
 
-        float len = font.stringWidth(str);
-        double x_max = Math.max((double) x, x + len*Math.cos(radians));
-        double y_max = Math.max((double) y, y - len*Math.sin(radians));
+        float len = font.stringWidth(fallbackFont, text);
+        double xMax = Math.max(x, x + len*Math.cos(radians));
+        double yMax = Math.max(y, y - len*Math.sin(radians));
 
-        return new float[] {(float) x_max, (float) y_max};
+        return new float[] {(float) xMax, (float) yMax};
     }
 
 }   // End of TextLine.java

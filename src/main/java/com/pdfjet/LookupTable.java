@@ -7,10 +7,10 @@ class Pair {
     int code;
 }
 
-public class LookupTable {
+class LookupTable {
 
     private final int mask = 0xFFFF;
-    private Pair[] pairs = new Pair[mask + 1];
+    private final Pair[] pairs = new Pair[mask + 1];
 
     public LookupTable() {
         for (int i = 0; i < pairs.length; i++) {

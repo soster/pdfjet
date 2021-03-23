@@ -1,30 +1,25 @@
 /**
  *  Image.java
  *
-Copyright (c) 2018, Innovatics Inc.
-All rights reserved.
+Copyright 2020 Innovatics Inc.
 
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and / or other materials provided with the distribution.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 */
 
 package com.pdfjet;
@@ -35,7 +30,8 @@ import java.util.*;
 
 /**
  *  Used to create image objects and draw them on a page.
- *  The image type can be one of the following: ImageType.JPG, ImageType.PNG, ImageType.BMP or ImageType.JET
+ *  The image type can be one of the following:
+ *      ImageType.JPG, ImageType.PNG, ImageType.BMP or ImageType.PNG_STREAM
  *
  *  Please see Example_03 and Example_24.
  */
@@ -51,15 +47,15 @@ public class Image implements Drawable {
     protected String uri;
     protected String key;
 
-    private float box_x;
-    private float box_y;
+    private float xBox;
+    private float yBox;
 
     private int degrees = 0;
     private boolean flipUpsideDown = false;
 
     private String language = null;
-    private String altDescription = Single.space;
     private String actualText = Single.space;
+    private String altDescription = Single.space;
 
 
     /**
@@ -68,6 +64,7 @@ public class Image implements Drawable {
      *  @param pdf the PDF to which we add this image.
      *  @param inputStream the input stream to read the image from.
      *  @param imageType ImageType.JPG, ImageType.PNG and ImageType.BMP.
+     *  @throws Exception  If an input or output exception occurred
      *
      */
     public Image(PDF pdf, InputStream inputStream, int imageType)
@@ -112,7 +109,7 @@ public class Image implements Drawable {
             h = bmp.getHeight();
             addImage(pdf, data, null, imageType, "DeviceRGB", 8);
         }
-        else if (imageType == ImageType.JET) {
+        else if (imageType == ImageType.PNG_STREAM) {
             addImage(pdf, inputStream);
         }
 
@@ -120,9 +117,64 @@ public class Image implements Drawable {
     }
 
 
+    /**
+     *  Constructor used to attach images to existing PDF.
+     *
+     *  @param objects the map to which we add this image.
+     *  @param inputStream the input stream to read the image from.
+     *  @param imageType ImageType.JPG, ImageType.PNG and ImageType.BMP.
+     *  @throws Exception  If an input or output exception occurred
+     *
+     */
+    public Image(List<PDFobj> objects, InputStream inputStream, int imageType) throws Exception {
+        byte[] data;
+        if (imageType == ImageType.JPG) {
+            JPGImage jpg = new JPGImage(inputStream);
+            data = jpg.getData();
+            w = jpg.getWidth();
+            h = jpg.getHeight();
+            if (jpg.getColorComponents() == 1) {
+                addImageToObjects(objects, data, null, imageType, "DeviceGray", 8);
+            }
+            else if (jpg.getColorComponents() == 3) {
+                addImageToObjects(objects, data, null, imageType, "DeviceRGB", 8);
+            }
+            else if (jpg.getColorComponents() == 4) {
+                addImageToObjects(objects, data, null, imageType, "DeviceCMYK", 8);
+            }
+        }
+        else if (imageType == ImageType.PNG) {
+            PNGImage png = new PNGImage(inputStream);
+            data = png.getData();
+            w = png.getWidth();
+            h = png.getHeight();
+            if (png.getColorType() == 0) {
+                addImageToObjects(objects, data, null, imageType, "DeviceGray", png.getBitDepth());
+            }
+            else {
+                if (png.getBitDepth() == 16) {
+                    addImageToObjects(objects, data, null, imageType, "DeviceRGB", 16);
+                }
+                else {
+                    addImageToObjects(objects, data, png.getAlpha(), imageType, "DeviceRGB", 8);
+                }
+            }
+        }
+        else if (imageType == ImageType.BMP) {
+            BMPImage bmp = new BMPImage(inputStream);
+            data = bmp.getData();
+            w = bmp.getWidth();
+            h = bmp.getHeight();
+            addImageToObjects(objects, data, null, imageType, "DeviceRGB", 8);
+        }
+        inputStream.close();
+    }
+
+
+    // Creates new image from PDFobj
     public Image(PDF pdf, PDFobj obj) throws Exception {
-        w = Float.valueOf(obj.getValue("/Width"));
-        h = Float.valueOf(obj.getValue("/Height"));
+        w = Float.parseFloat(obj.getValue("/Width"));
+        h = Float.parseFloat(obj.getValue("/Height"));
         pdf.newobj();
         pdf.append("<<\n");
         pdf.append("/Type /XObject\n");
@@ -166,7 +218,7 @@ public class Image implements Drawable {
         pdf.append("\nendstream\n");
         pdf.endobj();
         pdf.images.add(this);
-        objNumber = pdf.objNumber;
+        objNumber = pdf.getObjNumber();
     }
 
 
@@ -176,8 +228,8 @@ public class Image implements Drawable {
      *  @param x the x coordinate of the top left corner of the image.
      *  @param y the y coordinate of the top left corner of the image.
      */
-    public Image setPosition(double x, double y) {
-        return setPosition((float) x, (float) y);
+    public void setPosition(float x, float y) {
+        setLocation(x, y);
     }
 
 
@@ -187,8 +239,8 @@ public class Image implements Drawable {
      *  @param x the x coordinate of the top left corner of the image.
      *  @param y the y coordinate of the top left corner of the image.
      */
-    public Image setPosition(float x, float y) {
-        return setLocation(x, y);
+    public void setPosition(double x, double y) {
+        setLocation(x, y);
     }
 
 
@@ -197,6 +249,7 @@ public class Image implements Drawable {
      *
      *  @param x the x coordinate of the top left corner of the image.
      *  @param y the y coordinate of the top left corner of the image.
+     *  @return this Image object.
      */
     public Image setLocation(float x, float y) {
         this.x = x;
@@ -205,10 +258,16 @@ public class Image implements Drawable {
     }
 
 
+    public Image setLocation(double x, double y) {
+        return setLocation((float) x, (float) y);
+    }
+
+
     /**
      *  Scales this image by the specified factor.
      *
      *  @param factor the factor used to scale the image.
+     *  @return this Image object.
      */
     public Image scaleBy(double factor) {
         return this.scaleBy((float) factor, (float) factor);
@@ -219,6 +278,7 @@ public class Image implements Drawable {
      *  Scales this image by the specified factor.
      *
      *  @param factor the factor used to scale the image.
+     *  @return this Image object.
      */
     public Image scaleBy(float factor) {
         return this.scaleBy(factor, factor);
@@ -231,6 +291,7 @@ public class Image implements Drawable {
      *
      *  @param widthFactor the factor used to scale the width of the image
      *  @param heightFactor the factor used to scale the height of the image
+     *  @return this Image object.
      */
     public Image scaleBy(float widthFactor, float heightFactor) {
         this.w *= widthFactor;
@@ -239,14 +300,26 @@ public class Image implements Drawable {
     }
 
 
+    public Image resizeWidth(float width) {
+        float factor = width / getWidth();
+        return this.scaleBy(factor, factor);
+    }
+
+
+    public Image resizeHeight(float height) {
+        float factor = height / getHeight();
+        return this.scaleBy(factor, factor);
+    }
+
+
     /**
      *  Places this image in the specified box.
      *
      *  @param box the specified box.
      */
-    public void placeIn(Box box) throws Exception {
-        box_x = box.x;
-        box_y = box.y;
+    public void placeIn(Box box) {
+        xBox = box.x;
+        yBox = box.y;
     }
 
 
@@ -325,13 +398,13 @@ public class Image implements Drawable {
      *
      *  @param page the page to draw this image on.
      *  @return x and y coordinates of the bottom right corner of this component.
-     *  @throws Exception
+     *  @throws Exception If an input or output exception occurred
      */
     public float[] drawOn(Page page) throws Exception {
-        page.addBMC(StructElem.SPAN, language, altDescription, actualText);
+        page.addBMC(StructElem.SPAN, language, actualText, altDescription);
 
-        x += box_x;
-        y += box_y;
+        x += xBox;
+        y += yBox;
         page.append("q\n");
 
         if (degrees == 0) {
@@ -410,12 +483,12 @@ public class Image implements Drawable {
                     uri,
                     key,    // The destination name
                     x,
-                    page.height - y,
+                    y,
                     x + w,
-                    page.height - (y + h),
+                    y + h,
                     language,
-                    altDescription,
-                    actualText));
+                    actualText,
+                    altDescription));
         }
 
         return new float[] {x + w, y + h};
@@ -455,10 +528,10 @@ public class Image implements Drawable {
         pdf.append("/Subtype /Image\n");
         pdf.append("/Filter /FlateDecode\n");
         pdf.append("/Width ");
-        pdf.append(( int ) w);
+        pdf.append((int) w);
         pdf.append('\n');
         pdf.append("/Height ");
-        pdf.append(( int ) h);
+        pdf.append((int) h);
         pdf.append('\n');
         pdf.append("/ColorSpace /");
         pdf.append(colorSpace);
@@ -474,7 +547,7 @@ public class Image implements Drawable {
         pdf.append(data, 0, data.length);
         pdf.append("\nendstream\n");
         pdf.endobj();
-        objNumber = pdf.objNumber;
+        objNumber = pdf.getObjNumber();
     }
 
 
@@ -486,7 +559,7 @@ public class Image implements Drawable {
             String colorSpace,
             int bitsPerComponent) throws Exception {
         if (alpha != null) {
-            addSoftMask(pdf, alpha, "DeviceGray", 8);
+            addSoftMask(pdf, alpha, "DeviceGray", bitsPerComponent);
         }
         pdf.newobj();
         pdf.append("<<\n");
@@ -504,10 +577,10 @@ public class Image implements Drawable {
             }
         }
         pdf.append("/Width ");
-        pdf.append(( int ) w);
+        pdf.append((int) w);
         pdf.append('\n');
         pdf.append("/Height ");
-        pdf.append(( int ) h);
+        pdf.append((int) h);
         pdf.append('\n');
         pdf.append("/ColorSpace /");
         pdf.append(colorSpace);
@@ -528,7 +601,7 @@ public class Image implements Drawable {
         pdf.append("\nendstream\n");
         pdf.endobj();
         pdf.images.add(this);
-        objNumber = pdf.objNumber;
+        objNumber = pdf.getObjNumber();
     }
 
 
@@ -564,7 +637,7 @@ public class Image implements Drawable {
             pdf.append(buf1, 0, length);
             pdf.append("\nendstream\n");
             pdf.endobj();
-            objNumber = pdf.objNumber;
+            objNumber = pdf.getObjNumber();
         }
 
         pdf.newobj();
@@ -597,7 +670,7 @@ public class Image implements Drawable {
         pdf.append('\n');
         pdf.append(">>\n");
         pdf.append("stream\n");
-        byte[] buf2 = new byte[2048];
+        byte[] buf2 = new byte[4096];
         int count;
         while ((count = inputStream.read(buf2, 0, buf2.length)) > 0) {
             pdf.append(buf2, 0, count);
@@ -605,7 +678,7 @@ public class Image implements Drawable {
         pdf.append("\nendstream\n");
         pdf.endobj();
         pdf.images.add(this);
-        objNumber = pdf.objNumber;
+        objNumber = pdf.getObjNumber();
     }
 
 
@@ -624,170 +697,105 @@ public class Image implements Drawable {
     }
 
 
-    /**
-     *  Constructor used to attach images to existing PDF.
-     *
-     *  @param objects the map to which we add this image.
-     *  @param inputStream the input stream to read the image from.
-     *  @param imageType ImageType.JPG, ImageType.PNG and ImageType.BMP.
-     *
-     */
-    public Image(Map<Integer, PDFobj> objects, InputStream inputStream, int imageType)
-            throws Exception {
-        byte[] data;
-        if (imageType == ImageType.JPG) {
-            JPGImage jpg = new JPGImage(inputStream);
-            data = jpg.getData();
-            w = jpg.getWidth();
-            h = jpg.getHeight();
-            if (jpg.getColorComponents() == 1) {
-                addImage(objects, data, null, imageType, "DeviceGray", 8);
-            }
-            else if (jpg.getColorComponents() == 3) {
-                addImage(objects, data, null, imageType, "DeviceRGB", 8);
-            }
-            else if (jpg.getColorComponents() == 4) {
-                addImage(objects, data, null, imageType, "DeviceCMYK", 8);
-            }
-        }
-        else if (imageType == ImageType.PNG) {
-            PNGImage png = new PNGImage(inputStream);
-            data = png.getData();
-            w = png.getWidth();
-            h = png.getHeight();
-            if (png.getColorType() == 0) {
-                addImage(objects, data, null, imageType, "DeviceGray", png.getBitDepth());
-            }
-            else {
-                if (png.getBitDepth() == 16) {
-                    addImage(objects, data, null, imageType, "DeviceRGB", 16);
-                }
-                else {
-                    addImage(objects, data, png.getAlpha(), imageType, "DeviceRGB", 8);
-                }
-            }
-        }
-        else if (imageType == ImageType.BMP) {
-            BMPImage bmp = new BMPImage(inputStream);
-            data = bmp.getData();
-            w = bmp.getWidth();
-            h = bmp.getHeight();
-            addImage(objects, data, null, imageType, "DeviceRGB", 8);
-        }
-/*
-        else if (imageType == ImageType.JET) {
-            addImage(pdf, inputStream);
-        }
-*/
-        inputStream.close();
-    }
-
-
     private void addSoftMask(
-            Map<Integer, PDFobj> objects,
+            List<PDFobj> objects,
             byte[] data,
             String colorSpace,
-            int bitsPerComponent) throws Exception {
+            int bitsPerComponent) {
         PDFobj obj = new PDFobj();
-        List<String> dict = obj.getDict();
-        dict.add("<<");
-        dict.add("/Type");
-        dict.add("/XObject");
-        dict.add("/Subtype");
-        dict.add("/Image");
-        dict.add("/Filter");
-        dict.add("/FlateDecode");
-        dict.add("/Width");
-        dict.add(String.valueOf((int) w));
-        dict.add("/Height");
-        dict.add(String.valueOf((int) h));
-        dict.add("/ColorSpace");
-        dict.add("/" + colorSpace);
-        dict.add("/BitsPerComponent");
-        dict.add(String.valueOf(bitsPerComponent));
-        dict.add("/Length");
-        dict.add(String.valueOf(data.length));
-        dict.add(">>");
+        obj.dict.add("<<");
+        obj.dict.add("/Type");
+        obj.dict.add("/XObject");
+        obj.dict.add("/Subtype");
+        obj.dict.add("/Image");
+        obj.dict.add("/Filter");
+        obj.dict.add("/FlateDecode");
+        obj.dict.add("/Width");
+        obj.dict.add(String.valueOf((int) w));
+        obj.dict.add("/Height");
+        obj.dict.add(String.valueOf((int) h));
+        obj.dict.add("/ColorSpace");
+        obj.dict.add("/" + colorSpace);
+        obj.dict.add("/BitsPerComponent");
+        obj.dict.add(String.valueOf(bitsPerComponent));
+        obj.dict.add("/Length");
+        obj.dict.add(String.valueOf(data.length));
+        obj.dict.add(">>");
         obj.setStream(data);
-        obj.number = Collections.max(objects.keySet()) + 1;
-        objects.put(obj.number, obj);
+        obj.number = objects.size() + 1;
+        objects.add(obj);
         objNumber = obj.number;
     }
 
 
-    private void addImage(
-            Map<Integer, PDFobj> objects,
+    private void addImageToObjects(
+            List<PDFobj> objects,
             byte[] data,
             byte[] alpha,
             int imageType,
             String colorSpace,
-            int bitsPerComponent) throws Exception {
+            int bitsPerComponent) {
         if (alpha != null) {
-            addSoftMask(objects, alpha, "DeviceGray", 8);
+            addSoftMask(objects, alpha, "DeviceGray", bitsPerComponent);
         }
         PDFobj obj = new PDFobj();
-        List<String> dict = obj.getDict();
-        dict.add("<<");
-        dict.add("/Type");
-        dict.add("/XObject");
-        dict.add("/Subtype");
-        dict.add("/Image");
+        obj.dict.add("<<");
+        obj.dict.add("/Type");
+        obj.dict.add("/XObject");
+        obj.dict.add("/Subtype");
+        obj.dict.add("/Image");
         if (imageType == ImageType.JPG) {
-            dict.add("/Filter");
-            dict.add("/DCTDecode");
+            obj.dict.add("/Filter");
+            obj.dict.add("/DCTDecode");
         }
         else if (imageType == ImageType.PNG || imageType == ImageType.BMP) {
-            dict.add("/Filter");
-            dict.add("/FlateDecode");
+            obj.dict.add("/Filter");
+            obj.dict.add("/FlateDecode");
             if (alpha != null) {
-                dict.add("/SMask");
-                dict.add(String.valueOf(objNumber));
-                dict.add("0");
-                dict.add("R");
+                obj.dict.add("/SMask");
+                obj.dict.add(String.valueOf(objNumber));
+                obj.dict.add("0");
+                obj.dict.add("R");
             }
         }
-        dict.add("/Width");
-        dict.add(String.valueOf((int) w));
-        dict.add("/Height");
-        dict.add(String.valueOf((int) h));
-        dict.add("/ColorSpace");
-        dict.add("/" + colorSpace);
-        dict.add("/BitsPerComponent");
-        dict.add(String.valueOf(bitsPerComponent));
+        obj.dict.add("/Width");
+        obj.dict.add(String.valueOf((int) w));
+        obj.dict.add("/Height");
+        obj.dict.add(String.valueOf((int) h));
+        obj.dict.add("/ColorSpace");
+        obj.dict.add("/" + colorSpace);
+        obj.dict.add("/BitsPerComponent");
+        obj.dict.add(String.valueOf(bitsPerComponent));
         if (colorSpace.equals("DeviceCMYK")) {
             // If the image was created with Photoshop - invert the colors:
-            dict.add("/Decode");
-            dict.add("[");
-            dict.add("1.0");
-            dict.add("0.0");
-            dict.add("1.0");
-            dict.add("0.0");
-            dict.add("1.0");
-            dict.add("0.0");
-            dict.add("1.0");
-            dict.add("0.0");
-            dict.add("]");
+            obj.dict.add("/Decode");
+            obj.dict.add("[");
+            obj.dict.add("1.0");
+            obj.dict.add("0.0");
+            obj.dict.add("1.0");
+            obj.dict.add("0.0");
+            obj.dict.add("1.0");
+            obj.dict.add("0.0");
+            obj.dict.add("1.0");
+            obj.dict.add("0.0");
+            obj.dict.add("]");
         }
-        dict.add("/Length");
-        dict.add(String.valueOf(data.length));
-        dict.add(">>");
+        obj.dict.add("/Length");
+        obj.dict.add(String.valueOf(data.length));
+        obj.dict.add(">>");
         obj.setStream(data);
-        obj.number = Collections.max(objects.keySet()) + 1;
-        objects.put(obj.number, obj);
+        obj.number = objects.size() + 1;
+        objects.add(obj);
         objNumber = obj.number;
     }
 
 
     public void resizeToFit(Page page, boolean keepAspectRatio) {
-        float page_w = page.getWidth();
-        float page_h = page.getHeight();
-        float image_w = this.getWidth();
-        float image_h = this.getHeight();
         if (keepAspectRatio) {
-            this.scaleBy(Math.min((page_w - x)/image_w, (page_h - y)/image_h));
+            this.scaleBy(Math.min((page.width - x)/w, (page.height - y)/h));
         }
         else {
-            this.scaleBy((page_w - x)/image_w, (page_h - y)/image_h);
+            this.scaleBy((page.width - x)/w, (page.height - y)/h);
         }
     }
 

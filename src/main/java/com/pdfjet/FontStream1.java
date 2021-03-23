@@ -1,99 +1,40 @@
 /**
- *  FastFont.java
+ *  FontStream1.java
  *
-Copyright (c) 2018, Innovatics Inc.
-All rights reserved.
+Copyright 2020 Innovatics Inc.
 
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and / or other materials provided with the distribution.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 */
-
 package com.pdfjet;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.*;
+import java.util.*;
 
 
-class FastFont {
+class FontStream1 {
 
     protected static void register(
             PDF pdf,
             Font font,
             InputStream inputStream) throws Exception {
-
-        int len = inputStream.read();
-        byte[] fontName = new byte[len];
-        inputStream.read(fontName, 0, len);
-        font.name = new String(fontName, "UTF8");
-        // System.out.println(font.name);
-
-        len = getInt24(inputStream);
-        byte[] fontInfo = new byte[len];
-        inputStream.read(fontInfo, 0, len);
-        font.info = new String(fontInfo, "UTF8");
-        // System.out.println(font.info);
-
-        byte[] buf = new byte[getInt32(inputStream)];
-        inputStream.read(buf, 0, buf.length);
-
-        ByteArrayInputStream stream =
-                new ByteArrayInputStream(Decompressor.inflate(buf));
-
-        font.unitsPerEm = getInt32(stream);
-        font.bBoxLLx = getInt32(stream);
-        font.bBoxLLy = getInt32(stream);
-        font.bBoxURx = getInt32(stream);
-        font.bBoxURy = getInt32(stream);
-        font.ascent = getInt32(stream);
-        font.descent = getInt32(stream);
-        font.firstChar = getInt32(stream);
-        font.lastChar = getInt32(stream);
-        font.capHeight = getInt32(stream);
-        font.underlinePosition = getInt32(stream);
-        font.underlineThickness = getInt32(stream);
-
-        len = getInt32(stream);
-        font.advanceWidth = new int[len];
-        for (int i = 0; i < len; i++) {
-            font.advanceWidth[i] = getInt16(stream);
-        }
-
-        len = getInt32(stream);
-        font.glyphWidth = new int[len];
-        for (int i = 0; i < len; i++) {
-            font.glyphWidth[i] = getInt16(stream);
-        }
-
-        len = getInt32(stream);
-        font.unicodeToGID = new int[len];
-        for (int i = 0; i < len; i++) {
-            font.unicodeToGID[i] = getInt16(stream);
-        }
-
-        font.cff = (inputStream.read() == 'Y') ? true : false;
-        font.uncompressedSize = getInt32(inputStream);
-        font.compressedSize = getInt32(inputStream);
+        getFontData(font, inputStream);
+        // System.out.println(font.fontUnderlineThickness);
 
         embedFontFile(pdf, font, inputStream);
         addFontDescriptorObject(pdf, font);
@@ -110,25 +51,23 @@ class FastFont {
         pdf.append('\n');
         pdf.append("/Encoding /Identity-H\n");
         pdf.append("/DescendantFonts [");
-        pdf.append(font.getCidFontDictObjNumber());
+        pdf.append(font.cidFontDictObjNumber);
         pdf.append(" 0 R]\n");
         pdf.append("/ToUnicode ");
-        pdf.append(font.getToUnicodeCMapObjNumber());
+        pdf.append(font.toUnicodeCMapObjNumber);
         pdf.append(" 0 R\n");
         pdf.append(">>\n");
         pdf.endobj();
-
         font.objNumber = pdf.getObjNumber();
+        pdf.fonts.add(font);
     }
 
 
     private static void embedFontFile(
             PDF pdf, Font font, InputStream inputStream) throws Exception {
-
         // Check if the font file is already embedded
-        for (int i = 0; i < pdf.fonts.size(); i++) {
-            Font f = pdf.fonts.get(i);
-            if (f.name.equals(font.name) && f.fileObjNumber != -1) {
+        for (Font f : pdf.fonts) {
+            if (f.fileObjNumber != 0 && f.name.equals(font.name)) {
                 font.fileObjNumber = f.fileObjNumber;
                 return;
             }
@@ -159,10 +98,9 @@ class FastFont {
 
         pdf.append(">>\n");
         pdf.append("stream\n");
-        // byte[] buf = new byte[2048];
-        byte[] buf = new byte[16384];
+        byte[] buf = new byte[4096];
         int len;
-        while ((len = inputStream.read(buf, 0, buf.length)) > 0) {        
+        while ((len = inputStream.read(buf, 0, buf.length)) > 0) {
             pdf.append(buf, 0, len);
         }
         inputStream.close();
@@ -174,12 +112,9 @@ class FastFont {
 
 
     private static void addFontDescriptorObject(PDF pdf, Font font) throws Exception {
-        float factor = 1000f / font.unitsPerEm;
-
-        for (int i = 0; i < pdf.fonts.size(); i++) {
-            Font f = pdf.fonts.get(i);
-            if (f.name.equals(font.name) && f.getFontDescriptorObjNumber() != -1) {
-                font.setFontDescriptorObjNumber(f.getFontDescriptorObjNumber());
+        for (Font f : pdf.fonts) {
+            if (f.fontDescriptorObjNumber != 0 && f.name.equals(font.name)) {
+                font.fontDescriptorObjNumber = f.fontDescriptorObjNumber;
                 return;
             }
         }
@@ -200,38 +135,36 @@ class FastFont {
         pdf.append(" 0 R\n");
         pdf.append("/Flags 32\n");
         pdf.append("/FontBBox [");
-        pdf.append((int) (font.bBoxLLx * factor));
+        pdf.append(font.bBoxLLx);
         pdf.append(' ');
-        pdf.append((int) (font.bBoxLLy * factor));
+        pdf.append(font.bBoxLLy);
         pdf.append(' ');
-        pdf.append((int) (font.bBoxURx * factor));
+        pdf.append(font.bBoxURx);
         pdf.append(' ');
-        pdf.append((int) (font.bBoxURy * factor));
+        pdf.append(font.bBoxURy);
         pdf.append("]\n");
         pdf.append("/Ascent ");
-        pdf.append((int) (font.ascent * factor));
+        pdf.append(font.fontAscent);
         pdf.append('\n');
         pdf.append("/Descent ");
-        pdf.append((int) (font.descent * factor));
+        pdf.append(font.fontDescent);
         pdf.append('\n');
         pdf.append("/ItalicAngle 0\n");
         pdf.append("/CapHeight ");
-        pdf.append((int) (font.capHeight * factor));
+        pdf.append(font.capHeight);
         pdf.append('\n');
         pdf.append("/StemV 79\n");
         pdf.append(">>\n");
         pdf.endobj();
 
-        font.setFontDescriptorObjNumber(pdf.getObjNumber());
+        font.fontDescriptorObjNumber = pdf.getObjNumber();
     }
 
 
     private static void addToUnicodeCMapObject(PDF pdf, Font font) throws Exception {
-
-        for (int i = 0; i < pdf.fonts.size(); i++) {
-            Font f = pdf.fonts.get(i);
-            if (f.name.equals(font.name) && f.getToUnicodeCMapObjNumber() != -1) {
-                font.setToUnicodeCMapObjNumber(f.getToUnicodeCMapObjNumber());
+        for (Font f : pdf.fonts) {
+            if (f.toUnicodeCMapObjNumber != 0 && f.name.equals(font.name)) {
+                font.toUnicodeCMapObjNumber = f.toUnicodeCMapObjNumber;
                 return;
             }
         }
@@ -262,12 +195,12 @@ class FastFont {
                 list.add(buf.toString());
                 buf.setLength(0);
                 if (list.size() == 100) {
-                    writeListToBuffer(list, sb);
+                    writeListToBuffer(sb, list);
                 }
             }
         }
         if (list.size() > 0) {
-            writeListToBuffer(list, sb);
+            writeListToBuffer(sb, list);
         }
 
         sb.append("endcmap\n");
@@ -285,16 +218,14 @@ class FastFont {
         pdf.append("\nendstream\n");
         pdf.endobj();
 
-        font.setToUnicodeCMapObjNumber(pdf.getObjNumber());
+        font.toUnicodeCMapObjNumber = pdf.getObjNumber();
     }
 
 
     private static void addCIDFontDictionaryObject(PDF pdf, Font font) throws Exception {
-
-        for (int i = 0; i < pdf.fonts.size(); i++) {
-            Font f = pdf.fonts.get(i);
-            if (f.name.equals(font.name) && f.getCidFontDictObjNumber() != -1) {
-                font.setCidFontDictObjNumber(f.getCidFontDictObjNumber());
+        for (Font f : pdf.fonts) {
+            if (f.cidFontDictObjNumber != 0 && f.name.equals(font.name)) {
+                font.cidFontDictObjNumber = f.cidFontDictObjNumber;
                 return;
             }
         }
@@ -313,28 +244,30 @@ class FastFont {
         pdf.append('\n');
         pdf.append("/CIDSystemInfo <</Registry (Adobe) /Ordering (Identity) /Supplement 0>>\n");
         pdf.append("/FontDescriptor ");
-        pdf.append(font.getFontDescriptorObjNumber());
+        pdf.append(font.fontDescriptorObjNumber);
         pdf.append(" 0 R\n");
+
+        final float k = 1000.0f / Float.valueOf(font.unitsPerEm);
         pdf.append("/DW ");
-        pdf.append((int)
-                ((1000f / font.unitsPerEm) * font.advanceWidth[0]));
+        pdf.append(Math.round(k * Float.valueOf(font.advanceWidth[0])));
         pdf.append('\n');
+
         pdf.append("/W [0[\n");
         for (int i = 0; i < font.advanceWidth.length; i++) {
-            pdf.append((int)
-                    ((1000f / font.unitsPerEm) * font.advanceWidth[i]));
+            pdf.append(Math.round(k * Float.valueOf(font.advanceWidth[i])));
             pdf.append(' ');
         }
         pdf.append("]]\n");
+
         pdf.append("/CIDToGIDMap /Identity\n");
         pdf.append(">>\n");
         pdf.endobj();
 
-        font.setCidFontDictObjNumber(pdf.getObjNumber());
+        font.cidFontDictObjNumber = pdf.getObjNumber();
     }
 
 
-    private static String toHexString(int code) {
+    protected static String toHexString(int code) {
         String str = Integer.toHexString(code);
         if (str.length() == 1) {
             return "000" + str;
@@ -349,7 +282,7 @@ class FastFont {
     }
 
 
-    private static void writeListToBuffer(List<String> list, StringBuilder sb) {
+    protected static void writeListToBuffer(StringBuilder sb, List<String> list) {
         sb.append(list.size());
         sb.append(" beginbfchar\n");
         for (String str : list) {
@@ -376,4 +309,57 @@ class FastFont {
                 stream.read() << 8 | stream.read();
     }
 
-}   // End of FastFont.java
+
+    protected static void getFontData(Font font, InputStream inputStream) throws Exception {
+        int len = inputStream.read();
+        byte[] fontName = new byte[len];
+        inputStream.read(fontName, 0, len);
+        font.name = new String(fontName, "UTF-8");
+
+        len = getInt24(inputStream);
+        byte[] fontInfo = new byte[len];
+        inputStream.read(fontInfo, 0, len);
+        font.info = new String(fontInfo, "UTF-8");
+
+        byte[] buf = new byte[getInt32(inputStream)];
+        inputStream.read(buf, 0, buf.length);
+        ByteArrayInputStream stream =
+                new ByteArrayInputStream(Decompressor.inflate(buf));
+
+        font.unitsPerEm = getInt32(stream);
+        font.bBoxLLx = getInt32(stream);
+        font.bBoxLLy = getInt32(stream);
+        font.bBoxURx = getInt32(stream);
+        font.bBoxURy = getInt32(stream);
+        font.fontAscent = getInt32(stream);
+        font.fontDescent = getInt32(stream);
+        font.firstChar = getInt32(stream);
+        font.lastChar = getInt32(stream);
+        font.capHeight = getInt32(stream);
+        font.fontUnderlinePosition = getInt32(stream);
+        font.fontUnderlineThickness = getInt32(stream);
+
+        len = getInt32(stream);
+        font.advanceWidth = new int[len];
+        for (int i = 0; i < len; i++) {
+            font.advanceWidth[i] = getInt16(stream);
+        }
+
+        len = getInt32(stream);
+        font.glyphWidth = new int[len];
+        for (int i = 0; i < len; i++) {
+            font.glyphWidth[i] = getInt16(stream);
+        }
+
+        len = getInt32(stream);
+        font.unicodeToGID = new int[len];
+        for (int i = 0; i < len; i++) {
+            font.unicodeToGID[i] = getInt16(stream);
+        }
+
+        font.cff = inputStream.read() == 'Y';
+        font.uncompressedSize = getInt32(inputStream);
+        font.compressedSize = getInt32(inputStream);
+    }
+
+}   // End of FontStream1.java

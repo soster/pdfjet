@@ -1,13 +1,13 @@
 /**
  *
-Copyright (c) 2009 Kazuhiko Arase
+Copyright 2009 Kazuhiko Arase
 
 URL: http://www.d-project.com/
 
 Licensed under the MIT license:
   http://www.opensource.org/licenses/mit-license.php
 
-The word "QR Code" is registered trademark of 
+The word "QR Code" is registered trademark of
 DENSO WAVE INCORPORATED
   http://www.denso-wave.com/qrcode/faqpatent-e.html
 */
@@ -19,7 +19,7 @@ import java.io.UnsupportedEncodingException;
 
 /**
  * Used to create 2D QR Code barcodes. Please see Example_20.
- * 
+ *
  * @author Kazuhiko Arase
  */
 public class QRCode implements Drawable {
@@ -27,37 +27,29 @@ public class QRCode implements Drawable {
     private static final int PAD0 = 0xEC;
     private static final int PAD1 = 0x11;
     private Boolean[][] modules;
-    private int moduleCount = 33;   // Magic Number
+    private final int moduleCount = 33;   // Magic Number
     private int errorCorrectLevel = ErrorCorrectLevel.M;
 
     private float x;
     private float y;
 
-    private byte[] qrData;
+    private final byte[] qrData;
     private float m1 = 2.0f;        // Module length
+
+    private int color = Color.black;
 
 
     /**
      * Used to create 2D QR Code barcodes.
-     * 
+     *
      * @param str the string to encode.
      * @param errorCorrectLevel the desired error correction level.
-     * @throws UnsupportedEncodingException
+     * @throws UnsupportedEncodingException If an input or output exception occurred
      */
     public QRCode(String str, int errorCorrectLevel) throws UnsupportedEncodingException {
         this.qrData = str.getBytes("UTF-8");
         this.errorCorrectLevel = errorCorrectLevel;
         this.make(false, getBestMaskPattern());
-    }
-    
-    /**
-     *  Sets the position where this barcode will be drawn on the page.
-     *
-     *  @param x the x coordinate of the top left corner of the barcode.
-     *  @param y the y coordinate of the top left corner of the barcode.
-     */
-    public void setPosition(double x, double y) {
-        setPosition((float) x, (float) y);
     }
 
     /**
@@ -71,16 +63,39 @@ public class QRCode implements Drawable {
     }
 
     /**
-     *  Sets the location where this barcode will be drawn on the page.
+     *  Sets the position where this barcode will be drawn on the page.
      *
      *  @param x the x coordinate of the top left corner of the barcode.
      *  @param y the y coordinate of the top left corner of the barcode.
      */
-    public void setLocation(float x, float y) {
+    public void setPosition(double x, double y) {
+        setLocation((float) x, (float) y);
+    }
+
+    /**
+     *  Sets the location where this barcode will be drawn on the page.
+     *
+     *  @param x the x coordinate of the top left corner of the barcode.
+     *  @param y the y coordinate of the top left corner of the barcode.
+     *  @return this QRCode object.
+     */
+    public QRCode setLocation(float x, float y) {
         this.x = x;
         this.y = y;
+        return this;
     }
-    
+
+    /**
+     *  Sets the location where this barcode will be drawn on the page.
+     *
+     *  @param x the x coordinate of the top left corner of the barcode.
+     *  @param y the y coordinate of the top left corner of the barcode.
+     *  @return this QRCode object.
+     */
+    public QRCode setLocation(double x, double y) {
+        return setLocation((float) x, (float) y);
+    }
+
     /**
      *  Sets the module length of this barcode.
      *  The default value is 2.0f
@@ -102,14 +117,20 @@ public class QRCode implements Drawable {
         this.m1 = moduleLength;
     }
 
+
+    public void setColor(int color) {
+        this.color = color;
+    }
+
     /**
      *  Draws this barcode on the specified page.
      *
      *  @param page the specified page.
      *  @return x and y coordinates of the bottom right corner of this component.
-     *  @throws Exception
+     *  @throws Exception  If an input or output exception occurred
      */
     public float[] drawOn(Page page) throws Exception {
+        page.setBrushColor(this.color);
         for (int row = 0; row < modules.length; row++) {
             for (int col = 0; col < modules.length; col++) {
                 if (isDark(row, col)) {
@@ -151,7 +172,7 @@ public class QRCode implements Drawable {
         for (int i = 0; i < 8; i++) {
             make(true, i);
             int lostPoint = QRUtil.getLostPoint(this);
-            if (i == 0 || minLostPoint >  lostPoint) {
+            if (i == 0 || minLostPoint > lostPoint) {
                 minLostPoint = lostPoint;
                 pattern = i;
             }
@@ -285,7 +306,7 @@ public class QRCode implements Drawable {
         }
 
         for (int i = 0; i < 15; i++) {
-            Boolean mod = (!test && ((bits >> i) & 1) == 1);
+            boolean mod = (!test && ((bits >> i) & 1) == 1);
             if (i < 8) {
                 modules[8][moduleCount - i - 1] = mod;
             }

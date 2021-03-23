@@ -1,48 +1,35 @@
 /**
  *  CompositeTextLine.java
  *
-Copyright (c) 2018, Innovatics Inc.
-All rights reserved.
+Copyright 2020 Innovatics Inc.
 
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and / or other materials provided with the distribution.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 */
-
-/*
- *  This class was designed and implemented by Jon T. Swanson, Ph.D.
- *
- *  Refactored and integrated into the project by Eugene Dragoev - 2nd June 2012.
- */
-
-
 package com.pdfjet;
 
 import java.util.*;
 
-
 /**
+ *  This class was designed and implemented by Jon T. Swanson, Ph.D.
+ *
+ *  Refactored and integrated into the project by Eugene Dragoev - 2nd June 2012.
  *  Used to create composite text line objects.
- *
- *
  */
 public class CompositeTextLine implements Drawable {
 
@@ -55,12 +42,12 @@ public class CompositeTextLine implements Drawable {
     private float[] current  = new float[2];
 
     // Subscript and Superscript size factors
-    private float subscript_size_factor    = 0.583f;
-    private float superscript_size_factor  = 0.583f;
+    private float subscriptSizeFactor    = 0.583f;
+    private float superscriptSizeFactor  = 0.583f;
 
     // Subscript and Superscript positions in relation to the base font
-    private float superscript_position = 0.350f;
-    private float subscript_position   = 0.141f;
+    private float superscriptPosition = 0.350f;
+    private float subscriptPosition   = 0.141f;
 
     private float fontSize = 0f;
 
@@ -99,7 +86,7 @@ public class CompositeTextLine implements Drawable {
      *  @param superscript the superscript size factor.
      */
     public void setSuperscriptFactor(float superscript) {
-        this.superscript_size_factor = superscript;
+        this.superscriptSizeFactor = superscript;
     }
 
 
@@ -109,7 +96,7 @@ public class CompositeTextLine implements Drawable {
      *  @return superscript the superscript size factor.
      */
     public float getSuperscriptFactor() {
-        return superscript_size_factor;
+        return superscriptSizeFactor;
     }
 
 
@@ -119,7 +106,7 @@ public class CompositeTextLine implements Drawable {
      *  @param subscript the subscript size factor.
      */
     public void setSubscriptFactor(float subscript) {
-        this.subscript_size_factor = subscript;
+        this.subscriptSizeFactor = subscript;
     }
 
 
@@ -129,47 +116,47 @@ public class CompositeTextLine implements Drawable {
      *  @return subscript the subscript size factor.
      */
     public float getSubscriptFactor() {
-        return subscript_size_factor;
+        return subscriptSizeFactor;
     }
 
 
     /**
      *  Sets the superscript position for this composite text line.
      *
-     *  @param superscript_position the superscript position.
+     *  @param superscriptPosition the superscript position.
      */
-    public void setSuperscriptPosition(float superscript_position) {
-        this.superscript_position = superscript_position;
+    public void setSuperscriptPosition(float superscriptPosition) {
+        this.superscriptPosition = superscriptPosition;
     }
 
 
     /**
      *  Gets the superscript position for this text line.
      *
-     *  @return superscript_position the superscript position.
+     *  @return superscriptPosition the superscript position.
      */
     public float getSuperscriptPosition() {
-        return superscript_position;
+        return superscriptPosition;
     }
 
 
     /**
      *  Sets the subscript position for this composite text line.
      *
-     *  @param subscript_position the subscript position.
+     *  @param subscriptPosition the subscript position.
      */
-    public void setSubscriptPosition(float subscript_position) {
-        this.subscript_position = subscript_position;
+    public void setSubscriptPosition(float subscriptPosition) {
+        this.subscriptPosition = subscriptPosition;
     }
 
 
     /**
      *  Gets the subscript position for this text line.
      *
-     *  @return subscript_position the subscript position.
+     *  @return subscriptPosition the subscript position.
      */
     public float getSubscriptPosition() {
-        return subscript_position;
+        return subscriptPosition;
     }
 
 
@@ -186,19 +173,19 @@ public class CompositeTextLine implements Drawable {
     public void addComponent(TextLine component) {
         if (component.getTextEffect() == Effect.SUPERSCRIPT) {
             if (fontSize > 0f) {
-                component.getFont().setSize(fontSize * superscript_size_factor);
+                component.font.setSize(fontSize * superscriptSizeFactor);
             }
             component.setLocation(
                     current[X],
-                    current[Y] - fontSize * superscript_position);
+                    current[Y] - fontSize * superscriptPosition);
         }
         else if (component.getTextEffect() == Effect.SUBSCRIPT) {
             if (fontSize > 0f) {
-                component.getFont().setSize(fontSize * subscript_size_factor);
+                component.font.setSize(fontSize * subscriptSizeFactor);
             }
             component.setLocation(
                     current[X],
-                    current[Y] + fontSize * subscript_position);
+                    current[Y] + fontSize * subscriptPosition);
         }
         else {
             if (fontSize > 0f) {
@@ -218,19 +205,27 @@ public class CompositeTextLine implements Drawable {
      *  @param x the x coordinate.
      *  @param y the y coordinate.
      */
-    public void setPosition(double x, double y) {
-        setPosition((float) x, (float) y);
+    public void setPosition(float x, float y) {
+        setLocation(x, y);
     }
 
-
-    /**
+     /**
      *  Loop through all the text lines and reset their position based on
      *  the new position set here.
      *
      *  @param x the x coordinate.
      *  @param y the y coordinate.
      */
-    public void setPosition(float x, float y) {
+    public void setPosition(double x, double y) {
+        setLocation(x, y);
+    }
+
+
+    public void setXY(float x, float y) {
+        setLocation(x, y);
+    }
+
+    public void setXY(double x, double y) {
         setLocation(x, y);
     }
 
@@ -241,33 +236,47 @@ public class CompositeTextLine implements Drawable {
      *
      *  @param x the x coordinate.
      *  @param y the y coordinate.
+     *  @return the CompositeTextLine object.
      */
-    public void setLocation(float x, float y) {
+    public CompositeTextLine setLocation(float x, float y) {
         position[X] = x;
         position[Y] = y;
         current[X]  = x;
         current[Y]  = y;
 
         if (textLines == null || textLines.size() == 0) {
-            return;
+            return this;
         }
 
         for (TextLine component : textLines) {
             if (component.getTextEffect() == Effect.SUPERSCRIPT) {
                 component.setLocation(
                         current[X],
-                        current[Y] - fontSize * superscript_position);
+                        current[Y] - fontSize * superscriptPosition);
             }
             else if (component.getTextEffect() == Effect.SUBSCRIPT) {
                 component.setLocation(
                         current[X],
-                        current[Y] + fontSize * subscript_position);
+                        current[Y] + fontSize * subscriptPosition);
             }
             else {
                 component.setLocation(current[X], current[Y]);
             }
             current[X] += component.getWidth();
         }
+        return this;
+    }
+
+    /**
+     *  Loop through all the text lines and reset their location based on
+     *  the new location set here.
+     *
+     *  @param x the x coordinate.
+     *  @param y the y coordinate.
+     *  @return the CompositeTextLine object.
+     */
+    public CompositeTextLine setLocation(double x, double y) {
+        return setLocation((float) x, (float) y);
     }
 
 
@@ -321,20 +330,20 @@ public class CompositeTextLine implements Drawable {
 
         for (TextLine component : textLines) {
             if (component.getTextEffect() == Effect.SUPERSCRIPT) {
-                cur = (position[Y] - component.getFont().ascent) - fontSize * superscript_position;
+                cur = (position[Y] - component.font.ascent) - fontSize * superscriptPosition;
                 if (cur < min)
                     min = cur;
             }
             else if (component.getTextEffect() == Effect.SUBSCRIPT) {
-                cur = (position[Y] - component.getFont().descent) + fontSize * subscript_position;
+                cur = (position[Y] + component.font.descent) + fontSize * subscriptPosition;
                 if (cur > max)
                     max = cur;
             }
             else {
-                cur = position[Y] - component.getFont().ascent;
+                cur = position[Y] - component.font.ascent;
                 if (cur < min)
                     min = cur;
-                cur = position[Y] - component.getFont().descent;
+                cur = position[Y] + component.font.descent;
                 if (cur > max)
                     max = cur;
             }
@@ -370,18 +379,18 @@ public class CompositeTextLine implements Drawable {
      *
      *  @param page the page to draw this line on.
      *  @return x and y coordinates of the bottom right corner of this component.
-     *  @throws Exception
+     *  @throws Exception  If an input or output exception occurred
      */
     public float[] drawOn(Page page) throws Exception {
-        float x_max = 0f;
-        float y_max = 0f;
+        float xMax = 0f;
+        float yMax = 0f;
         // Loop through all the text lines and draw them on the page
         for (TextLine textLine : textLines) {
             float[] xy = textLine.drawOn(page);
-            x_max = Math.max(x_max, xy[0]);
-            y_max = Math.max(y_max, xy[1]);
+            xMax = Math.max(xMax, xy[0]);
+            yMax = Math.max(yMax, xy[1]);
         }
-        return new float[] {x_max, y_max};
+        return new float[] {xMax, yMax};
     }
 
 }

@@ -1,47 +1,37 @@
 /**
  *  Font.java
  *
-Copyright (c) 2018, Innovatics Inc.
-All rights reserved.
+Copyright 2020 Innovatics Inc.
 
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and / or other materials provided with the distribution.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 */
-
 package com.pdfjet;
 
 import java.io.InputStream;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.List;
 
 
 /**
  *  Used to create font objects.
  *  The font objects must added to the PDF before they can be used to draw text.
- *
  */
 public class Font {
-
     // Chinese (Traditional) font
     public static final String AdobeMingStd_Light = "AdobeMingStd-Light";
 
@@ -59,56 +49,48 @@ public class Font {
     protected String name;
     protected String info;
     protected int objNumber;
+    protected String fontID;
 
     // The object number of the embedded font file
-    protected int fileObjNumber = -1;
+    protected int fileObjNumber;
+    protected int fontDescriptorObjNumber;
+    protected int cidFontDictObjNumber;
+    protected int toUnicodeCMapObjNumber;
 
     // Font attributes
-    protected int unitsPerEm = 1000;
-    protected float size = 12.0f;
-    protected float ascent;
-    protected float descent;
-    protected float capHeight;
-    protected float body_height;
-
-    // Font metrics
-    protected int[][] metrics = null;
+    protected int unitsPerEm = 1000;    // The default for core fonts.
+    protected int fontAscent;
+    protected int fontDescent;
+    protected int bBoxLLx;
+    protected int bBoxLLy;
+    protected int bBoxURx;
+    protected int bBoxURy;
+    protected int firstChar = 32;       // The default for core fonts.
+    protected int lastChar = 255;       // The default for core fonts.
+    protected int capHeight;
+    protected int fontUnderlinePosition;
+    protected int fontUnderlineThickness;
+    protected int[] advanceWidth;
+    protected int[] glyphWidth;
+    protected int[] unicodeToGID;
+    protected boolean cff;
+    protected int compressedSize;
+    protected int uncompressedSize;
+    protected int[][] metrics;          // Only used for core fonts.
 
     // Don't change the following default values!
+    protected float size = 12.0f;
     protected boolean isCoreFont = false;
     protected boolean isCJK = false;
-    protected int firstChar = 32;
-    protected int lastChar = 255;
     protected boolean skew15 = false;
     protected boolean kernPairs = false;
 
-    // Font bounding box
-    protected float bBoxLLx;
-    protected float bBoxLLy;
-    protected float bBoxURx;
-    protected float bBoxURy;
+    // These attributes depend on the font size.
+    protected float ascent;
+    protected float descent;
+    protected float bodyHeight;
     protected float underlinePosition;
     protected float underlineThickness;
-
-    protected int compressed_size;
-    protected int uncompressed_size;
-
-    protected int[] advanceWidth = null;
-    protected int[] glyphWidth = null;
-    protected int[] unicodeToGID;
-    protected boolean cff;
-
-    protected String fontID;
-
-    private int fontDescriptorObjNumber = -1;
-    private int cMapObjNumber = -1;
-    private int cidFontDictObjNumber = -1;
-    private int toUnicodeCMapObjNumber = -1;
-    private int widthsArrayObjNumber = -1;
-    private int encodingObjNumber = -1;
-    private int codePage = CodePage.UNICODE;
-    private int fontUnderlinePosition = 0;
-    private int fontUnderlineThickness = 0;
 
 
     /**
@@ -125,23 +107,22 @@ public class Font {
      *
      *  @param pdf the PDF to add this font to.
      *  @param coreFont the core font. Must be one the names defined in the CoreFont class.
+     *  @throws Exception  If an input or output exception occurred
      */
     public Font(PDF pdf, CoreFont coreFont) throws Exception {
+        StandardFont font = new StandardFont(coreFont);
         this.isCoreFont = true;
-        StandardFont font = StandardFont.getInstance(coreFont);
         this.name = font.name;
         this.bBoxLLx = font.bBoxLLx;
         this.bBoxLLy = font.bBoxLLy;
         this.bBoxURx = font.bBoxURx;
         this.bBoxURy = font.bBoxURy;
         this.metrics = font.metrics;
-        this.ascent = bBoxURy * size / unitsPerEm;
-        this.descent = bBoxLLy * size / unitsPerEm;
-        this.body_height = ascent - descent;
         this.fontUnderlinePosition = font.underlinePosition;
         this.fontUnderlineThickness = font.underlineThickness;
-        this.underlineThickness = fontUnderlineThickness * size / unitsPerEm;
-        this.underlinePosition = fontUnderlinePosition * size / -unitsPerEm + underlineThickness / 2.0f;
+        this.fontAscent = font.bBoxURy;
+        this.fontDescent = font.bBoxLLy;
+        setSize(size);
 
         pdf.newobj();
         pdf.append("<<\n");
@@ -155,7 +136,7 @@ public class Font {
         }
         pdf.append(">>\n");
         pdf.endobj();
-        objNumber = pdf.objNumber;
+        objNumber = pdf.getObjNumber();
 
         pdf.fonts.add(this);
     }
@@ -163,26 +144,19 @@ public class Font {
 
     // Used by PDFobj
     protected Font(CoreFont coreFont) {
+        StandardFont font = new StandardFont(coreFont);
         this.isCoreFont = true;
-        StandardFont font = StandardFont.getInstance(coreFont);
         this.name = font.name;
         this.bBoxLLx = font.bBoxLLx;
         this.bBoxLLy = font.bBoxLLy;
         this.bBoxURx = font.bBoxURx;
         this.bBoxURy = font.bBoxURy;
         this.metrics = font.metrics;
-        this.ascent = bBoxURy * size / unitsPerEm;
-        this.descent = bBoxLLy * size / unitsPerEm;
-        this.body_height = ascent - descent;
         this.fontUnderlinePosition = font.underlinePosition;
         this.fontUnderlineThickness = font.underlineThickness;
-        this.underlineThickness = fontUnderlineThickness * size / unitsPerEm;
-        this.underlinePosition = fontUnderlinePosition * size / -unitsPerEm + underlineThickness / 2.0f;
-    }
-
-
-    public Font(PDF pdf, String fontName) throws Exception {
-        this(pdf, fontName, CodePage.UNICODE);
+        this.fontAscent = font.bBoxURy;
+        this.fontDescent = font.bBoxLLy;
+        setSize(size);
     }
 
 
@@ -192,14 +166,16 @@ public class Font {
      *
      *  @param pdf the PDF to add this font to.
      *  @param fontName the font name. Please see Example_04.
-     *  @param codePage the code page. Must be: CodePage.UNICODE
+     *  @throws Exception  If an input or output exception occurred
      */
-    public Font(PDF pdf, String fontName, int codePage) throws Exception {
+    public Font(PDF pdf, String fontName) throws Exception {
         this.name = fontName;
-        isCJK = true;
-
-        firstChar = 0x0020;
-        lastChar = 0xFFEE;
+        this.isCJK = true;
+        this.firstChar = 0x0020;
+        this.lastChar = 0xFFEE;
+        this.ascent = this.size;
+        this.descent = this.size/4;
+        this.bodyHeight = this.ascent + this.descent;
 
         // Font Descriptor
         pdf.newobj();
@@ -222,7 +198,7 @@ public class Font {
         pdf.append(fontName);
         pdf.append('\n');
         pdf.append("/FontDescriptor ");
-        pdf.append(pdf.objNumber - 1);
+        pdf.append(pdf.getObjNumber() - 1);
         pdf.append(" 0 R\n");
         pdf.append("/CIDSystemInfo <<\n");
         pdf.append("/Registry (Adobe)\n");
@@ -269,15 +245,11 @@ public class Font {
             throw new Exception("Unsupported font: " + fontName);
         }
         pdf.append("/DescendantFonts [");
-        pdf.append(pdf.objNumber - 1);
+        pdf.append(pdf.getObjNumber() - 1);
         pdf.append(" 0 R]\n");
         pdf.append(">>\n");
         pdf.endobj();
-        objNumber = pdf.objNumber;
-
-        ascent = size;
-        descent = -ascent/4;
-        body_height = ascent - descent;
+        objNumber = pdf.getObjNumber();
 
         pdf.fonts.add(this);
     }
@@ -285,39 +257,37 @@ public class Font {
 
     // Constructor for .ttf.stream fonts:
     public Font(PDF pdf, InputStream inputStream, boolean flag) throws Exception {
-        FastFont.register(pdf, this, inputStream);
-
-        this.ascent = bBoxURy * size / unitsPerEm;
-        this.descent = bBoxLLy * size / unitsPerEm;
-        this.body_height = ascent - descent;
-        this.underlineThickness = fontUnderlineThickness * size / unitsPerEm;
-        this.underlinePosition = fontUnderlinePosition * size / -unitsPerEm + underlineThickness / 2f;
-
-        pdf.fonts.add(this);
+        FontStream1.register(pdf, this, inputStream);
+        this.setSize(size);
     }
 
 
     // Constructor for .ttf.stream fonts:
-    public Font(Map<Integer, PDFobj> objects, InputStream inputStream, boolean flag) throws Exception {
-        FastFont2.register(objects, this, inputStream);
-
-        this.ascent = bBoxURy * size / unitsPerEm;
-        this.descent = bBoxLLy * size / unitsPerEm;
-        this.body_height = ascent - descent;
-        this.underlineThickness = fontUnderlineThickness * size / unitsPerEm;
-        this.underlinePosition = fontUnderlinePosition * size / -unitsPerEm + underlineThickness / 2f;
+    public Font(List<PDFobj> objects, InputStream inputStream, boolean flag) throws Exception {
+        FontStream2.register(objects, this, inputStream);
+        setSize(size);
     }
-
 
     protected int getFontDescriptorObjNumber() {
         return fontDescriptorObjNumber;
     }
 
 
-    protected int getCMapObjNumber() {
-        return cMapObjNumber;
-    }
 
+
+    /**
+     *  Constructor for OpenType and TrueType fonts.
+     *
+     *  @param pdf the PDF object that requires this font.
+     *  @param inputStream the input stream to read this font from.
+     *  @throws Exception  If an input or output exception occurred
+     */
+/*
+    public Font(PDF pdf, InputStream inputStream) throws Exception {
+        OpenTypeFont.register(pdf, this, inputStream);
+        setSize(size);
+    }
+*/
 
     protected int getCidFontDictObjNumber() {
         return cidFontDictObjNumber;
@@ -329,14 +299,6 @@ public class Font {
     }
 
 
-    protected int getWidthsArrayObjNumber() {
-        return widthsArrayObjNumber;
-    }
-
-
-    protected int getEncodingObjNumber() {
-        return encodingObjNumber;
-    }
 
 
     public float getUnderlinePosition() {
@@ -348,15 +310,10 @@ public class Font {
         return underlineThickness;
     }
 
-
     protected void setFontDescriptorObjNumber(int fontDescriptorObjNumber) {
         this.fontDescriptorObjNumber = fontDescriptorObjNumber;
     }
 
-
-    protected void setCMapObjNumber(int cMapObjNumber) {
-        this.cMapObjNumber = cMapObjNumber;
-    }
 
 
     protected void setCidFontDictObjNumber(int cidFontDictObjNumber) {
@@ -368,15 +325,6 @@ public class Font {
         this.toUnicodeCMapObjNumber = toUnicodeCMapObjNumber;
     }
 
-
-    protected void setWidthsArrayObjNumber(int widthsArrayObjNumber) {
-        this.widthsArrayObjNumber = widthsArrayObjNumber;
-    }
-
-
-    protected void setEncodingObjNumber(int encodingObjNumber) {
-        this.encodingObjNumber = encodingObjNumber;
-    }
 
 
     /**
@@ -397,17 +345,18 @@ public class Font {
      *  @return the font.
      */
     public Font setSize(float fontSize) {
-        size = fontSize;
+        this.size = fontSize;
         if (isCJK) {
-            ascent = size;
-            descent = -ascent/4;
+            this.ascent = size;
+            this.descent = ascent/4;
+            this.bodyHeight = this.ascent + this.descent;
             return this;
         }
-        this.ascent = bBoxURy * size / unitsPerEm;
-        this.descent = bBoxLLy * size / unitsPerEm;
-        this.body_height = ascent - descent;
-        this.underlineThickness = fontUnderlineThickness * size / unitsPerEm;
-        this.underlinePosition = fontUnderlinePosition * size / -unitsPerEm + underlineThickness / 2.0f;
+        this.ascent = Float.valueOf(fontAscent) * size / Float.valueOf(unitsPerEm);
+        this.descent = -Float.valueOf(fontDescent) * size / Float.valueOf(unitsPerEm);
+        this.bodyHeight = this.ascent + this.descent;
+        this.underlineThickness = (Float.valueOf(fontUnderlineThickness) * size / Float.valueOf(unitsPerEm));
+        this.underlinePosition = -(Float.valueOf(fontUnderlinePosition) * size / Float.valueOf(unitsPerEm)) + underlineThickness / 2.0f;
         return this;
     }
 
@@ -459,7 +408,6 @@ public class Font {
                 c1 -= 32;
 
                 width += metrics[c1][1];
-
                 if (kernPairs && i < (str.length() - 1)) {
                     int c2 = str.charAt(i + 1);
                     if (c2 < firstChar || c2 > lastChar) {
@@ -502,7 +450,7 @@ public class Font {
      *  @return the descent of the font.
      */
     public float getDescent() {
-        return -descent;
+        return descent;
     }
 
 
@@ -512,7 +460,7 @@ public class Font {
      *  @return the height of the font.
      */
     public float getHeight() {
-        return ascent - descent;
+        return ascent + descent;
     }
 
 
@@ -522,7 +470,7 @@ public class Font {
      *  @return float the height of the body of the font.
      */
     public float getBodyHeight() {
-        return body_height;
+        return bodyHeight;
     }
 
 
@@ -556,7 +504,7 @@ public class Font {
         }
 
         if (isCoreFont) {
-            return getStandardFontFitChars(str, w);
+            return getCoreFontFitChars(str, w);
         }
 
         int i;
@@ -577,7 +525,7 @@ public class Font {
     }
 
 
-    private int getStandardFontFitChars(String str, float width) {
+    private int getCoreFontFitChars(String str, float width) {
         float w = width;
 
         int i = 0;
@@ -638,33 +586,30 @@ public class Font {
     /**
      * Returns the width of a string drawn using two fonts.
      *
-     * @param font2 the fallback font.
+     * @param fallbackFont the fallback font.
      * @param str the string.
      * @return the width.
      */
-    public float stringWidth(Font font2, String str) {
-        if (font2 == null) {
+    public float stringWidth(Font fallbackFont, String str) {
+        float width = 0f;
+
+        if (this.isCoreFont || this.isCJK || fallbackFont == null || fallbackFont.isCoreFont || fallbackFont.isCJK) {
             return stringWidth(str);
         }
-        float width = 0f;
 
         Font activeFont = this;
         StringBuilder buf = new StringBuilder();
         for (int i = 0; i < str.length(); i++) {
             int ch = str.charAt(i);
-            if ((isCJK && ch >= 0x4E00 && ch <= 0x9FCC)
-                    || (!isCJK && unicodeToGID[ch] != 0)) {
-                if (this != activeFont) {
-                    width += activeFont.stringWidth(buf.toString());
-                    buf.setLength(0);
-                    activeFont = this;
+            if (activeFont.unicodeToGID[ch] == 0) {
+                width += activeFont.stringWidth(buf.toString());
+                buf.setLength(0);
+                // Switch the active font
+                if (activeFont == this) {
+                    activeFont = fallbackFont;
                 }
-            }
-            else {
-                if (font2 != activeFont) {
-                    width += activeFont.stringWidth(buf.toString());
-                    buf.setLength(0);
-                    activeFont = font2;
+                else {
+                    activeFont = this;
                 }
             }
             buf.append((char) ch);

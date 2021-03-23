@@ -2,7 +2,6 @@ package com.pdfjet;
 
 
 class StandardFont {
-
     protected String name;
     protected int bBoxLLx;
     protected int bBoxLLy;
@@ -12,165 +11,146 @@ class StandardFont {
     protected int underlineThickness;
     protected int[][] metrics;
 
-    protected static StandardFont getInstance(CoreFont coreFont) {
-        StandardFont font = new StandardFont();
-        switch (coreFont) {
-            case COURIER:
-            font.name = Courier.name;
-            font.bBoxLLx = Courier.bBoxLLx;
-            font.bBoxLLy = Courier.bBoxLLy;
-            font.bBoxURx = Courier.bBoxURx;
-            font.bBoxURy = Courier.bBoxURy;
-            font.underlinePosition = Courier.underlinePosition;
-            font.underlineThickness = Courier.underlineThickness;
-            font.metrics = Courier.metrics;
-            break;
-            
-            case COURIER_BOLD:
-            font.name = Courier_Bold.name;
-            font.bBoxLLx = Courier_Bold.bBoxLLx;
-            font.bBoxLLy = Courier_Bold.bBoxLLy;
-            font.bBoxURx = Courier_Bold.bBoxURx;
-            font.bBoxURy = Courier_Bold.bBoxURy;
-            font.underlinePosition = Courier_Bold.underlinePosition;
-            font.underlineThickness = Courier_Bold.underlineThickness;
-            font.metrics = Courier_Bold.metrics;
-            break;
-            
-            case COURIER_OBLIQUE:
-            font.name = Courier_Oblique.name;
-            font.bBoxLLx = Courier_Oblique.bBoxLLx;
-            font.bBoxLLy = Courier_Oblique.bBoxLLy;
-            font.bBoxURx = Courier_Oblique.bBoxURx;
-            font.bBoxURy = Courier_Oblique.bBoxURy;
-            font.underlinePosition = Courier_Oblique.underlinePosition;
-            font.underlineThickness = Courier_Oblique.underlineThickness;
-            font.metrics = Courier_Oblique.metrics;
-            break;
-
-            case COURIER_BOLD_OBLIQUE:
-            font.name = Courier_BoldOblique.name;
-            font.bBoxLLx = Courier_BoldOblique.bBoxLLx;
-            font.bBoxLLy = Courier_BoldOblique.bBoxLLy;
-            font.bBoxURx = Courier_BoldOblique.bBoxURx;
-            font.bBoxURy = Courier_BoldOblique.bBoxURy;
-            font.underlinePosition = Courier_BoldOblique.underlinePosition;
-            font.underlineThickness = Courier_BoldOblique.underlineThickness;
-            font.metrics = Courier_BoldOblique.metrics;
-            break;
-
-            case HELVETICA:
-            font.name = Helvetica.name;
-            font.bBoxLLx = Helvetica.bBoxLLx;
-            font.bBoxLLy = Helvetica.bBoxLLy;
-            font.bBoxURx = Helvetica.bBoxURx;
-            font.bBoxURy = Helvetica.bBoxURy;
-            font.underlinePosition = Helvetica.underlinePosition;
-            font.underlineThickness = Helvetica.underlineThickness;
-            font.metrics = Helvetica.metrics;
-            break;
-
-            case HELVETICA_BOLD:
-            font.name = Helvetica_Bold.name;
-            font.bBoxLLx = Helvetica_Bold.bBoxLLx;
-            font.bBoxLLy = Helvetica_Bold.bBoxLLy;
-            font.bBoxURx = Helvetica_Bold.bBoxURx;
-            font.bBoxURy = Helvetica_Bold.bBoxURy;
-            font.underlinePosition = Helvetica_Bold.underlinePosition;
-            font.underlineThickness = Helvetica_Bold.underlineThickness;
-            font.metrics = Helvetica_Bold.metrics;
-            break;
-
-            case HELVETICA_OBLIQUE:
-            font.name = Helvetica_Oblique.name;
-            font.bBoxLLx = Helvetica_Oblique.bBoxLLx;
-            font.bBoxLLy = Helvetica_Oblique.bBoxLLy;
-            font.bBoxURx = Helvetica_Oblique.bBoxURx;
-            font.bBoxURy = Helvetica_Oblique.bBoxURy;
-            font.underlinePosition = Helvetica_Oblique.underlinePosition;
-            font.underlineThickness = Helvetica_Oblique.underlineThickness;
-            font.metrics = Helvetica_Oblique.metrics;
-            break;
-
-            case HELVETICA_BOLD_OBLIQUE:
-            font.name = Helvetica_BoldOblique.name;
-            font.bBoxLLx = Helvetica_BoldOblique.bBoxLLx;
-            font.bBoxLLy = Helvetica_BoldOblique.bBoxLLy;
-            font.bBoxURx = Helvetica_BoldOblique.bBoxURx;
-            font.bBoxURy = Helvetica_BoldOblique.bBoxURy;
-            font.underlinePosition = Helvetica_BoldOblique.underlinePosition;
-            font.underlineThickness = Helvetica_BoldOblique.underlineThickness;
-            font.metrics = Helvetica_BoldOblique.metrics;
-            break;
-
-            case TIMES_ROMAN:
-            font.name = Times_Roman.name;
-            font.bBoxLLx = Times_Roman.bBoxLLx;
-            font.bBoxLLy = Times_Roman.bBoxLLy;
-            font.bBoxURx = Times_Roman.bBoxURx;
-            font.bBoxURy = Times_Roman.bBoxURy;
-            font.underlinePosition = Times_Roman.underlinePosition;
-            font.underlineThickness = Times_Roman.underlineThickness;
-            font.metrics = Times_Roman.metrics;
-            break;
-
-            case TIMES_BOLD:
-            font.name = Times_Bold.name;
-            font.bBoxLLx = Times_Bold.bBoxLLx;
-            font.bBoxLLy = Times_Bold.bBoxLLy;
-            font.bBoxURx = Times_Bold.bBoxURx;
-            font.bBoxURy = Times_Bold.bBoxURy;
-            font.underlinePosition = Times_Bold.underlinePosition;
-            font.underlineThickness = Times_Bold.underlineThickness;
-            font.metrics = Times_Bold.metrics;
-            break;
-
-            case TIMES_ITALIC:
-            font.name = Times_Italic.name;
-            font.bBoxLLx = Times_Italic.bBoxLLx;
-            font.bBoxLLy = Times_Italic.bBoxLLy;
-            font.bBoxURx = Times_Italic.bBoxURx;
-            font.bBoxURy = Times_Italic.bBoxURy;
-            font.underlinePosition = Times_Italic.underlinePosition;
-            font.underlineThickness = Times_Italic.underlineThickness;
-            font.metrics = Times_Italic.metrics;
-            break;
-
-            case TIMES_BOLD_ITALIC:
-            font.name = Times_BoldItalic.name;
-            font.bBoxLLx = Times_BoldItalic.bBoxLLx;
-            font.bBoxLLy = Times_BoldItalic.bBoxLLy;
-            font.bBoxURx = Times_BoldItalic.bBoxURx;
-            font.bBoxURy = Times_BoldItalic.bBoxURy;
-            font.underlinePosition = Times_BoldItalic.underlinePosition;
-            font.underlineThickness = Times_BoldItalic.underlineThickness;
-            font.metrics = Times_BoldItalic.metrics;
-            break;
-
-            case SYMBOL:
-            font.name = Symbol.name;
-            font.bBoxLLx = Symbol.bBoxLLx;
-            font.bBoxLLy = Symbol.bBoxLLy;
-            font.bBoxURx = Symbol.bBoxURx;
-            font.bBoxURy = Symbol.bBoxURy;
-            font.underlinePosition = Symbol.underlinePosition;
-            font.underlineThickness = Symbol.underlineThickness;
-            font.metrics = Symbol.metrics;
-            break;
-
-            case ZAPF_DINGBATS:
-            font.name = ZapfDingbats.name;
-            font.bBoxLLx = ZapfDingbats.bBoxLLx;
-            font.bBoxLLy = ZapfDingbats.bBoxLLy;
-            font.bBoxURx = ZapfDingbats.bBoxURx;
-            font.bBoxURy = ZapfDingbats.bBoxURy;
-            font.underlinePosition = ZapfDingbats.underlinePosition;
-            font.underlineThickness = ZapfDingbats.underlineThickness;
-            font.metrics = ZapfDingbats.metrics;
-            break;
+    public StandardFont(CoreFont coreFont) {
+        if (coreFont == CoreFont.COURIER) {
+            this.name = Courier.name;
+            this.bBoxLLx = Courier.bBoxLLx;
+            this.bBoxLLy = Courier.bBoxLLy;
+            this.bBoxURx = Courier.bBoxURx;
+            this.bBoxURy = Courier.bBoxURy;
+            this.underlinePosition = Courier.underlinePosition;
+            this.underlineThickness = Courier.underlineThickness;
+            this.metrics = Courier.metrics;
         }
-
-        return font;
+        else if (coreFont == CoreFont.COURIER_BOLD) {
+            this.name = Courier_Bold.name;
+            this.bBoxLLx = Courier_Bold.bBoxLLx;
+            this.bBoxLLy = Courier_Bold.bBoxLLy;
+            this.bBoxURx = Courier_Bold.bBoxURx;
+            this.bBoxURy = Courier_Bold.bBoxURy;
+            this.underlinePosition = Courier_Bold.underlinePosition;
+            this.underlineThickness = Courier_Bold.underlineThickness;
+            this.metrics = Courier_Bold.metrics;
+        }
+        else if (coreFont == CoreFont.COURIER_OBLIQUE) {
+            this.name = Courier_Oblique.name;
+            this.bBoxLLx = Courier_Oblique.bBoxLLx;
+            this.bBoxLLy = Courier_Oblique.bBoxLLy;
+            this.bBoxURx = Courier_Oblique.bBoxURx;
+            this.bBoxURy = Courier_Oblique.bBoxURy;
+            this.underlinePosition = Courier_Oblique.underlinePosition;
+            this.underlineThickness = Courier_Oblique.underlineThickness;
+            this.metrics = Courier_Oblique.metrics;
+        }
+        else if (coreFont == CoreFont.COURIER_BOLD_OBLIQUE) {
+            this.name = Courier_BoldOblique.name;
+            this.bBoxLLx = Courier_BoldOblique.bBoxLLx;
+            this.bBoxLLy = Courier_BoldOblique.bBoxLLy;
+            this.bBoxURx = Courier_BoldOblique.bBoxURx;
+            this.bBoxURy = Courier_BoldOblique.bBoxURy;
+            this.underlinePosition = Courier_BoldOblique.underlinePosition;
+            this.underlineThickness = Courier_BoldOblique.underlineThickness;
+            this.metrics = Courier_BoldOblique.metrics;
+        }
+        else if (coreFont == CoreFont.HELVETICA) {
+            this.name = Helvetica.name;
+            this.bBoxLLx = Helvetica.bBoxLLx;
+            this.bBoxLLy = Helvetica.bBoxLLy;
+            this.bBoxURx = Helvetica.bBoxURx;
+            this.bBoxURy = Helvetica.bBoxURy;
+            this.underlinePosition = Helvetica.underlinePosition;
+            this.underlineThickness = Helvetica.underlineThickness;
+            this.metrics = Helvetica.metrics;
+        }
+        else if (coreFont == CoreFont.HELVETICA_BOLD) {
+            this.name = Helvetica_Bold.name;
+            this.bBoxLLx = Helvetica_Bold.bBoxLLx;
+            this.bBoxLLy = Helvetica_Bold.bBoxLLy;
+            this.bBoxURx = Helvetica_Bold.bBoxURx;
+            this.bBoxURy = Helvetica_Bold.bBoxURy;
+            this.underlinePosition = Helvetica_Bold.underlinePosition;
+            this.underlineThickness = Helvetica_Bold.underlineThickness;
+            this.metrics = Helvetica_Bold.metrics;
+        }
+        else if (coreFont == CoreFont.HELVETICA_OBLIQUE) {
+            this.name = Helvetica_Oblique.name;
+            this.bBoxLLx = Helvetica_Oblique.bBoxLLx;
+            this.bBoxLLy = Helvetica_Oblique.bBoxLLy;
+            this.bBoxURx = Helvetica_Oblique.bBoxURx;
+            this.bBoxURy = Helvetica_Oblique.bBoxURy;
+            this.underlinePosition = Helvetica_Oblique.underlinePosition;
+            this.underlineThickness = Helvetica_Oblique.underlineThickness;
+            this.metrics = Helvetica_Oblique.metrics;
+        }
+        else if (coreFont == CoreFont.HELVETICA_BOLD_OBLIQUE) {
+            this.name = Helvetica_BoldOblique.name;
+            this.bBoxLLx = Helvetica_BoldOblique.bBoxLLx;
+            this.bBoxLLy = Helvetica_BoldOblique.bBoxLLy;
+            this.bBoxURx = Helvetica_BoldOblique.bBoxURx;
+            this.bBoxURy = Helvetica_BoldOblique.bBoxURy;
+            this.underlinePosition = Helvetica_BoldOblique.underlinePosition;
+            this.underlineThickness = Helvetica_BoldOblique.underlineThickness;
+            this.metrics = Helvetica_BoldOblique.metrics;
+        }
+        else if (coreFont == CoreFont.TIMES_ROMAN) {
+            this.name = Times_Roman.name;
+            this.bBoxLLx = Times_Roman.bBoxLLx;
+            this.bBoxLLy = Times_Roman.bBoxLLy;
+            this.bBoxURx = Times_Roman.bBoxURx;
+            this.bBoxURy = Times_Roman.bBoxURy;
+            this.underlinePosition = Times_Roman.underlinePosition;
+            this.underlineThickness = Times_Roman.underlineThickness;
+            this.metrics = Times_Roman.metrics;
+        }
+        else if (coreFont == CoreFont.TIMES_BOLD) {
+            this.name = Times_Bold.name;
+            this.bBoxLLx = Times_Bold.bBoxLLx;
+            this.bBoxLLy = Times_Bold.bBoxLLy;
+            this.bBoxURx = Times_Bold.bBoxURx;
+            this.bBoxURy = Times_Bold.bBoxURy;
+            this.underlinePosition = Times_Bold.underlinePosition;
+            this.underlineThickness = Times_Bold.underlineThickness;
+            this.metrics = Times_Bold.metrics;
+        }
+        else if (coreFont == CoreFont.TIMES_ITALIC) {
+            this.name = Times_Italic.name;
+            this.bBoxLLx = Times_Italic.bBoxLLx;
+            this.bBoxLLy = Times_Italic.bBoxLLy;
+            this.bBoxURx = Times_Italic.bBoxURx;
+            this.bBoxURy = Times_Italic.bBoxURy;
+            this.underlinePosition = Times_Italic.underlinePosition;
+            this.underlineThickness = Times_Italic.underlineThickness;
+            this.metrics = Times_Italic.metrics;
+        }
+        else if (coreFont == CoreFont.TIMES_BOLD_ITALIC) {
+            this.name = Times_BoldItalic.name;
+            this.bBoxLLx = Times_BoldItalic.bBoxLLx;
+            this.bBoxLLy = Times_BoldItalic.bBoxLLy;
+            this.bBoxURx = Times_BoldItalic.bBoxURx;
+            this.bBoxURy = Times_BoldItalic.bBoxURy;
+            this.underlinePosition = Times_BoldItalic.underlinePosition;
+            this.underlineThickness = Times_BoldItalic.underlineThickness;
+            this.metrics = Times_BoldItalic.metrics;
+        }
+        else if (coreFont == CoreFont.SYMBOL) {
+            this.name = Symbol.name;
+            this.bBoxLLx = Symbol.bBoxLLx;
+            this.bBoxLLy = Symbol.bBoxLLy;
+            this.bBoxURx = Symbol.bBoxURx;
+            this.bBoxURy = Symbol.bBoxURy;
+            this.underlinePosition = Symbol.underlinePosition;
+            this.underlineThickness = Symbol.underlineThickness;
+            this.metrics = Symbol.metrics;
+        }
+        else if (coreFont == CoreFont.ZAPF_DINGBATS) {
+            this.name = ZapfDingbats.name;
+            this.bBoxLLx = ZapfDingbats.bBoxLLx;
+            this.bBoxLLy = ZapfDingbats.bBoxLLy;
+            this.bBoxURx = ZapfDingbats.bBoxURx;
+            this.bBoxURy = ZapfDingbats.bBoxURy;
+            this.underlinePosition = ZapfDingbats.underlinePosition;
+            this.underlineThickness = ZapfDingbats.underlineThickness;
+            this.metrics = ZapfDingbats.metrics;
+        }
     }
-
 }

@@ -95,8 +95,8 @@ class FastFont2 {
         }
 
         font.cff = (inputStream.read() == 'Y') ? true : false;
-        font.uncompressed_size = getInt32(inputStream);
-        font.compressed_size = getInt32(inputStream);
+        font.uncompressedSize = getInt32(inputStream);
+        font.uncompressedSize = getInt32(inputStream);
 
         embedFontFile(objects, font, inputStream);
         addFontDescriptorObject(objects, font);
@@ -190,14 +190,14 @@ class FastFont2 {
         dict.add("/Filter");
         dict.add("/FlateDecode");
         dict.add("/Length");
-        dict.add(String.valueOf(font.compressed_size));
+        dict.add(String.valueOf(font.compressedSize));
         if (font.cff) {
             dict.add("/Subtype");
             dict.add("/CIDFontType0C");
         }
         else {
             dict.add("/Length1");
-            dict.add(String.valueOf(font.uncompressed_size));
+            dict.add(String.valueOf(font.uncompressedSize));
         }
         dict.add(">>");
         ByteArrayOutputStream buf2 = new ByteArrayOutputStream();

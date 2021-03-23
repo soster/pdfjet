@@ -1,30 +1,25 @@
 /**
  *  TextBox.java
  *
-Copyright (c) 2018, Innovatics Inc.
-All rights reserved.
+Copyright 2020 Innovatics Inc.
 
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and / or other materials provided with the distribution.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 */
 package com.pdfjet;
 
@@ -33,15 +28,15 @@ import java.util.*;
 /**
  *  A box containing line-wrapped text.
  *
- *  <p>Defaults:<br />
- *  x = 0f<br />
- *  y = 0f<br />
- *  width = 300f<br />
- *  height = 0f<br />
- *  alignment = Align.LEFT<br />
- *  valign = Align.TOP<br />
- *  spacing = 3f<br />
- *  margin = 1f<br />
+ *  <p>Defaults:
+ *  x = 0f
+ *  y = 0f
+ *  width = 300f
+ *  height = 0f
+ *  alignment = Align.LEFT
+ *  valign = Align.TOP
+ *  spacing = 3f
+ *  margin = 1f
  *  </p>
  *
  *  This class was originally developed by Ronald Bourret.
@@ -50,22 +45,21 @@ import java.util.*;
 public class TextBox implements Drawable {
 
     protected Font font;
+    protected Font fallbackFont;
     protected String text;
 
     protected float x;
     protected float y;
-
     protected float width = 300f;
     protected float height = 0f;
     protected float spacing = 3f;
     protected float margin = 1f;
-    private float lineWidth = 0f;
+    protected float lineWidth = 0f;
 
     private int background = Color.transparent;
     private int pen = Color.black;
     private int brush = Color.black;
     private int valign = 0;
-    private Font fallbackFont;
     private Map<String, Integer> colors = null;
 
     // TextBox properties
@@ -177,18 +171,6 @@ public class TextBox implements Drawable {
         return text;
     }
 
-
-    /**
-     *  Sets the position where this text box will be drawn on the page.
-     *
-     *  @param x the x coordinate of the top left corner of the text box.
-     *  @param y the y coordinate of the top left corner of the text box.
-     */
-    public void setPosition(double x, double y) {
-        setPosition((float) x, (float) y);
-    }
-
-
     /**
      *  Sets the position where this text box will be drawn on the page.
      *
@@ -199,36 +181,39 @@ public class TextBox implements Drawable {
         setLocation(x, y);
     }
 
+    /**
+     *  Sets the position where this text box will be drawn on the page.
+     *
+     *  @param x the x coordinate of the top left corner of the text box.
+     *  @param y the y coordinate of the top left corner of the text box.
+     */
+    public void setPosition(double x, double y) {
+        setLocation(x, y);
+    }
+
 
     /**
      *  Sets the location where this text box will be drawn on the page.
      *
      *  @param x the x coordinate of the top left corner of the text box.
      *  @param y the y coordinate of the top left corner of the text box.
+     *  @return this TextBox object.
      */
-    public void setLocation(float x, float y) {
+    public TextBox setLocation(float x, float y) {
         this.x = x;
         this.y = y;
+        return this;
     }
 
-
     /**
-     *  Gets the x coordinate where this text box will be drawn on the page.
+     *  Sets the location where this text box will be drawn on the page.
      *
-     *  @return the x coordinate of the top left corner of the text box.
+     *  @param x the x coordinate of the top left corner of the text box.
+     *  @param y the y coordinate of the top left corner of the text box.
+     *  @return this TextBox object.
      */
-    public float getX() {
-        return x;
-    }
-
-
-    /**
-     *  Gets the y coordinate where this text box will be drawn on the page.
-     *
-     *  @return the y coordinate of the top left corner of the text box.
-     */
-    public float getY() {
-        return y;
+    public TextBox setLocation(double x, double y) {
+        return setLocation((float) x, (float) y);
     }
 
 
@@ -365,7 +350,7 @@ public class TextBox implements Drawable {
     /**
      *  Sets the spacing between lines of text.
      *
-     *  @param spacing
+     *  @param spacing the spacing
      */
     public void setSpacing(float spacing) {
         this.spacing = spacing;
@@ -539,6 +524,7 @@ public class TextBox implements Drawable {
      *  Sets the TextBox border object.
      *
      *  @param border the border object.
+     *  @param visible the object visibility.
      */
     public void setBorder(int border, boolean visible) {
         if (visible) {
@@ -553,6 +539,7 @@ public class TextBox implements Drawable {
     /**
      *  Returns the text box border.
      *
+     *  @param border the border.
      *  @return boolean the text border object.
      */
     public boolean getBorder(int border) {
@@ -643,8 +630,8 @@ public class TextBox implements Drawable {
     }
 
 
-    public void setFallbackFont(Font font) {
-        this.fallbackFont = font;
+    public void setFallbackFont(Font fallbackFont) {
+        this.fallbackFont = fallbackFont;
     }
 
 
@@ -683,33 +670,20 @@ public class TextBox implements Drawable {
      *
      *  @param page the Page where the TextBox is to be drawn.
      *  @return x and y coordinates of the bottom right corner of this component.
-     *  @throws Exception
+     *  @throws Exception ???
      */
     public float[] drawOn(Page page) throws Exception {
-        return drawOn(page, true);
+        return drawTextAndBorders(page);
     }
 
 
-    /**
-     *  Draws this text box on the specified page.
-     *
-     *  @param page the Page where the TextBox is to be drawn.
-     *  @param draw flag specifying if this component should actually be drawn on the page.
-     *  @return x and y coordinates of the bottom right corner of this component.
-     *  @throws Exception
-     */
-    public float[] drawOn(Page page, boolean draw) throws Exception {
-        return drawTextAndBorders(page, draw);
-    }
-
-
-    private void drawBackground(Page page) throws Exception {
+    private void drawBackground(Page page) {
         page.setBrushColor(background);
         page.fillRect(x, y, width, height);
     }
 
 
-    private void drawBorders(Page page) throws Exception {
+    private void drawBorders(Page page) {
         page.setPenColor(pen);
         page.setPenWidth(lineWidth);
 
@@ -744,52 +718,53 @@ public class TextBox implements Drawable {
     }
 
 
-    private float[] drawTextAndBorders(Page page, boolean draw) throws Exception {
-
-        float textAreaWidth = width - (font.stringWidth("w") + 2*margin);
-        List<String> list = new ArrayList<String>();
+    // Splits the text line and adds the line segments to the list.
+    private void reformat(String line, float textAreaWidth, List<String> lines) {
         StringBuilder buf = new StringBuilder();
-        String[] lines = text.split("\\r?\\n");
-        for (int i = 0; i < lines.length; i++) {
-            String line = lines[i];
-            if (font.stringWidth(line) < textAreaWidth) {
-                list.add(line);
-            }
-            else {
-                buf.setLength(0);
-                for (int j = 0; j < line.length(); j++) {
-                    buf.append(line.charAt(j));
-                    String str = buf.toString();
-                    if (font.stringWidth(str) > textAreaWidth) {
-                        if ((str.charAt(str.length() - 1) == ' ') ||
-                                str.split("\\s+").length <= 1) {
-                            list.add(str);
-                        }
-                        else {
-                            list.add(str.substring(0, str.lastIndexOf(' ')));
-                            while (line.charAt(j) != ' ') {
-                                j -= 1;
-                            }
-                        }
-                        buf.setLength(0);
+        for (int i = 0; i < line.length(); i++) {
+            buf.append(line.charAt(i));
+            String str = buf.toString();
+            if (font.stringWidth(fallbackFont, str) > textAreaWidth) {
+                if ((str.charAt(str.length() - 1) == ' ') || str.split("\\s+").length <= 1) {
+                    lines.add(str);
+                }
+                else {
+                    lines.add(str.substring(0, str.lastIndexOf(' ')));
+                    while (line.charAt(i) != ' ') {
+                        i -= 1;
                     }
                 }
-                if (buf.length() > 0) {
-                    list.add(buf.toString());
-                }
+                buf.setLength(0);
             }
         }
-        lines = list.toArray(new String[] {} );
+        if (buf.length() > 0) {
+            lines.add(buf.toString());
+        }
+    }
+
+
+    private float[] drawTextAndBorders(Page page) throws Exception {
+        float textAreaWidth = width - (font.stringWidth(fallbackFont, "w") + 2*margin);
+        List<String> textLines = new ArrayList<String>();
+        String[] lines = text.split("\\r?\\n", -1);
+        for (String line : lines) {
+            if (font.stringWidth(fallbackFont, line) < textAreaWidth) {
+                textLines.add(line);
+            }
+            else {
+                reformat(line, textAreaWidth, textLines);
+            }
+        }
+        lines = textLines.toArray(new String[] {});
 
         float lineHeight = font.getBodyHeight() + spacing;
-        float x_text;
-        float y_text = y + font.ascent + margin;
-
+        float xText;
+        float yText = y + font.ascent + margin;
         if ((lines.length * lineHeight) > this.height) {
             this.height = lines.length * lineHeight;
         }
 
-        if (draw) {
+        if (page != null) {
             if (getBgColor() != Color.transparent) {
                 drawBackground(page);
             }
@@ -799,28 +774,26 @@ public class TextBox implements Drawable {
         }
 
         if (height > 0f) {
-
             if (valign == Align.BOTTOM) {
-                y_text += height - lines.length*lineHeight;
+                yText += height - lines.length*lineHeight;
             }
             else if (valign == Align.CENTER) {
-                y_text += (height - lines.length*lineHeight)/2;
+                yText += (height - lines.length*lineHeight)/2;
             }
 
             for (int i = 0; i < lines.length; i++) {
-
                 if (getTextAlignment() == Align.RIGHT) {
-                    x_text = (x + width) - (font.stringWidth(lines[i]) + margin);
+                    xText = (x + width) - (font.stringWidth(fallbackFont, lines[i]) + margin);
                 }
                 else if (getTextAlignment() == Align.CENTER) {
-                    x_text = x + (width - font.stringWidth(lines[i]))/2;
+                    xText = x + (width - font.stringWidth(fallbackFont, lines[i]))/2;
                 }
                 else {
                     // Align.LEFT
-                    x_text = x + margin;
+                    xText = x + margin;
                 }
 
-                if (y_text + font.getBodyHeight() + spacing + font.getDescent() >= y + height
+                if (yText + font.getBodyHeight() + spacing + font.descent >= y + height
                         && i < (lines.length - 1)) {
                     String str = lines[i];
                     int index = str.lastIndexOf(' ');
@@ -832,42 +805,36 @@ public class TextBox implements Drawable {
                     }
                 }
 
-                if (y_text + font.getDescent() < y + height) {
-                    if (draw) {
-                        drawText(page, font, fallbackFont, lines[i], x_text, y_text, colors);
+                if (yText + font.descent < y + height) {
+                    if (page != null) {
+                        drawText(page, font, fallbackFont, lines[i], xText, yText, colors);
                     }
-                    y_text += font.getBodyHeight() + spacing;
+                    yText += font.getBodyHeight() + spacing;
                 }
-
             }
-
         }
         else {
-
             for (int i = 0; i < lines.length; i++) {
-
                 if (getTextAlignment() == Align.RIGHT) {
-                    x_text = (x + width) - (font.stringWidth(lines[i]) + margin);
+                    xText = (x + width) - (font.stringWidth(fallbackFont, lines[i]) + margin);
                 }
                 else if (getTextAlignment() == Align.CENTER) {
-                    x_text = x + (width - font.stringWidth(lines[i]))/2;
+                    xText = x + (width - font.stringWidth(fallbackFont, lines[i]))/2;
                 }
                 else {
                     // Align.LEFT
-                    x_text = x + margin;
+                    xText = x + margin;
                 }
 
-                if (draw) {
-                    drawText(page, font, fallbackFont, lines[i], x_text, y_text, colors);
+                if (page != null) {
+                    drawText(page, font, fallbackFont, lines[i], xText, yText, colors);
                 }
-
-                y_text += font.getBodyHeight() + spacing;
+                yText += font.getBodyHeight() + spacing;
             }
-
-            height = y_text - (y + font.ascent + margin);
+            height = yText - (y + font.ascent + margin);
         }
 
-        if (draw) {
+        if (page != null) {
             drawBorders(page);
         }
 
@@ -880,32 +847,21 @@ public class TextBox implements Drawable {
             Font font,
             Font fallbackFont,
             String text,
-            float x_text,
-            float y_text,
-            Map<String, Integer> colors) throws Exception {
-        if (fallbackFont == null) {
-            if (colors == null) {
-                page.drawString(font, text, x_text, y_text);
-            }
-            else {
-                page.drawString(font, text, x_text, y_text, colors);
-            }
-        }
-        else {
-            page.drawString(font, fallbackFont, text, x_text, y_text);
-        }
-
-        float lineLength = font.stringWidth(text);
+            float xText,
+            float yText,
+            Map<String, Integer> colors) {
+        page.drawString(font, fallbackFont, text, xText, yText, colors);
+        float lineLength = font.stringWidth(fallbackFont, text);
         if (getUnderline()) {
-            float y_adjust = font.underlinePosition;
-            page.moveTo(x_text, y_text + y_adjust);
-            page.lineTo(x_text + lineLength, y_text + y_adjust);
+            float yAdjust = font.underlinePosition;
+            page.moveTo(xText, yText + yAdjust);
+            page.lineTo(xText + lineLength, yText + yAdjust);
             page.strokePath();
         }
         if (getStrikeout()) {
-            float y_adjust = font.body_height/4;
-            page.moveTo(x_text, y_text - y_adjust);
-            page.lineTo(x_text + lineLength, y_text - y_adjust);
+            float yAdjust = font.bodyHeight/4;
+            page.moveTo(xText, yText - yAdjust);
+            page.lineTo(xText + lineLength, yText - yAdjust);
             page.strokePath();
         }
     }

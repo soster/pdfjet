@@ -1,30 +1,25 @@
 /**
  *  Text.java
  *
-Copyright (c) 2018, Innovatics Inc.
-All rights reserved.
+Copyright 2020 Innovatics Inc.
 
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
- 
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and / or other materials provided with the distribution.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 */
 
 package com.pdfjet;
@@ -35,24 +30,25 @@ import java.util.*;
 /**
  *  Please see Example_45
  */
-public class Text {
+public class Text implements Drawable {
 
-    private List<Paragraph> paragraphs;
-    private Font font;
-    private Font fallbackFont;
-    private float x;
-    private float y;
-    private float w;
-    private float x_text;
-    private float y_text;
+    private final List<Paragraph> paragraphs;
+    private final Font font;
+    private final Font fallbackFont;
+    private float x1;
+    private float y1;
+    private float xText;
+    private float yText;
+    private float width;
     private float leading;
     private float paragraphLeading;
-    private List<float[]> beginParagraphPoints;
-    private List<float[]> endParagraphPoints;
+    private final List<float[]> beginParagraphPoints;
+    private final List<float[]> endParagraphPoints;
     private float spaceBetweenTextLines;
+    private boolean drawBorder = true;
 
 
-    public Text(List<Paragraph> paragraphs) throws Exception {
+    public Text(List<Paragraph> paragraphs) {
         this.paragraphs = paragraphs;
         this.font = paragraphs.get(0).list.get(0).getFont();
         this.fallbackFont = paragraphs.get(0).list.get(0).getFallbackFont();
@@ -64,15 +60,28 @@ public class Text {
     }
 
 
-    public Text setLocation(float x, float y) {
-        this.x = x;
-        this.y = y;
-        return this;
+    public void setPosition(float x, float y) {
+        setLocation(x, y);
+    }
+
+    public void setPosition(double x, double y) {
+        setLocation(x, y);
     }
 
 
-    public Text setWidth(float w) {
-        this.w = w;
+    public Text setLocation(float x, float y) {
+        this.x1 = x;
+        this.y1 = y;
+        return this;
+    }
+
+    public Text setLocation(double x, double y) {
+        return setLocation((float) x, (float) y);
+    }
+
+
+    public Text setWidth(float width) {
+        this.width = width;
         return this;
     }
 
@@ -94,11 +103,6 @@ public class Text {
     }
 
 
-    public List<float[]> getEndParagraphPoints() {
-        return this.endParagraphPoints;
-    }
-
-
     public Text setSpaceBetweenTextLines(float spaceBetweenTextLines) {
         this.spaceBetweenTextLines = spaceBetweenTextLines;
         return this;
@@ -106,13 +110,8 @@ public class Text {
 
 
     public float[] drawOn(Page page) throws Exception {
-        return drawOn(page, true);
-    }
-
-
-    public float[] drawOn(Page page, boolean draw) throws Exception {
-        this.x_text = x;
-        this.y_text = y + font.getAscent();
+        this.xText = x1;
+        this.yText = y1 + font.ascent;
         for (Paragraph paragraph : paragraphs) {
             int numberOfTextLines = paragraph.list.size();
             StringBuilder buf = new StringBuilder();
@@ -123,93 +122,84 @@ public class Text {
             for (int i = 0; i < numberOfTextLines; i++) {
                 TextLine textLine = paragraph.list.get(i);
                 if (i == 0) {
-                    beginParagraphPoints.add(new float[] { x_text, y_text });
+                    beginParagraphPoints.add(new float[] {xText, yText});
                 }
-                textLine.setAltDescription((i == 0) ? buf.toString() : Single.space);
-                textLine.setActualText((i == 0) ? buf.toString() : Single.space);
-                float[] point = drawTextLine(
-                        page, x_text, y_text, textLine, draw);
-                if (i == (numberOfTextLines - 1)) {
-                    endParagraphPoints.add(new float[] { point[0], point[1] });
-                }
-                x_text = point[0];
+                float[] xy = drawTextLine(page, xText, yText, textLine);
+                xText = xy[0];
                 if (textLine.getTrailingSpace()) {
-                    x_text += spaceBetweenTextLines;
+                    xText += spaceBetweenTextLines;
                 }
-                y_text = point[1];
+                yText = xy[1];
             }
-            x_text = x;
-            y_text += paragraphLeading;
+            xText = x1;
+            yText += paragraphLeading;
         }
-        return new float[] { x_text, y_text + font.getDescent() };
+
+        float height = ((yText - paragraphLeading) - y1) + font.descent;
+        if (page != null && drawBorder) {
+            Box box = new Box();
+            box.setLocation(x1, y1);
+            box.setSize(width, height);
+            box.drawOn(page);
+        }
+
+        return new float[] {x1 + width, y1 + height};
     }
 
 
-    public float[] drawTextLine(
-            Page page,
-            float x_text,
-            float y_text,
-            TextLine textLine,
-            boolean draw) throws Exception {
-
-        Font font = textLine.getFont();
-        Font fallbackFont = textLine.getFallbackFont();
-        int color = textLine.getColor();
+    public float[] drawTextLine(Page page, float x, float y, TextLine textLine) throws Exception {
+        this.xText = x;
+        this.yText = y;
 
         String[] tokens = null;
-        String str = textLine.getText();
-        if (stringIsCJK(str)) {
-            tokens = tokenizeCJK(str, this.w);
+        if (stringIsCJK(textLine.text)) {
+            tokens = tokenizeCJK(textLine, this.width);
         }
         else {
-            tokens = str.split("\\s+");
+            tokens = textLine.text.split("\\s+");
         }
 
         StringBuilder buf = new StringBuilder();
         boolean firstTextSegment = true;
         for (int i = 0; i < tokens.length; i++) {
             String token = (i == 0) ? tokens[i] : (Single.space + tokens[i]);
-            if (font.stringWidth(fallbackFont, token) < (this.w - (x_text - x))) {
+            float lineWidth = textLine.font.stringWidth(textLine.fallbackFont, buf.toString());
+            float tokenWidth = textLine.font.stringWidth(textLine.fallbackFont, token);
+            if ((lineWidth + tokenWidth) < ((this.x1 + this.width) - this.xText)) {
                 buf.append(token);
-                x_text += font.stringWidth(fallbackFont, token);
             }
             else {
-                if (draw) {
-                    new TextLine(font, buf.toString())
-                            .setFallbackFont(fallbackFont)
-                            .setLocation(x_text - font.stringWidth(fallbackFont, buf.toString()),
-                                    y_text + textLine.getVerticalOffset())
-                            .setColor(color)
+                if (page != null) {
+                    new TextLine(textLine.font, buf.toString())
+                            .setFallbackFont(textLine.fallbackFont)
+                            .setLocation(xText, yText + textLine.getVerticalOffset())
+                            .setColor(textLine.getColor())
                             .setUnderline(textLine.getUnderline())
                             .setStrikeout(textLine.getStrikeout())
                             .setLanguage(textLine.getLanguage())
-                            .setAltDescription(firstTextSegment ? textLine.getAltDescription() : Single.space)
-                            .setActualText(firstTextSegment ? textLine.getActualText() : Single.space)
                             .drawOn(page);
-                    firstTextSegment = false;
                 }
-                x_text = x + font.stringWidth(fallbackFont, tokens[i]);
-                y_text += leading;
+                firstTextSegment = false;
+                xText = x1;
+                yText += leading;
                 buf.setLength(0);
                 buf.append(tokens[i]);
             }
         }
-        if (draw) {
-            new TextLine(font, buf.toString())
-                    .setFallbackFont(fallbackFont)
-                    .setLocation(x_text - font.stringWidth(fallbackFont, buf.toString()),
-                            y_text + textLine.getVerticalOffset())
-                    .setColor(color)
+        if (page != null) {
+            new TextLine(textLine.font, buf.toString())
+                    .setFallbackFont(textLine.fallbackFont)
+                    .setLocation(xText, yText + textLine.getVerticalOffset())
+                    .setColor(textLine.getColor())
                     .setUnderline(textLine.getUnderline())
                     .setStrikeout(textLine.getStrikeout())
                     .setLanguage(textLine.getLanguage())
-                    .setAltDescription(firstTextSegment ? textLine.getAltDescription() : Single.space)
-                    .setActualText(firstTextSegment ? textLine.getActualText() : Single.space)
                     .drawOn(page);
-            firstTextSegment = false;
         }
 
-        return new float[] { x_text, y_text };
+        return new float[] {
+                xText + textLine.font.stringWidth(textLine.fallbackFont, buf.toString()),
+                yText};
     }
 
 
@@ -232,23 +222,24 @@ public class Text {
     }
 
 
-    private String[] tokenizeCJK(String str, float textWidth) {
+    private String[] tokenizeCJK(TextLine textLine, float textWidth) {
         List<String> list = new ArrayList<String>();
         StringBuilder buf = new StringBuilder();
-        for (int i = 0; i < str.length(); i++) {
-            char ch = str.charAt(i);
-            if (font.stringWidth(fallbackFont, buf.toString()) < textWidth) {
+        for (int i = 0; i < textLine.text.length(); i++) {
+            char ch = textLine.text.charAt(i);
+            if (textLine.font.stringWidth(textLine.fallbackFont, buf.toString() + ch) < textWidth) {
                 buf.append(ch);
             }
             else {
                 list.add(buf.toString());
                 buf.setLength(0);
+                buf.append(ch);
             }
         }
         if (buf.toString().length() > 0) {
             list.add(buf.toString());
         }
-        return list.toArray(new String[list.size()]);
+        return list.toArray(new String[] {});
     }
 
 }   // End of Text.java

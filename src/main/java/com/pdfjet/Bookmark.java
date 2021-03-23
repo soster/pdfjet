@@ -1,30 +1,25 @@
 /**
  *  Bookmark.java
  *
-Copyright (c) 2018, Innovatics Inc.
-All rights reserved.
+Copyright 2020 Innovatics Inc.
 
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and / or other materials provided with the distribution.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 */
 
 package com.pdfjet;
@@ -67,29 +62,27 @@ public class Bookmark {
 
 
     public Bookmark addBookmark(Page page, Title title) {
-        return addBookmark(page, title.text.getY(), title.text.getText());
-    }
-
-
-    public Bookmark addBookmark(Page page, float y, String title) {
         Bookmark bm = this;
         while (bm.parent != null) {
             bm = bm.getParent();
         }
         String key = bm.next();
-
-        Bookmark bookmark = new Bookmark(page, y, key, title.replaceAll("\\s+"," "));
-        bookmark.parent = this;
-        bookmark.dest = page.addDestination(key, y);
+        Bookmark bookmark2 = new Bookmark(
+                page,
+                title.textLine.getDestinationY(),
+                key,
+                title.textLine.text.replaceAll("\\s+", " "));
+        bookmark2.parent = this;
+        bookmark2.dest = page.addDestination(key, title.textLine.getDestinationY());
         if (children == null) {
             children = new ArrayList<Bookmark>();
         }
         else {
-            bookmark.prev = children.get(children.size() - 1);
-            children.get(children.size() - 1).next = bookmark;
+            bookmark2.prev = children.get(children.size() - 1);
+            children.get(children.size() - 1).next = bookmark2;
         }
-        children.add(bookmark);
-        return bookmark;
+        children.add(bookmark2);
+        return bookmark2;
     }
 
 
@@ -108,7 +101,7 @@ public class Bookmark {
     }
 
 
-    public Bookmark autoNumber(TextLine text) {
+    public Bookmark autoNumber(TextLine textLine) {
         Bookmark bm = getPrevBookmark();
         if (bm == null) {
             bm = getParent();
@@ -131,24 +124,25 @@ public class Bookmark {
             else {
                 int index = bm.prefix.lastIndexOf('.');
                 if (index == -1) {
-                    prefix = String.valueOf(Integer.valueOf(bm.prefix) + 1);
+                    prefix = String.valueOf(Integer.parseInt(bm.prefix) + 1);
                 }
                 else {
-                    prefix = bm.prefix.substring(0, index) + "";
-                    prefix += String.valueOf(Integer.valueOf(bm.prefix.substring(index + 1)) + 1);
+                    prefix = bm.prefix.substring(0, index) + ".";
+                    prefix += String.valueOf(Integer.parseInt(bm.prefix.substring(index + 1)) + 1);
                 }
             }
         }
-        text.setText(prefix);
+
+        textLine.setText(prefix);
         title = prefix + " " + title;
         return this;
     }
 
 
     protected List<Bookmark> toArrayList() {
-        int objNumber = 0;
         List<Bookmark> list = new ArrayList<Bookmark>();
-        Queue<Bookmark> queue = new java.util.LinkedList<Bookmark>();
+        Queue<Bookmark> queue = new LinkedList<Bookmark>();
+        int objNumber = 0;
         queue.add(this);
         while (!queue.isEmpty()) {
             Bookmark bm = queue.poll();
@@ -193,8 +187,8 @@ public class Bookmark {
 
 
     private String next() {
-        ++destNumber;
-        return "dest#" + String.valueOf(destNumber);
+        destNumber++;
+        return "dest#" + destNumber;
     }
 
 }   // End of Bookmark.java

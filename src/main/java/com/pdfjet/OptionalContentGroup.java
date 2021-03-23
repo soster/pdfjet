@@ -1,40 +1,33 @@
 /**
  *  OptionalContentGroup.java
  *
-Copyright (c) 2018, Innovatics Inc.
-All rights reserved.
+Copyright 2020 Innovatics Inc.
 
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
- 
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and / or other materials provided with the distribution.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 */
 package com.pdfjet;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-
 /**
- * Container for drawable objects that can be drawn on a page as part of Optional Content Group. 
+ * Container for drawable objects that can be drawn on a page as part of Optional Content Group.
  * Please see the PDF specification and Example_30 for more details.
  *
  * @author Mark Paxton
@@ -54,8 +47,8 @@ public class OptionalContentGroup {
         this.components = new ArrayList<Drawable>();
     }
 
-    public void add(Drawable d) {
-        components.add(d);
+    public void add(Drawable drawable) {
+        components.add(drawable);
     }
 
     public void setVisible(boolean visible) {
@@ -70,47 +63,47 @@ public class OptionalContentGroup {
         this.exportable = exportable;
     }
 
-    public void drawOn(Page p) throws Exception {
+    public void drawOn(Page page) throws Exception {
         if (!components.isEmpty()) {
-            p.pdf.groups.add(this);
-            ocgNumber = p.pdf.groups.size();
+            page.pdf.groups.add(this);
+            ocgNumber = page.pdf.groups.size();
 
-            p.pdf.newobj();
-            p.pdf.append("<<\n");
-            p.pdf.append("/Type /OCG\n");
-            p.pdf.append("/Name (" + name + ")\n");
-            p.pdf.append("/Usage <<\n");
+            page.pdf.newobj();
+            page.pdf.append("<<\n");
+            page.pdf.append("/Type /OCG\n");
+            page.pdf.append("/Name (" + name + ")\n");
+            page.pdf.append("/Usage <<\n");
             if (visible) {
-                p.pdf.append("/View << /ViewState /ON >>\n");
+                page.pdf.append("/View << /ViewState /ON >>\n");
             }
             else {
-                p.pdf.append("/View << /ViewState /OFF >>\n");
+                page.pdf.append("/View << /ViewState /OFF >>\n");
             }
-            if (printable) {                
-                p.pdf.append("/Print << /PrintState /ON >>\n");
-            }
-            else {
-                p.pdf.append("/Print << /PrintState /OFF >>\n");                
-            }
-            if (exportable) {                                
-                p.pdf.append("/Export << /ExportState /ON >>\n");
+            if (printable) {
+                page.pdf.append("/Print << /PrintState /ON >>\n");
             }
             else {
-                p.pdf.append("/Export << /ExportState /OFF >>\n");                
+                page.pdf.append("/Print << /PrintState /OFF >>\n");
             }
-            p.pdf.append(">>\n");
-            p.pdf.append(">>\n");            
-            p.pdf.endobj();
+            if (exportable) {
+                page.pdf.append("/Export << /ExportState /ON >>\n");
+            }
+            else {
+                page.pdf.append("/Export << /ExportState /OFF >>\n");
+            }
+            page.pdf.append(">>\n");
+            page.pdf.append(">>\n");
+            page.pdf.endobj();
 
-            objNumber = p.pdf.objNumber;
+            objNumber = page.pdf.getObjNumber();
 
-            p.append("/OC /OC");
-            p.append(ocgNumber);
-            p.append(" BDC\n");
+            page.append("/OC /OC");
+            page.append(ocgNumber);
+            page.append(" BDC\n");
             for (Drawable component : components) {
-                component.drawOn(p);
+                component.drawOn(page);
             }
-            p.append("\nEMC\n");
+            page.append("\nEMC\n");
         }
     }
 

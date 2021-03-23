@@ -1,41 +1,34 @@
 /**
  *  CheckBox.java
  *
-Copyright (c) 2018, Innovatics Inc.
-All rights reserved.
+Copyright 2020 Innovatics Inc.
 
-Portions provided by Shirley C. Christenson
-Shirley Christenson Consulting
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
-
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and / or other materials provided with the distribution.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 */
-
 package com.pdfjet;
 
 
 /**
  *  Creates a CheckBox, which can be set checked or unchecked.
  *  By default the check box is unchecked.
+ *  Portions provided by Shirley C. Christenson
+ *  Shirley Christenson Consulting
  */
 public class CheckBox implements Drawable {
 
@@ -52,7 +45,7 @@ public class CheckBox implements Drawable {
     private String label = "";
     private String uri = null;
 
-    private String language = null;
+    private final String language = null;
     private String altDescription = Single.space;
     private String actualText = Single.space;
 
@@ -60,6 +53,8 @@ public class CheckBox implements Drawable {
     /**
      *  Creates a CheckBox with black check mark.
      *
+     *  @param font the font to use.
+     *  @param label the label to use.
      */
     public CheckBox(Font font, String label) {
         this.font = font;
@@ -108,10 +103,19 @@ public class CheckBox implements Drawable {
      *
      *  @param x the x coordinate on the Page.
      *  @param y the y coordinate on the Page.
-     *  @return this CheckBox.
      */
-    public CheckBox setPosition(float x, float y) {
-        return setLocation(x, y);
+    public void setPosition(float x, float y) {
+        setLocation(x, y);
+    }
+
+    /**
+     *  Set the x,y position on the Page.
+     *
+     *  @param x the x coordinate on the Page.
+     *  @param y the y coordinate on the Page.
+     */
+    public void setPosition(double x, double y) {
+        setLocation(x, y);
     }
 
 
@@ -130,8 +134,22 @@ public class CheckBox implements Drawable {
 
 
     /**
+     *  Set the x,y location on the Page.
+     *
+     *  @param x the x coordinate on the Page.
+     *  @param y the y coordinate on the Page.
+     *  @return this CheckBox.
+     */
+    public CheckBox setLocation(double x, double y) {
+        return setLocation((float) x, (float) y);
+    }
+
+
+
+    /**
      *  Gets the height of the CheckBox.
      *
+     *  @return the height.
      */
     public float getHeight() {
         return this.h;
@@ -141,6 +159,7 @@ public class CheckBox implements Drawable {
     /**
      *  Gets the width of the CheckBox.
      *
+     *  @return the width.
      */
     public float getWidth() {
         return this.w;
@@ -150,6 +169,7 @@ public class CheckBox implements Drawable {
     /**
      *  Checks or unchecks this check box. See the Mark class for available options.
      *
+     *  @param mark indicates whether the box is checked or not.
      *  @return this CheckBox.
      */
     public CheckBox check(int mark) {
@@ -200,43 +220,43 @@ public class CheckBox implements Drawable {
      *  @param page the Page where the CheckBox is to be drawn.
      */
     public float[] drawOn(Page page) throws Exception {
-        page.addBMC(StructElem.SPAN, language, altDescription, actualText);
+        page.addBMC(StructElem.SPAN, language, actualText, altDescription);
 
         this.w = font.getAscent();
         this.h = this.w;
         this.penWidth = this.w/15;
         this.checkWidth = this.w/5;
 
-        float y_box = y - font.getAscent();
+        float yBox = y;
         page.setPenWidth(penWidth);
         page.setPenColor(boxColor);
         page.setLinePattern("[] 0");
-        page.drawRect(x, y_box, w, h);
+        page.drawRect(x + this.penWidth, yBox + this.penWidth, w, h);
 
         if (mark == Mark.CHECK || mark == Mark.X) {
-        	page.setPenWidth(checkWidth);
-        	page.setPenColor(checkColor);
-        	if (mark == Mark.CHECK) {
+            page.setPenWidth(checkWidth);
+            page.setPenColor(checkColor);
+            if (mark == Mark.CHECK) {
                 // Draw check mark
-        		page.moveTo(x + checkWidth, y_box + h/2);
-        		page.lineTo(x + w/6 + checkWidth, (y_box + h) - 4f*checkWidth/3f);
-        		page.lineTo((x + w) - checkWidth, y_box + checkWidth);
-        	    page.strokePath();
-        	}
-        	else if (mark == Mark.X) {
-                // Draw 'X' mark
-                page.moveTo(x + checkWidth, y_box + checkWidth);
-                page.lineTo((x + w) - checkWidth, (y_box + h) - checkWidth);
-                page.moveTo((x + w) - checkWidth, y_box + checkWidth);
-                page.lineTo(x + checkWidth, (y_box + h) - checkWidth);
+                page.moveTo(x + checkWidth + penWidth, yBox + h/2 + penWidth);
+                page.lineTo((x + w/6 + checkWidth) + penWidth, ((yBox + h) - 4f*checkWidth/3f) + penWidth);
+                page.lineTo(((x + w) - checkWidth) + penWidth, (yBox + checkWidth) + penWidth);
                 page.strokePath();
-        	}
+            }
+            else if (mark == Mark.X) {
+                // Draw 'X' mark
+                page.moveTo(x + checkWidth + penWidth, yBox + checkWidth + penWidth);
+                page.lineTo(((x + w) - checkWidth) + penWidth, ((yBox + h) - checkWidth) + penWidth);
+                page.moveTo(((x + w) - checkWidth) + penWidth, (yBox + checkWidth) + penWidth);
+                page.lineTo((x + checkWidth) + penWidth, ((yBox + h) - checkWidth) + penWidth);
+                page.strokePath();
+            }
         }
 
         if (uri != null) {
             page.setBrushColor(Color.blue);
         }
-        page.drawString(font, label, x + 3f*w/2f, y);
+        page.drawString(font, label, x + 3f*w/2f, y + font.ascent);
         page.setPenWidth(0f);
         page.setPenColor(Color.black);
         page.setBrushColor(Color.black);
@@ -244,20 +264,19 @@ public class CheckBox implements Drawable {
         page.addEMC();
 
         if (uri != null) {
-            // Please note: The font descent is a negative number.
             page.addAnnotation(new Annotation(
                     uri,
                     null,
                     x + 3f*w/2f,
-                    page.height - y,
+                    y,
                     x + 3f*w/2f + font.stringWidth(label),
-                    page.height - (y - font.getAscent()),
+                    y + font.bodyHeight,
                     language,
-                    altDescription,
-                    actualText));
+                    actualText,
+                    altDescription));
         }
 
-        return new float[] { x + 3f*w + font.stringWidth(label), y + font.getDescent() };
+        return new float[] { x + 3f*w + font.stringWidth(label), y + font.bodyHeight };
     }
 
 }   // End of CheckBox.java

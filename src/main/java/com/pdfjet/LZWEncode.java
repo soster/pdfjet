@@ -4,9 +4,9 @@ import java.io.*;
 import java.util.*;
 
 
-public class LZWEncode {
+class LZWEncode {
 
-    private LookupTable table = new LookupTable();
+    private final LookupTable table = new LookupTable();
     private int bitBuffer = 0;
     private int bitsInBuffer = 0;
 

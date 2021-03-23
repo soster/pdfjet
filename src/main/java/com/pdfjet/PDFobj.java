@@ -1,48 +1,39 @@
 /**
  *  PDFobj.java
  *
-Copyright (c) 2018, Innovatics Inc.
-All rights reserved.
+Copyright 2020 Innovatics Inc.
 
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and / or other materials provided with the distribution.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 */
-
 package com.pdfjet;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 
 /**
  *  Used to create Java or .NET objects that represent the objects in PDF document.
  *  See the PDF specification for more information.
- *
  */
 public class PDFobj {
-
     protected int number;           // The object number
     protected int offset;           // The object offset
     protected List<String> dict;
@@ -51,20 +42,11 @@ public class PDFobj {
     protected byte[] data;          // The decompressed data
     protected int gsNumber = -1;
 
-
     /**
      *  Used to create Java or .NET objects that represent the objects in PDF document.
      *  See the PDF specification for more information.
      *  Also see Example_19.
-     *
-     *  @param offset the object offset in the offsets table.
      */
-    public PDFobj(int offset) {
-        this.offset = offset;
-        this.dict = new ArrayList<String>();
-    }
-
-
     protected PDFobj() {
         this.dict = new ArrayList<String>();
     }
@@ -85,11 +67,6 @@ public class PDFobj {
     }
 
 
-    public void setDict(List<String> dict) {
-        this.dict = dict;
-    }
-
-
     /**
      *  Returns the uncompressed stream data.
      *
@@ -99,16 +76,6 @@ public class PDFobj {
         return this.data;
     }
 
-
-    protected void setStream(byte[] pdf, int length) {
-        stream = new byte[length];
-        System.arraycopy(pdf, this.streamOffset, stream, 0, length);
-    }
-
-
-    protected void setStream(byte[] stream) {
-        this.stream = stream;
-    }
 
     protected void setStreamAndData(byte[] buf, int length) throws Exception {
         if (this.stream == null) {
@@ -126,6 +93,11 @@ public class PDFobj {
     }
 
 
+    protected void setStream(byte[] stream) {
+        this.stream = stream;
+    }
+
+
     protected void setNumber(int number) {
         this.number = number;
     }
@@ -140,12 +112,11 @@ public class PDFobj {
      */
     public String getValue(String key) {
         for (int i = 0; i < dict.size(); i++) {
-            String token = dict.get(i);
-            if (token.equals(key)) {
-                if (dict.get(i + 1).equals("<<")) {
+            if (dict.get(i).equals(key)) {
+                String token = dict.get(i + 1);
+                if (token.equals("<<")) {
                     StringBuilder buffer = new StringBuilder();
-                    buffer.append("<<");
-                    buffer.append(" ");
+                    buffer.append("<< ");
                     i += 2;
                     while (!dict.get(i).equals(">>")) {
                         buffer.append(dict.get(i));
@@ -155,10 +126,9 @@ public class PDFobj {
                     buffer.append(">>");
                     return buffer.toString();
                 }
-                if (dict.get(i + 1).equals("[")) {
+                else if (token.equals("[")) {
                     StringBuilder buffer = new StringBuilder();
-                    buffer.append("[");
-                    buffer.append(" ");
+                    buffer.append("[ ");
                     i += 2;
                     while (!dict.get(i).equals("]")) {
                         buffer.append(dict.get(i));
@@ -168,7 +138,9 @@ public class PDFobj {
                     buffer.append("]");
                     return buffer.toString();
                 }
-                return dict.get(i + 1);
+                else {
+                    return token;
+                }
             }
         }
         return "";
@@ -206,8 +178,8 @@ public class PDFobj {
         for (int i = 0; i < dict.size(); i++) {
             if (dict.get(i).equals("/MediaBox")) {
                 return new float[] {
-                        Float.valueOf(dict.get(i + 4)),
-                        Float.valueOf(dict.get(i + 5)) };
+                        Float.parseFloat(dict.get(i + 4)),
+                        Float.parseFloat(dict.get(i + 5)) };
             }
         }
         return Letter.PORTRAIT;
@@ -218,7 +190,7 @@ public class PDFobj {
         for (int i = 0; i < dict.size(); i++) {
             String token = dict.get(i);
             if (token.equals("/Length")) {
-                int number = Integer.valueOf(dict.get(i + 1));
+                int number = Integer.parseInt(dict.get(i + 1));
                 if (dict.get(i + 2).equals("0") &&
                         dict.get(i + 3).equals("R")) {
                     return getLength(objects, number);
@@ -235,79 +207,47 @@ public class PDFobj {
     protected int getLength(List<PDFobj> objects, int number) {
         for (PDFobj obj : objects) {
             if (obj.number == number) {
-                return Integer.valueOf(obj.dict.get(3));
+                return Integer.parseInt(obj.dict.get(3));
             }
         }
         return 0;
     }
 
 
-    public PDFobj getContentsObject(Map<Integer, PDFobj> objects) {
+    public PDFobj getContentsObject(List<PDFobj> objects) {
         for (int i = 0; i < dict.size(); i++) {
             if (dict.get(i).equals("/Contents")) {
                 if (dict.get(i + 1).equals("[")) {
-                    return objects.get(Integer.valueOf(dict.get(i + 2)));
+                    String token = dict.get(i + 2);
+                    return objects.get(Integer.parseInt(token) - 1);
                 }
-                return objects.get(Integer.valueOf(dict.get(i + 1)));
+                else {
+                    String token = dict.get(i + 1);
+                    return objects.get(Integer.parseInt(token) - 1);
+                }
             }
         }
         return null;
     }
 
-
-    public PDFobj getResourcesObject(Map<Integer, PDFobj> objects) {
-        for (int i = 0; i < dict.size(); i++) {
-            if (dict.get(i).equals("/Resources")) {
-                String token = dict.get(i + 1);
-                if (token.equals("<<")) {
-                    PDFobj obj = new PDFobj();
-                    obj.dict.add("0");
-                    obj.dict.add("0");
-                    obj.dict.add("obj");
-                    obj.dict.add(token);
-                    int level = 1;
-                    i++;
-                    while (i < dict.size() && level > 0) {
-                        token = dict.get(i);
-                        obj.dict.add(token);
-                        if (token.equals("<<")) {
-                            level++;
-                        }
-                        else if (token.equals(">>")) {
-                            level--;
-                        }
-                        i++;
-                    }
-                    return obj;
-                }
-                return objects.get(Integer.valueOf(token));
-            }
-        }
-        return null;
-    }
-
-/*
-TODO: Test well this method and use instead of the method above.
-    public PDFobj getResourcesObject(Map<Integer, PDFobj> objects) {
+    public PDFobj getResourcesObject(List<PDFobj> objects) {
         for (int i = 0; i < dict.size(); i++) {
             if (dict.get(i).equals("/Resources")) {
                 String token = dict.get(i + 1);
                 if (token.equals("<<")) {
                     return this;
                 }
-                return objects.get(Integer.valueOf(token));
+                return objects.get(Integer.parseInt(token) - 1);
             }
         }
         return null;
     }
-*/
 
-    public Font addResource(CoreFont coreFont, Map<Integer, PDFobj> objects) {
+    public Font addResource(CoreFont coreFont, List<PDFobj> objects) {
         Font font = new Font(coreFont);
         font.fontID = font.name.replace('-', '_').toUpperCase();
 
         PDFobj obj = new PDFobj();
-        obj.number = Collections.max(objects.keySet()) + 1;
         obj.dict.add("<<");
         obj.dict.add("/Type");
         obj.dict.add("/Font");
@@ -320,8 +260,8 @@ TODO: Test well this method and use instead of the method above.
             obj.dict.add("/WinAnsiEncoding");
         }
         obj.dict.add(">>");
-
-        objects.put(obj.number, obj);
+        obj.number = objects.size() + 1;
+        objects.add(obj);
 
         for (int i = 0; i < dict.size(); i++) {
             if (dict.get(i).equals("/Resources")) {
@@ -330,7 +270,7 @@ TODO: Test well this method and use instead of the method above.
                     addFontResource(this, objects, font.fontID, obj.number);
                 }
                 else if (Character.isDigit(token.charAt(0))) {  // Indirect resources object
-                    addFontResource(objects.get(Integer.valueOf(token)), objects, font.fontID, obj.number);
+                    addFontResource(objects.get(Integer.parseInt(token) - 1), objects, font.fontID, obj.number);
                 }
             }
         }
@@ -340,12 +280,13 @@ TODO: Test well this method and use instead of the method above.
 
 
     private void addFontResource(
-            PDFobj obj, Map<Integer, PDFobj> objects, String fontID, int number) {
+            PDFobj obj, List<PDFobj> objects, String fontID, int number) {
 
         boolean fonts = false;
         for (int i = 0; i < obj.dict.size(); i++) {
             if (obj.dict.get(i).equals("/Font")) {
                 fonts = true;
+                break;
             }
         }
         if (!fonts) {
@@ -370,7 +311,7 @@ TODO: Test well this method and use instead of the method above.
                     return;
                 }
                 else if (Character.isDigit(token.charAt(0))) {
-                    PDFobj o2 = objects.get(Integer.valueOf(token));
+                    PDFobj o2 = objects.get(Integer.parseInt(token) - 1);
                     for (int j = 0; j < o2.dict.size(); j++) {
                         if (o2.dict.get(j).equals("<<")) {
                             o2.dict.add(j + 1, "/" + fontID);
@@ -407,18 +348,19 @@ TODO: Test well this method and use instead of the method above.
 
 
     private void addResource(
-            String type, PDFobj obj, Map<Integer, PDFobj> objects, int objNumber) {
+            String type, PDFobj obj, List<PDFobj> objects, int objNumber) {
         String tag = type.equals("/Font") ? "/F" : "/Im";
         String number = String.valueOf(objNumber);
         List<String> list = Arrays.asList(tag + number, number, "0", "R");
         for (int i = 0; i < obj.dict.size(); i++) {
-            if (obj.dict.get(i).equals(type)) {
-                String token = obj.dict.get(i + 1);
+            String token = obj.dict.get(i);
+            if (token.equals(type)) {
+                token = obj.dict.get(i + 1);
                 if (token.equals("<<")) {
                     insertNewObject(obj.dict, list, type);
                 }
                 else {
-                    insertNewObject(objects.get(Integer.valueOf(token)).dict, list, type);
+                    insertNewObject(objects.get(Integer.parseInt(token) - 1).dict, list, type);
                 }
                 return;
             }
@@ -441,7 +383,7 @@ TODO: Test well this method and use instead of the method above.
     }
 
 
-    public void addResource(Image image, Map<Integer, PDFobj> objects) {
+    public void addResource(Image image, List<PDFobj> objects) {
         for (int i = 0; i < dict.size(); i++) {
             if (dict.get(i).equals("/Resources")) {
                 String token = dict.get(i + 1);
@@ -449,7 +391,7 @@ TODO: Test well this method and use instead of the method above.
                     addResource("/XObject", this, objects, image.objNumber);
                 }
                 else {                          // Indirect resources object
-                    addResource("/XObject", objects.get(Integer.valueOf(token)), objects, image.objNumber);
+                    addResource("/XObject", objects.get(Integer.parseInt(token) - 1), objects, image.objNumber);
                 }
                 return;
             }
@@ -457,7 +399,7 @@ TODO: Test well this method and use instead of the method above.
     }
 
 
-    public void addResource(Font font, Map<Integer, PDFobj> objects) {
+    public void addResource(Font font, List<PDFobj> objects) {
         for (int i = 0; i < dict.size(); i++) {
             if (dict.get(i).equals("/Resources")) {
                 String token = dict.get(i + 1);
@@ -465,7 +407,7 @@ TODO: Test well this method and use instead of the method above.
                     addResource("/Font", this, objects, font.objNumber);
                 }
                 else {                          // Indirect resources object
-                    addResource("/Font", objects.get(Integer.valueOf(token)), objects, font.objNumber);
+                    addResource("/Font", objects.get(Integer.parseInt(token) - 1), objects, font.objNumber);
                 }
                 return;
             }
@@ -473,11 +415,11 @@ TODO: Test well this method and use instead of the method above.
     }
 
 
-    public void addContent(byte[] content, Map<Integer, PDFobj> objects) {
+    public void addContent(byte[] content, List<PDFobj> objects) {
         PDFobj obj = new PDFobj();
-        obj.setNumber(Collections.max(objects.keySet()) + 1);
+        obj.setNumber(objects.size() + 1);
         obj.setStream(content);
-        objects.put(obj.getNumber(), obj);
+        objects.add(obj);
 
         String objNumber = String.valueOf(obj.number);
         for (int i = 0; i < dict.size(); i++) {
@@ -500,7 +442,7 @@ TODO: Test well this method and use instead of the method above.
                 }
                 else {
                     // Single content object
-                    PDFobj obj2 = objects.get(Integer.valueOf(token));
+                    PDFobj obj2 = objects.get(Integer.parseInt(token) - 1);
                     if (obj2.data == null && obj2.stream == null) {
                         // This is not a stream object!
                         for (int j = 0; j < obj2.dict.size(); j++) {
@@ -529,14 +471,14 @@ TODO: Test well this method and use instead of the method above.
      * The original code was provided by Stefan Ostermann author of ScribMaster and HandWrite Pro.
      * Additional code to handle PDFs with indirect array of stream objects was written by EDragoev.
      *
-     * @param content
-     * @param objects
+     * @param content the new content object to be added
+     * @param objects the existing list of content objects
      */
-    public void addPrefixContent(byte[] content, Map<Integer, PDFobj> objects) {
+    public void addPrefixContent(byte[] content, List<PDFobj> objects) {
         PDFobj obj = new PDFobj();
-        obj.setNumber(Collections.max(objects.keySet()) + 1);
+        obj.setNumber(objects.size() + 1);
         obj.setStream(content);
-        objects.put(obj.getNumber(), obj);
+        objects.add(obj);
 
         String objNumber = String.valueOf(obj.number);
         for (int i = 0; i < dict.size(); i++) {
@@ -553,7 +495,7 @@ TODO: Test well this method and use instead of the method above.
                 }
                 else {
                     // Single content object
-                    PDFobj obj2 = objects.get(Integer.valueOf(token));
+                    PDFobj obj2 = objects.get(Integer.parseInt(token) - 1);
                     if (obj2.data == null && obj2.stream == null) {
                         // This is not a stream object!
                         for (int j = 0; j < obj2.dict.size(); j++) {
@@ -593,7 +535,7 @@ TODO: Test well this method and use instead of the method above.
     }
 
 
-    public void setGraphicsState(GraphicsState gs, Map<Integer, PDFobj> objects) {
+    public void setGraphicsState(GraphicsState gs, List<PDFobj> objects) {
         PDFobj obj = null;
         int index = -1;
         for (int i = 0; i < dict.size(); i++) {
@@ -604,7 +546,7 @@ TODO: Test well this method and use instead of the method above.
                     index = i + 2;
                 }
                 else {
-                    obj = objects.get(Integer.valueOf(token));
+                    obj = objects.get(Integer.parseInt(token) - 1);
                     for (int j = 0; j < obj.dict.size(); j++) {
                         if (obj.dict.get(j).equals("<<")) {
                             index = j + 1;

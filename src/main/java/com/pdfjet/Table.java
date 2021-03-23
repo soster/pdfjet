@@ -1,30 +1,25 @@
 /**
  *  Table.java
  *
-Copyright (c) 2018, Innovatics Inc.
-All rights reserved.
+Copyright 2020 Innovatics Inc.
 
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and / or other materials provided with the distribution.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 */
 
 package com.pdfjet;
@@ -53,13 +48,14 @@ public class Table {
     private int rendered = 0;
     private int numOfPages;
 
-    private List<List<Cell>> tableData = null;
+    private List<List<Cell>> tableData;
     private int numOfHeaderRows = 0;
 
     private float x1;
     private float y1;
-
-    private float bottom_margin = 30f;
+    private float y1FirstPage;
+    private float rightMargin;
+    private float bottomMargin = 30f;
 
 
     /**
@@ -70,19 +66,6 @@ public class Table {
         tableData = new ArrayList<List<Cell>>();
     }
 
-
-    /**
-     *  Sets the position (x, y) of the top left corner of this table on the page.
-     *
-     *  @param x the x coordinate of the top left point of the table.
-     *  @param y the y coordinate of the top left point of the table.
-     */
-    public void setPosition(double x, double y) {
-        this.x1 = (float) x;
-        this.y1 = (float) y;
-    }
-
-
     /**
      *  Sets the position (x, y) of the top left corner of this table on the page.
      *
@@ -90,6 +73,16 @@ public class Table {
      *  @param y the y coordinate of the top left point of the table.
      */
     public void setPosition(float x, float y) {
+        setLocation(x, y);
+    }
+
+     /**
+     *  Sets the position (x, y) of the top left corner of this table on the page.
+     *
+     *  @param x the x coordinate of the top left point of the table.
+     *  @param y the y coordinate of the top left point of the table.
+     */
+    public void setPosition(double x, double y) {
         setLocation(x, y);
     }
 
@@ -105,24 +98,34 @@ public class Table {
         this.y1 = y;
     }
 
-
     /**
-     *  Sets the bottom margin for this table.
+     *  Sets the location (x, y) of the top left corner of this table on the page.
      *
-     *  @param bottom_margin the margin.
+     *  @param x the x coordinate of the top left point of the table.
+     *  @param y the y coordinate of the top left point of the table.
      */
-    public void setBottomMargin(double bottom_margin) {
-        this.bottom_margin = (float) bottom_margin;
+    public void setLocation(double x, double y) {
+        setLocation((float) x, (float) y);
     }
 
 
     /**
      *  Sets the bottom margin for this table.
      *
-     *  @param bottom_margin the margin.
+     *  @param bottomMargin the margin.
      */
-    public void setBottomMargin(float bottom_margin) {
-        this.bottom_margin = bottom_margin;
+    public void setBottomMargin(double bottomMargin) {
+        this.bottomMargin = (float) bottomMargin;
+    }
+
+
+    /**
+     *  Sets the bottom margin for this table.
+     *
+     *  @param bottomMargin the margin.
+     */
+    public void setBottomMargin(float bottomMargin) {
+        this.bottomMargin = bottomMargin;
     }
 
 
@@ -135,11 +138,12 @@ public class Table {
      *
      *  @param tableData the table data.
      */
-    public void setData(
-            List<List<Cell>> tableData) throws Exception {
+    public void setData(List<List<Cell>> tableData) {
+        // TODO: Do we need this method?
         this.tableData = tableData;
         this.numOfHeaderRows = 0;
-        this.rendered = numOfHeaderRows;
+        this.rendered = 0;
+        addCellsToCompleteTheGrid(tableData);
     }
 
 
@@ -149,48 +153,22 @@ public class Table {
      *  @param tableData the table data.
      *  @param numOfHeaderRows the number of header rows in this data.
      */
-    public void setData(
-            List<List<Cell>> tableData, int numOfHeaderRows) throws Exception {
+    public void setData(List<List<Cell>> tableData, int numOfHeaderRows) {
         this.tableData = tableData;
         this.numOfHeaderRows = numOfHeaderRows;
         this.rendered = numOfHeaderRows;
+        addCellsToCompleteTheGrid(tableData);
     }
 
 
-    /**
-     *  Auto adjusts the widths of all columns so that they are just wide enough to hold the text without truncation.
-     */
-    public void autoAdjustColumnWidths() {
-        // Find the maximum text width for each column
-        float[] max_col_widths = new float[tableData.get(0).size()];
-        for (int i = 0; i < tableData.size(); i++) {
-            List<Cell> row = tableData.get(i);
-            for (int j = 0; j < row.size(); j++) {
-                Cell cell = row.get(j);
-                if (cell.getColSpan() == 1) {
-                    float cellWidth = 0f;
-                    if (cell.image != null) {
-                        cellWidth = cell.image.getWidth();
-                    }
-                    if (cell.text != null) {
-                        if (cell.font.stringWidth(cell.fallbackFont, cell.text) > cellWidth) {
-                            cellWidth = cell.font.stringWidth(cell.fallbackFont, cell.text);
-                        }
-                    }
-                    cell.setWidth(cellWidth + cell.left_padding + cell.right_padding);
-                    if (max_col_widths[j] == 0f ||
-                            cell.getWidth() > max_col_widths[j]) {
-                        max_col_widths[j] = cell.getWidth();
-                    }
-                }
-            }
-        }
-
-        for (int i = 0; i < tableData.size(); i++) {
-            List<Cell> row = tableData.get(i);
-            for (int j = 0; j < row.size(); j++) {
-                Cell cell = row.get(j);
-                cell.setWidth(max_col_widths[j]);
+    private void addCellsToCompleteTheGrid(List<List<Cell>> tableData) {
+        // Add the missing cells.
+        int numOfColumns = tableData.get(0).size();
+        Font font = tableData.get(0).get(0).font;
+        for (List<Cell> row : tableData) {
+            int diff = numOfColumns - row.size();
+            for (int i = 0; i < diff; i++) {
+                row.add(new Cell(font, ""));
             }
         }
     }
@@ -202,15 +180,14 @@ public class Table {
     public void rightAlignNumbers() {
         for (int i = numOfHeaderRows; i < tableData.size(); i++) {
             List<Cell> row = tableData.get(i);
-            for (int j = 0; j < row.size(); j++) {
-                Cell cell = row.get(j);
+            for (Cell cell : row) {
                 if (cell.text != null) {
                     String str = cell.text;
                     int len = str.length();
                     boolean isNumber = true;
-                    int k = 0;
-                    while (k < len) {
-                        char ch = str.charAt(k++);
+                    int j = 0;
+                    while (j < len) {
+                        char ch = str.charAt(j++);
                         if (!Character.isDigit(ch)
                                 && ch != '('
                                 && ch != ')'
@@ -232,18 +209,17 @@ public class Table {
 
     /**
      *  Removes the horizontal lines between the rows from index1 to index2.
+     *  @param index1 the index of the first specified row.
+     *  @param index2 the index of the second specified row.
      */
-    public void removeLineBetweenRows(
-            int index1, int index2) throws Exception {
-        for (int j = index1; j < index2; j++) {
-            List<Cell> row = tableData.get(j);
-            for (int i = 0; i < row.size(); i++) {
-                Cell cell = row.get(i);
+    public void removeLineBetweenRows(int index1, int index2) {
+        for (int i = index1; i < index2; i++) {
+            List<Cell> row = tableData.get(i);
+            for (Cell cell : row) {
                 cell.setBorder(Border.BOTTOM, false);
             }
-            row = tableData.get(j + 1);
-            for (int i = 0; i < row.size(); i++) {
-                Cell cell = row.get(i);
+            row = tableData.get(i + 1);
+            for (Cell cell : row) {
                 cell.setBorder(Border.TOP, false);
             }
         }
@@ -256,12 +232,14 @@ public class Table {
      *  @param index the index of the specified column.
      *  @param alignment the specified alignment. Supported values: Align.LEFT, Align.RIGHT, Align.CENTER and Align.JUSTIFY.
      */
-    public void setTextAlignInColumn(
-            int index, int alignment) throws Exception {
-        for (int i = 0; i < tableData.size(); i++) {
-            List<Cell> row = tableData.get(i);
+    public void setTextAlignInColumn(int index, int alignment) {
+        for (List<Cell> row : tableData) {
             if (index < row.size()) {
-                row.get(index).setTextAlignment(alignment);
+                Cell cell = row.get(index);
+                cell.setTextAlignment(alignment);
+                if (cell.textBlock != null) {
+                    cell.textBlock.setTextAlignment(alignment);
+                }
             }
         }
     }
@@ -273,12 +251,14 @@ public class Table {
      *  @param index the index of the specified column.
      *  @param color the color specified as an integer.
      */
-    public void setTextColorInColumn(
-            int index, int color) throws Exception {
-        for (int i = 0; i < tableData.size(); i++) {
-            List<Cell> row = tableData.get(i);
+    public void setTextColorInColumn(int index, int color) {
+        for (List<Cell> row : tableData) {
             if (index < row.size()) {
-                row.get(index).setBrushColor(color);
+                Cell cell = row.get(index);
+                cell.setBrushColor(color);
+                if (cell.textBlock != null) {
+                    cell.textBlock.setBrushColor(color);
+                }
             }
         }
     }
@@ -290,11 +270,14 @@ public class Table {
      *  @param index the column index.
      *  @param font the font.
      */
-    public void setFontInColumn(int index, Font font) throws Exception {
-        for (int i = 0; i < tableData.size(); i++) {
-            List<Cell> row = tableData.get(i);
+    public void setFontInColumn(int index, Font font) {
+        for (List<Cell> row : tableData) {
             if (index < row.size()) {
-                row.get(index).font = font;
+                Cell cell = row.get(index);
+                cell.font = font;
+                if (cell.textBlock != null) {
+                    cell.textBlock.font = font;
+                }
             }
         }
     }
@@ -306,11 +289,13 @@ public class Table {
      *  @param index the index of the specified row.
      *  @param color the color specified as an integer.
      */
-    public void setTextColorInRow(
-            int index, int color) throws Exception {
+    public void setTextColorInRow(int index, int color) {
         List<Cell> row = tableData.get(index);
-        for (int i = 0; i < row.size(); i++) {
-            row.get(i).setBrushColor(color);
+        for (Cell cell : row) {
+            cell.setBrushColor(color);
+            if (cell.textBlock != null) {
+                cell.textBlock.setBrushColor(color);
+            }
         }
     }
 
@@ -321,10 +306,13 @@ public class Table {
      *  @param index the row index.
      *  @param font the font.
      */
-    public void setFontInRow(int index, Font font) throws Exception {
+    public void setFontInRow(int index, Font font) {
         List<Cell> row = tableData.get(index);
-        for (int i = 0; i < row.size(); i++) {
-            row.get(i).font = font;
+        for (Cell cell : row) {
+            cell.font = font;
+            if (cell.textBlock != null) {
+                cell.textBlock.font = font;
+            }
         }
     }
 
@@ -335,12 +323,14 @@ public class Table {
      *  @param index the index of specified column.
      *  @param width the specified width.
      */
-    public void setColumnWidth(
-            int index, float width) throws Exception {
-        for (int i = 0; i < tableData.size(); i++) {
-            List<Cell> row = tableData.get(i);
+    public void setColumnWidth(int index, float width) {
+        for (List<Cell> row : tableData) {
             if (index < row.size()) {
-                row.get(index).setWidth(width);
+                Cell cell = row.get(index);
+                cell.setWidth(width);
+                if (cell.textBlock != null) {
+                    cell.textBlock.setWidth(width - (cell.leftPadding + cell.rightPadding));
+                }
             }
         }
     }
@@ -352,7 +342,7 @@ public class Table {
      *  @param index the index of the column.
      *  @return the width of the column.
      */
-    public float getColumnWidth(int index) throws Exception {
+    public float getColumnWidth(int index) {
         return getCellAtRowColumn(0, index).getWidth();
     }
 
@@ -365,8 +355,7 @@ public class Table {
      *
      *  @return the cell at the specified row and column.
      */
-    public Cell getCellAt(
-            int row, int col) throws Exception {
+    public Cell getCellAt(int row, int col) {
         if (row >= 0) {
             return tableData.get(row).get(col);
         }
@@ -382,39 +371,38 @@ public class Table {
      *
      *  @return the cell at the specified row and column.
      */
-    public Cell getCellAtRowColumn(int row, int col) throws Exception {
+    public Cell getCellAtRowColumn(int row, int col) {
         return getCellAt(row, col);
     }
 
 
     /**
-     *  Returns a list of cell for the specified row.
+     *  Returns a list of cells for the specified row.
      *
      *  @param index the index of the specified row.
      *
      *  @return the list of cells.
      */
-    public List<Cell> getRow(int index) throws Exception {
+    public List<Cell> getRow(int index) {
         return tableData.get(index);
     }
 
 
-    public List<Cell> getRowAtIndex(int index) throws Exception {
+    public List<Cell> getRowAtIndex(int index) {
         return getRow(index);
     }
 
 
     /**
-     *  Returns a list of cell for the specified column.
+     *  Returns a list of cells for the specified column.
      *
      *  @param index the index of the specified column.
      *
      *  @return the list of cells.
      */
-    public List<Cell> getColumn(int index) throws Exception {
+    public List<Cell> getColumn(int index) {
         List<Cell> column = new ArrayList<Cell>();
-        for (int i = 0; i < tableData.size(); i++) {
-            List<Cell> row = tableData.get(i);
+        for (List<Cell> row : tableData) {
             if (index < row.size()) {
                 column.add(row.get(index));
             }
@@ -423,7 +411,7 @@ public class Table {
     }
 
 
-    public List<Cell> getColumnAtIndex(int index) throws Exception {
+    public List<Cell> getColumnAtIndex(int index) {
         return getColumn(index);
     }
 
@@ -434,11 +422,12 @@ public class Table {
      *  @param page the type of pages we are drawing this table on.
      *
      *  @return the number of pages.
+     *  @throws Exception  If an input or output exception occurred
      */
     public int getNumberOfPages(Page page) throws Exception {
         numOfPages = 1;
         while (hasMoreData()) {
-            drawOn(page, false);
+            drawOn(null);
         }
         resetRenderedPagesCount();
         return numOfPages;
@@ -451,99 +440,94 @@ public class Table {
      *  @param page the page to draw this table on.
      *
      *  @return Point the point on the page where to draw the next component.
+     *  @throws Exception  If an input or output exception occurred
      */
-    public Point drawOn(Page page) throws Exception {
-        return drawOn(page, true);
+    public float[] drawOn(Page page) throws Exception {
+        return drawTableRows(page, drawHeaderRows(page, 0));
     }
 
 
-    /**
-     *  Draws this table on the specified page.
-     *
-     *  @param page the page to draw this table on.
-     *  @param draw if false - do not draw the table. Use to only find out where the table ends.
-     *
-     *  @return Point the point on the page where to draw the next component.
-     */
-    private Point drawOn(Page page, boolean draw) throws Exception {
-        return drawTableRows(page, draw, drawHeaderRows(page, draw));
+    public float[] drawOn(PDF pdf, List<Page> pages, float[] pageSize) throws Exception {
+        float[] xy = null;
+        int pageNumber = 1;
+        while (this.hasMoreData()) {
+            Page page = new Page(pdf, pageSize, false);
+            pages.add(page);
+            xy = drawTableRows(page, drawHeaderRows(page, pageNumber));
+            pageNumber++;
+        }
+        // Allow the table to be drawn again later:
+        resetRenderedPagesCount();
+        return xy;
     }
 
 
-    private float[] drawHeaderRows(Page page, boolean draw) throws Exception {
+    private float[] drawHeaderRows(Page page, int pageNumber) throws Exception {
         float x = x1;
-        float y = y1;
-        float cell_w = 0f;
-        float cell_h = 0f;
+        float y = (pageNumber == 1) ? y1FirstPage : y1;
 
+        float cellH;
         for (int i = 0; i < numOfHeaderRows; i++) {
             List<Cell> dataRow = tableData.get(i);
-            cell_h = getMaxCellHeight(dataRow);
-
+            cellH = getMaxCellHeight(dataRow);
             for (int j = 0; j < dataRow.size(); j++) {
                 Cell cell = dataRow.get(j);
-                cell_w = cell.getWidth();
+                float cellW = cell.getWidth();
                 int colspan = cell.getColSpan();
                 for (int k = 1; k < colspan; k++) {
-                    cell_w += dataRow.get(++j).width;
+                    cellW += dataRow.get(++j).width;
                 }
-
-                if (draw) {
+                if (page != null) {
                     page.setBrushColor(cell.getBrushColor());
-                    cell.paint(page, x, y, cell_w, cell_h);
+                    cell.paint(page, x, y, cellW, cellH);
                 }
-
-                x += cell_w;
+                x += cellW;
             }
             x = x1;
-            y += cell_h;
+            y += cellH;
         }
 
-        return new float[] {x, y, cell_w, cell_h};
+        return new float[] {x, y};
     }
 
 
-    private Point drawTableRows(Page page, boolean draw, float[] parameter) throws Exception {
+    private float[] drawTableRows(Page page, float[] parameter) throws Exception {
         float x = parameter[0];
         float y = parameter[1];
-        float cell_w = parameter[2];
-        float cell_h = parameter[3];
 
+        float cellH;
         for (int i = rendered; i < tableData.size(); i++) {
             List<Cell> dataRow = tableData.get(i);
-            cell_h = getMaxCellHeight(dataRow);
-
+            cellH = getMaxCellHeight(dataRow);
             for (int j = 0; j < dataRow.size(); j++) {
                 Cell cell = dataRow.get(j);
-                cell_w = cell.getWidth();
+                float cellW = cell.getWidth();
                 int colspan = cell.getColSpan();
                 for (int k = 1; k < colspan; k++) {
-                    cell_w += dataRow.get(++j).getWidth();
+                    cellW += dataRow.get(++j).getWidth();
                 }
-
-                if (draw) {
+                if (page != null) {
                     page.setBrushColor(cell.getBrushColor());
-                    cell.paint(page, x, y, cell_w, cell_h);
+                    cell.paint(page, x, y, cellW, cellH);
                 }
-
-                x += cell_w;
+                x += cellW;
             }
             x = x1;
-            y += cell_h;
+            y += cellH;
 
             // Consider the height of the next row when checking if we must go to a new page
+            float textCellHeight = 0f;
             if (i < (tableData.size() - 1)) {
                 List<Cell> nextRow = tableData.get(i + 1);
-                for (int j = 0; j < nextRow.size(); j++) {
-                    Cell cell = nextRow.get(j);
+                for (Cell cell : nextRow) {
                     float cellHeight = cell.getHeight();
-                    if (cellHeight > cell_h) {
-                        cell_h = cellHeight;
+                    if (cellHeight > cellH) {
+                        cellH = cellHeight;
                     }
                 }
             }
 
-            if ((y + cell_h) > (page.height - bottom_margin)) {
+            if (page != null && (y + cellH) > (page.height - bottomMargin)) {
                 if (i == tableData.size() - 1) {
                     rendered = -1;
                 }
@@ -551,29 +535,30 @@ public class Table {
                     rendered = i + 1;
                     numOfPages++;
                 }
-                return new Point(x, y);
+                return new float[] {x, y};
             }
         }
         rendered = -1;
 
-        return new Point(x, y);
+        return new float[] {x, y};
     }
 
 
     private float getMaxCellHeight(List<Cell> row) {
-        float max_cell_height = 0f;
-        for (int j = 0; j < row.size(); j++) {
-            Cell cell = row.get(j);
-            if (cell.getHeight() > max_cell_height) {
-                max_cell_height = cell.getHeight();
+        float maxCellHeight = 0f;
+        for (Cell cell : row) {
+            if (cell.getHeight() > maxCellHeight) {
+                maxCellHeight = cell.getHeight();
             }
         }
-        return max_cell_height;
+        return maxCellHeight;
     }
 
 
     /**
      *  Returns true if the table contains more data that needs to be drawn on a page.
+     *
+     *  @return whether the table has more data to be drawn on a page.
      */
     public boolean hasMoreData() {
         return rendered != -1;
@@ -583,15 +568,15 @@ public class Table {
     /**
      *  Returns the width of this table when drawn on a page.
      *
-     *  @return the widht of this table.
+     *  @return the width of this table.
      */
     public float getWidth() {
-        float table_width = 0f;
+        float tableWidth = 0f;
         List<Cell> row = tableData.get(0);
-        for (int i = 0; i < row.size(); i++) {
-            table_width += row.get(i).getWidth();
+        for (Cell cell : row) {
+            tableWidth += cell.getWidth();
         }
-        return table_width;
+        return tableWidth;
     }
 
 
@@ -617,55 +602,97 @@ public class Table {
     /**
      *  Wraps around the text in all cells so it fits the column width.
      *  This method should be called after all calls to setColumnWidth and autoAdjustColumnWidths.
-     *
      */
     public void wrapAroundCellText() {
         List<List<Cell>> tableData2 = new ArrayList<List<Cell>>();
 
-        for (int i = 0; i < tableData.size(); i++) {
-            List<Cell> row = tableData.get(i);
-            int maxNumVerCells = 1;
-            for (int j = 0; j < row.size(); j++) {
-                Cell cell = row.get(j);
+        for (List<Cell> row : tableData) {
+            for (int i = 0; i < row.size(); i++) {
+                Cell cell = row.get(i);
                 int colspan = cell.getColSpan();
                 for (int n = 1; n < colspan; n++) {
-                    Cell next = row.get(j + n);
+                    Cell next = row.get(i + n);
                     cell.setWidth(cell.getWidth() + next.getWidth());
                     next.setWidth(0f);
                 }
+            }
+        }
+
+        // Adjust the number of header rows automatically!
+        numOfHeaderRows = getNumHeaderRows();
+        rendered = numOfHeaderRows;
+
+        addExtraTableRows(tableData2);
+
+        for (int i = 0; i < tableData2.size(); i++) {
+            List<Cell> row = tableData2.get(i);
+            for (int j = 0; j < row.size(); j++) {
+                Cell cell = row.get(j);
+                if (cell.text != null) {
+                    int n = 0;
+                    float effectiveWidth = cell.width - (cell.leftPadding + cell.rightPadding);
+                    String[] tokens = TextUtils.splitTextIntoTokens(
+                            cell.text, cell.font, cell.fallbackFont, effectiveWidth);
+                    StringBuilder buf = new StringBuilder();
+                    for (String token : tokens) {
+                        if (cell.font.stringWidth(cell.fallbackFont,
+                                (buf.toString() + " " + token).trim()) > effectiveWidth) {
+                            tableData2.get(i + n).get(j).setText(buf.toString().trim());
+                            buf = new StringBuilder(token);
+                            n++;
+                        }
+                        else {
+                            buf.append(" ");
+                            buf.append(token);
+                        }
+                    }
+                    tableData2.get(i + n).get(j).setText(buf.toString().trim());
+                }
+                else {
+                    tableData2.get(i).get(j).setCompositeTextLine(cell.getCompositeTextLine());
+                }
+            }
+        }
+
+        tableData = tableData2;
+    }
+
+
+    private void addExtraTableRows(List<List<Cell>> tableData2) {
+        for (List<Cell> row : tableData) {
+            int maxNumVerCells = 0;
+            for (Cell cell : row) {
                 int numVerCells = cell.getNumVerCells();
                 if (numVerCells > maxNumVerCells) {
                     maxNumVerCells = numVerCells;
                 }
             }
 
-            for (int j = 0; j < maxNumVerCells; j++) {
+            for (int i = 0; i < maxNumVerCells; i++) {
                 List<Cell> row2 = new ArrayList<Cell>();
-                for (int k = 0; k < row.size(); k++) {
-                    Cell cell = row.get(k);
-
+                for (Cell cell : row) {
                     Cell cell2 = new Cell(cell.getFont(), "");
                     cell2.setFallbackFont(cell.getFallbackFont());
-                    cell2.setPoint(cell.getPoint());
                     cell2.setWidth(cell.getWidth());
-                    if (j == 0) {
-                        cell2.setTopPadding(cell.top_padding);
+                    if (i == 0) {
+                        cell2.setPoint(cell.getPoint());
+                        cell2.setTopPadding(cell.topPadding);
                     }
-                    if (j == (maxNumVerCells - 1)) {
-                        cell2.setBottomPadding(cell.bottom_padding);
+                    if (i == (maxNumVerCells - 1)) {
+                        cell2.setBottomPadding(cell.bottomPadding);
                     }
-                    cell2.setLeftPadding(cell.left_padding);
-                    cell2.setRightPadding(cell.right_padding);
+                    cell2.setLeftPadding(cell.leftPadding);
+                    cell2.setRightPadding(cell.rightPadding);
                     cell2.setLineWidth(cell.lineWidth);
                     cell2.setBgColor(cell.getBgColor());
                     cell2.setPenColor(cell.getPenColor());
                     cell2.setBrushColor(cell.getBrushColor());
                     cell2.setProperties(cell.getProperties());
                     cell2.setVerTextAlignment(cell.getVerTextAlignment());
-                    cell2.setIgnoreImageHeight(cell.getIgnoreImageHeight());
-
-                    if (j == 0) {
-                        cell2.setImage(cell.getImage());
+                    if (i == 0) {
+                        if (cell.image != null) {
+                            cell2.setImage(cell.getImage());
+                        }
                         if (cell.getCompositeTextLine() != null) {
                             cell2.setCompositeTextLine(cell.getCompositeTextLine());
                         }
@@ -678,7 +705,7 @@ public class Table {
                     }
                     else  {
                         cell2.setBorder(Border.TOP, false);
-                        if (j < (maxNumVerCells - 1)) {
+                        if (i < (maxNumVerCells - 1)) {
                             cell2.setBorder(Border.BOTTOM, false);
                         }
                     }
@@ -687,48 +714,23 @@ public class Table {
                 tableData2.add(row2);
             }
         }
+    }
 
-        for (int i = 0; i < tableData2.size(); i++) {
-            List<Cell> row = tableData2.get(i);
-            for (int j = 0; j < row.size(); j++) {
-                Cell cell = row.get(j);
-                if (cell.text != null) {
-                    int n = 0;
-                    String[] textLines = cell.getText().split("\\r?\\n");
-                    for (String textLine : textLines) {
-                        StringBuilder sb = new StringBuilder();
-                        String[] tokens = textLine.split("\\s+");
-                        if (tokens.length == 1) {
-                            sb.append(tokens[0]);
-                        }
-                        else {
-                            for (int k = 0; k < tokens.length; k++) {
-                                String token = tokens[k];
-                                if (cell.font.stringWidth(cell.fallbackFont, sb.toString() + " " + token) >
-                                        (cell.getWidth() - (cell.left_padding + cell.right_padding))) {
-                                    tableData2.get(i + n).get(j).setText(sb.toString());
-                                    sb = new StringBuilder(token);
-                                    n++;
-                                }
-                                else {
-                                    if (k > 0) {
-                                        sb.append(" ");
-                                    }
-                                    sb.append(token);
-                                }
-                            }
-                        }
-                        tableData2.get(i + n).get(j).setText(sb.toString());
-                        n++;
-                    }
-                }
-                else {
-                    tableData2.get(i).get(j).setCompositeTextLine(cell.getCompositeTextLine());
+
+    private int getNumHeaderRows() {
+        int numberOfHeaderRows = 0;
+        for (int i = 0; i < this.numOfHeaderRows; i++) {
+            List<Cell> row = tableData.get(i);
+            int maxNumVerCells = 0;
+            for (Cell cell : row) {
+                int numVerCells = cell.getNumVerCells();
+                if (numVerCells > maxNumVerCells) {
+                    maxNumVerCells = numVerCells;
                 }
             }
+            numberOfHeaderRows += maxNumVerCells;
         }
-
-        tableData = tableData2;
+        return numberOfHeaderRows;
     }
 
 
@@ -737,10 +739,9 @@ public class Table {
      *
      */
     public void setNoCellBorders() {
-        for (int i = 0; i < tableData.size(); i++) {
-            List<Cell> row = tableData.get(i);
-            for (int j = 0; j < row.size(); j++) {
-                tableData.get(i).get(j).setNoBorders();
+        for (List<Cell> row : tableData) {
+            for (Cell cell : row) {
+                cell.setNoBorders();
             }
         }
     }
@@ -752,10 +753,9 @@ public class Table {
      *  @param color the color of the cell border lines.
      */
     public void setCellBordersColor(int color) {
-        for (int i = 0; i < tableData.size(); i++) {
-            List<Cell> row = tableData.get(i);
-            for (int j = 0; j < row.size(); j++) {
-                tableData.get(i).get(j).setPenColor(color);
+        for (List<Cell> row : tableData) {
+            for (Cell cell : row) {
+                cell.setPenColor(color);
             }
         }
     }
@@ -767,10 +767,9 @@ public class Table {
      *  @param width the width of the border lines.
      */
     public void setCellBordersWidth(float width) {
-        for (int i = 0; i < tableData.size(); i++) {
-            List<Cell> row = tableData.get(i);
-            for (int j = 0; j < row.size(); j++) {
-                tableData.get(i).get(j).setLineWidth(width);
+        for (List<Cell> row : tableData) {
+            for (Cell cell : row) {
+                cell.setLineWidth(width);
             }
         }
     }
@@ -813,6 +812,161 @@ public class Table {
                     }
                 }
             }
+        }
+    }
+
+
+    /**
+     *  Auto adjusts the widths of all columns so that they are just wide enough to hold the text without truncation.
+     */
+    public void autoAdjustColumnWidths() {
+        float[] maxColWidths = new float[tableData.get(0).size()];
+
+        for (int i = 0; i < numOfHeaderRows; i++) {
+            for (int j = 0; j < maxColWidths.length; j++) {
+                Cell cell = tableData.get(i).get(j);
+                float textWidth = cell.font.stringWidth(cell.fallbackFont, cell.text);
+                textWidth += cell.leftPadding + cell.rightPadding;
+                if (textWidth > maxColWidths[j]) {
+                    maxColWidths[j] = textWidth;
+                }
+            }
+        }
+
+        for (int i = numOfHeaderRows; i < tableData.size(); i++) {
+            for (int j = 0; j < maxColWidths.length; j++) {
+                Cell cell = tableData.get(i).get(j);
+                if (cell.getColSpan() > 1) {
+                    continue;
+                }
+                if (cell.text != null) {
+                    float textWidth = cell.font.stringWidth(cell.fallbackFont, cell.text);
+                    textWidth += cell.leftPadding + cell.rightPadding;
+                    if (textWidth > maxColWidths[j]) {
+                        maxColWidths[j] = textWidth;
+                    }
+                }
+                if (cell.image != null) {
+                    float imageWidth = cell.image.getWidth() + cell.leftPadding + cell.rightPadding;
+                    if (imageWidth > maxColWidths[j]) {
+                        maxColWidths[j] = imageWidth;
+                    }
+                }
+                if (cell.barCode != null) {
+                    try {
+                        float barcodeWidth = cell.barCode.drawOn(null)[0] + cell.leftPadding + cell.rightPadding;
+                        if (barcodeWidth > maxColWidths[j]) {
+                            maxColWidths[j] = barcodeWidth;
+                        }
+                    } catch (Exception e) {
+                    }
+                }
+                if (cell.textBlock != null) {
+                    String[] tokens = cell.textBlock.text.split("\\s+");
+                    for (String token : tokens) {
+                        float tokenWidth = cell.textBlock.font.stringWidth(cell.textBlock.fallbackFont, token);
+                        tokenWidth += cell.leftPadding + cell.rightPadding;
+                        if (tokenWidth > maxColWidths[j]) {
+                            maxColWidths[j] = tokenWidth;
+                        }
+                    }
+                }
+            }
+        }
+
+        for (int i = 0; i < tableData.size(); i++) {
+            List<Cell> row = tableData.get(i);
+            for (int j = 0; j < row.size(); j++) {
+                Cell cell = row.get(j);
+                cell.setWidth(maxColWidths[j] + 0.1f);
+            }
+        }
+
+        autoResizeColumnsWithColspanBiggerThanOne();
+    }
+
+
+    private boolean isTextColumn(int index) {
+        for (int i = numOfHeaderRows; i < tableData.size(); i++) {
+            List<Cell> dataRow = tableData.get(i);
+            if (dataRow.get(index).image != null || dataRow.get(index).barCode != null) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
+    public void fitToPage(float[] pageSize) {
+        autoAdjustColumnWidths();
+
+        float tableWidth = (pageSize[0] - this.x1) - rightMargin;
+        float textColumnWidths = 0f;
+        float otherColumnWidths = 0f;
+        List<Cell> row = tableData.get(0);
+        for (int i = 0; i < row.size(); i++) {
+            Cell cell = row.get(i);
+            if (isTextColumn(i)) {
+                textColumnWidths += cell.getWidth();
+            }
+            else {
+                otherColumnWidths += cell.getWidth();
+            }
+        }
+
+        float adjusted;
+        if ((tableWidth - otherColumnWidths) > textColumnWidths) {
+            adjusted = textColumnWidths + ((tableWidth - otherColumnWidths) - textColumnWidths);
+        }
+        else {
+            adjusted = textColumnWidths - (textColumnWidths - (tableWidth - otherColumnWidths));
+        }
+        float factor = adjusted / textColumnWidths;
+        for (int i = 0; i < row.size(); i++) {
+            if (isTextColumn(i)) {
+                setColumnWidth(i, getColumnWidth(i) * factor);
+            }
+        }
+
+        autoResizeColumnsWithColspanBiggerThanOne();
+        mergeOverlaidBorders();
+    }
+
+
+    private void autoResizeColumnsWithColspanBiggerThanOne() {
+        for (int i = 0; i < tableData.size(); i++) {
+            List<Cell> dataRow = tableData.get(i);
+            for (int j = 0; j < dataRow.size(); j++) {
+                Cell cell = dataRow.get(j);
+                int colspan = cell.getColSpan();
+                if (colspan > 1) {
+                    if (cell.textBlock != null) {
+                        float sumOfWidths = cell.getWidth();
+                        for (int k = 1; k < colspan; k++) {
+                            sumOfWidths += dataRow.get(++j).getWidth();
+                        }
+                        cell.textBlock.setWidth(sumOfWidths - (cell.leftPadding + cell.rightPadding));
+                    }
+                }
+            }
+        }
+    }
+
+
+    public void setRightMargin(float rightMargin) {
+        this.rightMargin = rightMargin;
+    }
+
+
+    public void setFirstPageTopMargin(float topMargin) {
+        this.y1FirstPage = y1 + topMargin;
+    }
+
+
+    public static void addToRow(List<Cell> row, Cell cell) {
+        row.add(cell);
+        for (int i = 1; i < cell.getColSpan(); i++) {
+            row.add(new Cell(cell.getFont(), ""));
         }
     }
 

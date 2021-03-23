@@ -3,7 +3,7 @@
  *
  * The authors make NO WARRANTY or representation, either express or implied,
  * with respect to this software, its quality, accuracy, merchantability, or
- * fitness for a particular purpose.  This software is provided "AS IS", and you,
+ * fitness for a particular purpose. This software is provided "AS IS", and you,
  * its user, assume the entire risk as to its quality and accuracy.
  *
  * This software is copyright (C) 1991-1998, Thomas G. Lane.
@@ -36,7 +36,6 @@
  * commercial products, provided that all warranty or liability claims are
  * assumed by the product vendor.
  */
-
 package com.pdfjet;
 
 import java.io.*;
@@ -64,14 +63,13 @@ class JPGImage {
 
     int width;
     int height;
-    long size;
     int colorComponents;
     byte[] data;
 
 
     public JPGImage(InputStream inputStream) throws Exception {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        byte[] buf = new byte[2048];
+        byte[] buf = new byte[4096];
         int count;
         while ((count = inputStream.read(buf, 0, buf.length)) > 0) {
             baos.write(buf, 0, count);
@@ -93,7 +91,7 @@ class JPGImage {
 
 
     protected long getFileSize() {
-        return this.size;
+        return this.data.length;
     }
 
 
@@ -110,66 +108,54 @@ class JPGImage {
     private void readJPGImage(InputStream is) throws Exception {
         char ch1 = (char) is.read();
         char ch2 = (char) is.read();
-        size += 2;
-        if (ch1 == 0x00FF && ch2 == 0x00D8) {
-            boolean foundSOFn = false;
-            while (true) {
-                char ch = nextMarker(is);
-                switch (ch) {
-                    // Note that marker codes 0xC4, 0xC8, 0xCC are not,
-                    // and must not be treated as SOFn. C4 in particular
-                    // is actually DHT.
-                    case M_SOF0:    // Baseline
-                    case M_SOF1:    // Extended sequential, Huffman
-                    case M_SOF2:    // Progressive, Huffman
-                    case M_SOF3:    // Lossless, Huffman
-                    case M_SOF5:    // Differential sequential, Huffman
-                    case M_SOF6:    // Differential progressive, Huffman
-                    case M_SOF7:    // Differential lossless, Huffman
-                    case M_SOF9:    // Extended sequential, arithmetic
-                    case M_SOF10:   // Progressive, arithmetic
-                    case M_SOF11:   // Lossless, arithmetic
-                    case M_SOF13:   // Differential sequential, arithmetic
-                    case M_SOF14:   // Differential progressive, arithmetic
-                    case M_SOF15:   // Differential lossless, arithmetic
-                    // Skip 3 bytes to get to the image height and width
-                    is.read();
-                    is.read();
-                    is.read();
-                    size += 3;
-                    height = readTwoBytes(is);
-                    width = readTwoBytes(is);
-                    colorComponents = is.read();
-                    size++;
-                    foundSOFn = true;
-                    break;
+        if (ch1 != 0x00FF || ch2 != 0x00D8) {
+            throw new Exception("Error: Invalid JPEG header.");
+        }
 
-                    default:
-                    skipVariable(is);
-                    break;
-                }
+        boolean foundSOFn = false;
+        while (true) {
+            char ch = nextMarker(is);
+            switch (ch) {
+                // Note that marker codes 0xC4, 0xC8, 0xCC are not,
+                // and must not be treated as SOFn. C4 in particular
+                // is actually DHT.
+                case M_SOF0:    // Baseline
+                case M_SOF1:    // Extended sequential, Huffman
+                case M_SOF2:    // Progressive, Huffman
+                case M_SOF3:    // Lossless, Huffman
+                case M_SOF5:    // Differential sequential, Huffman
+                case M_SOF6:    // Differential progressive, Huffman
+                case M_SOF7:    // Differential lossless, Huffman
+                case M_SOF9:    // Extended sequential, arithmetic
+                case M_SOF10:   // Progressive, arithmetic
+                case M_SOF11:   // Lossless, arithmetic
+                case M_SOF13:   // Differential sequential, arithmetic
+                case M_SOF14:   // Differential progressive, arithmetic
+                case M_SOF15:   // Differential lossless, arithmetic
+                // Skip 3 bytes to get to the image height and width
+                is.read();
+                is.read();
+                is.read();
+                height = getUInt16(is);
+                width = getUInt16(is);
+                colorComponents = is.read();
+                foundSOFn = true;
+                break;
 
-                if (foundSOFn) {
-                    while (is.read() != -1) {
-                        size++;
-                    }
-                    break;
-                }
+                default:
+                skipVariable(is);
+                break;
+            }
+
+            if (foundSOFn) {
+                break;
             }
         }
-        else {
-            throw new Exception();
-        }
-// System.out.println("size == " + size);
     }
 
 
-    private int readTwoBytes(InputStream is) throws Exception {
-        int value = is.read();
-        value <<= 8;
-        value |= is.read();
-        size += 2;
-        return value;
+    private int getUInt16(InputStream is) throws Exception {
+        return is.read() << 8 | is.read();
     }
 
 
@@ -183,28 +169,17 @@ class JPGImage {
     // it will not deal correctly with FF/00 sequences in the compressed
     // image data...
     private char nextMarker(InputStream is) throws Exception {
-        int discarded_bytes = 0;
-        char ch = ' ';
-
         // Find 0xFF byte; count and skip any non-FFs.
-        ch = (char) is.read();
-        size++;
-        while (ch != 0x00FF) {
-            discarded_bytes++;
-            ch = (char) is.read();
-            size++;
+        char ch = (char) is.read();
+        if (ch != 0x00FF) {
+            throw new Exception("0xFF byte expected.");
         }
 
         // Get marker code byte, swallowing any duplicate FF bytes.
         // Extra FFs are legal as pad bytes, so don't count them in discarded_bytes.
         do {
             ch = (char) is.read();
-            size++;
         } while (ch == 0x00FF);
-
-        if (discarded_bytes != 0) {
-            throw new Exception();
-        }
 
         return ch;
     }
@@ -218,10 +193,9 @@ class JPGImage {
     // parameter segment such bytes do NOT introduce new markers.
     private void skipVariable(InputStream is) throws Exception {
         // Get the marker parameter length count
-        int length = readTwoBytes(is);
-
-        // Length includes itself, so must be at least 2
+        int length = getUInt16(is);
         if (length < 2) {
+            // Length includes itself, so must be at least 2
             throw new Exception();
         }
         length -= 2;
@@ -229,7 +203,6 @@ class JPGImage {
         // Skip over the remaining bytes
         while (length > 0) {
             is.read();
-            size++;
             length--;
         }
     }

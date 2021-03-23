@@ -1,30 +1,25 @@
 /**
  *  Point.java
  *
-Copyright (c) 2018, Innovatics Inc.
-All rights reserved.
+Copyright 2020 Innovatics Inc.
 
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and / or other materials provided with the distribution.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 */
 
 package com.pdfjet;
@@ -65,14 +60,14 @@ public class Point implements Drawable {
     protected String linePattern = "[] 0";
     protected boolean fillShape = false;
     protected boolean isControlPoint = false;
-    protected boolean isStartOfPath = false;
+    protected boolean drawPath = false;
 
     private String text;
     private int textColor;
     private int textDirection;
     private String uri;
-    private float box_x;
-    private float box_y;
+    private float xBox;
+    private float yBox;
 
     /**
      *  The default constructor.
@@ -88,7 +83,7 @@ public class Point implements Drawable {
      *  @param y the y coordinate of this point when drawn on the page.
      */
     public Point(double x, double y) {
-    	this((float) x, (float) y);
+        this((float) x, (float) y);
     }
 
 
@@ -112,7 +107,7 @@ public class Point implements Drawable {
      *  @param isControlPoint true if this point is one of the points specifying a curve.
      */
     public Point(double x, double y, boolean isControlPoint) {
-    	this((float) x, (float) y, isControlPoint);
+        this((float) x, (float) y, isControlPoint);
     }
 
 
@@ -136,10 +131,9 @@ public class Point implements Drawable {
      *  @param x the x coordinate of this point when drawn on the page.
      *  @param y the y coordinate of this point when drawn on the page.
      */
-    public void setPosition(double x, double y) {
-    	setPosition((float) x, (float) y);
+    public void setPosition(float x, float y) {
+        setLocation(x, y);
     }
-
 
     /**
      *  Sets the position (x, y) of this point.
@@ -147,7 +141,15 @@ public class Point implements Drawable {
      *  @param x the x coordinate of this point when drawn on the page.
      *  @param y the y coordinate of this point when drawn on the page.
      */
-    public void setPosition(float x, float y) {
+    public void setPosition(double x, double y) {
+        setLocation(x, y);
+    }
+
+    public void setXY(float x, float y) {
+        setLocation(x, y);
+    }
+
+    public void setXY(double x, double y) {
         setLocation(x, y);
     }
 
@@ -157,10 +159,23 @@ public class Point implements Drawable {
      *
      *  @param x the x coordinate of this point when drawn on the page.
      *  @param y the y coordinate of this point when drawn on the page.
+     *  @return the location of the point.
      */
-    public void setLocation(float x, float y) {
+    public Point setLocation(float x, float y) {
         this.x = x;
         this.y = y;
+        return this;
+    }
+
+    /**
+     *  Sets the location (x, y) of this point.
+     *
+     *  @param x the x coordinate of this point when drawn on the page.
+     *  @param y the y coordinate of this point when drawn on the page.
+     *  @return the location of the point.
+     */
+    public Point setLocation(double x, double y) {
+        return setLocation((float) x, (float) y);
     }
 
 
@@ -183,7 +198,7 @@ public class Point implements Drawable {
         this.x = x;
     }
 
-    
+
     /**
      *  Returns the x coordinate of this point.
      *
@@ -314,9 +329,11 @@ public class Point implements Drawable {
      *  Sets the pen color for this point.
      *
      *  @param color the color specified as an integer.
+     *  @return the point.
      */
-    public void setColor(int color) {
+    public Point setColor(int color) {
         this.color = color;
+        return this;
     }
 
 
@@ -400,24 +417,13 @@ public class Point implements Drawable {
 
 
     /**
-     *  @deprecated
-     *  Please use the setStartOfPath method.
-     *  See Example_40.
-     *
-     *  @param drawLineTo the boolean value.
-     */
-    @Deprecated
-    public void setDrawLineTo(boolean drawLineTo) {
-        this.isStartOfPath = drawLineTo;
-    }
-
-
-    /**
      *  Sets this point as the start of a path that will be drawn on the chart.
      *
+     *  @return the point.
      */
-    public void setStartOfPath() {
-        this.isStartOfPath = true;
+    public Point setDrawPath() {
+        this.drawPath = true;
+        return this;
     }
 
 
@@ -526,7 +532,7 @@ public class Point implements Drawable {
      *
      *  @param box the specified box.
      */
-    public void placeIn(Box box) throws Exception {
+    public void placeIn(Box box) {
         placeIn(box, 0f, 0f);
     }
 
@@ -535,14 +541,14 @@ public class Point implements Drawable {
      *  Places this point in the specified box.
      *
      *  @param box the specified box.
-     *  @param x_offset the x offset from the top left corner of the box.
-     *  @param y_offset the y offset from the top left corner of the box.
+     *  @param xOffset the x offset from the top left corner of the box.
+     *  @param yOffset the y offset from the top left corner of the box.
      */
     public void placeIn(
             Box box,
-            double x_offset,
-            double y_offset) throws Exception {
-    	placeIn(box, (float) x_offset, (float) y_offset);
+            double xOffset,
+            double yOffset) {
+        placeIn(box, (float) xOffset, (float) yOffset);
     }
 
 
@@ -550,15 +556,15 @@ public class Point implements Drawable {
      *  Places this point in the specified box.
      *
      *  @param box the specified box.
-     *  @param x_offset the x offset from the top left corner of the box.
-     *  @param y_offset the y offset from the top left corner of the box.
+     *  @param xOffset the x offset from the top left corner of the box.
+     *  @param yOffset the y offset from the top left corner of the box.
      */
     public void placeIn(
             Box box,
-            float x_offset,
-            float y_offset) throws Exception {
-        box_x = box.x + x_offset;
-        box_y = box.y + y_offset;
+            float xOffset,
+            float yOffset) {
+        xBox = box.x + xOffset;
+        yBox = box.y + yOffset;
     }
 
 
@@ -567,7 +573,7 @@ public class Point implements Drawable {
      *
      *  @param page the page to draw this point on.
      *  @return x and y coordinates of the bottom right corner of this component.
-     *  @throws Exception
+     *  @throws Exception  If an input or output exception occurred
      */
     public float[] drawOn(Page page) throws Exception {
         page.setPenWidth(lineWidth);
@@ -580,13 +586,13 @@ public class Point implements Drawable {
             page.setPenColor(color);
         }
 
-        x += box_x;
-        y += box_y;
+        x += xBox;
+        y += yBox;
         page.drawPoint(this);
-        x -= box_x;
-        y -= box_y;
+        x -= xBox;
+        y -= yBox;
 
-        return new float[] {x + box_x + r, y + box_y + r};
+        return new float[] {x + xBox + r, y + yBox + r};
     }
 
 }   // End of Point.java

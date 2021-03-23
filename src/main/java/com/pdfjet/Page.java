@@ -1,30 +1,25 @@
 /**
  *  Page.java
  *
-Copyright (c) 2018, Innovatics Inc.
-All rights reserved.
+Copyright 2020 Innovatics Inc.
 
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and / or other materials provided with the distribution.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 */
 
 package com.pdfjet;
@@ -62,15 +57,16 @@ public class Page {
     protected float[] trimBox = null;
     protected float[] artBox = null;
     protected List<StructElem> structures = new ArrayList<StructElem>();
-
     private float[] pen = {0f, 0f, 0f};
     private float[] brush = {0f, 0f, 0f};
-    private float pen_width = -1.0f;
-    private int line_cap_style = 0;
-    private int line_join_style = 0;
+    private float[] penCMYK = {0f, 0f, 0f, 1f};
+    private float[] brushCMYK = {0f, 0f, 0f, 1f};
+    private float penWidth = -1.0f;
+    private int lineCapStyle = 0;
+    private int lineJoinStyle = 0;
     private String linePattern = "[] 0";
     private Font font;
-    private List<State> savedStates = new ArrayList<State>();
+    private final List<State> savedStates = new ArrayList<State>();
     private int mcid = 0;
 
     protected float savedHeight = Float.MAX_VALUE;
@@ -99,6 +95,8 @@ public class Page {
      *
      *  @param pdf the pdf object.
      *  @param pageSize the page size of this page.
+     *  @throws Exception  If an input or output
+     *                     exception occurred
      */
     public Page(PDF pdf, float[] pageSize) throws Exception {
         this(pdf, pageSize, true);
@@ -118,6 +116,7 @@ public class Page {
      *  @param pdf the pdf object.
      *  @param pageSize the page size of this page.
      *  @param addPageToPDF boolean flag.
+     *  @throws Exception  If an input or output exception occurred
      */
     public Page(PDF pdf, float[] pageSize, boolean addPageToPDF) throws Exception {
         this.pdf = pdf;
@@ -133,7 +132,7 @@ public class Page {
     }
 
 
-    public Page(PDF pdf, PDFobj pageObj) throws Exception {
+    public Page(PDF pdf, PDFobj pageObj) {
         this.pdf = pdf;
         this.pageObj = pageObj;
         width = pageObj.getPageSize()[0];
@@ -148,22 +147,22 @@ public class Page {
     }
 
 
-    public Font addResource(CoreFont coreFont, Map<Integer, PDFobj> objects) {
+    public Font addResource(CoreFont coreFont, List<PDFobj> objects) {
         return pageObj.addResource(coreFont, objects);
     }
 
 
-    public void addResource(Image image, Map<Integer, PDFobj> objects) {
+    public void addResource(Image image, List<PDFobj> objects) {
         pageObj.addResource(image, objects);
     }
 
 
-    public void addResource(Font font, Map<Integer, PDFobj> objects) {
+    public void addResource(Font font, List<PDFobj> objects) {
         pageObj.addResource(font, objects);
     }
 
 
-    public void complete(Map<Integer, PDFobj> objects) throws Exception {
+    public void complete(List<PDFobj> objects) {
         append("Q\n");
         pageObj.addContent(getContent(), objects);
     }
@@ -221,7 +220,7 @@ public class Page {
             double x1,
             double y1,
             double x2,
-            double y2) throws IOException {
+            double y2) {
         drawLine((float) x1, (float) y1, (float) x2, (float) y2);
     }
 
@@ -238,12 +237,21 @@ public class Page {
             float x1,
             float y1,
             float x2,
-            float y2) throws IOException {
+            float y2) {
         moveTo(x1, y1);
         lineTo(x2, y2);
         strokePath();
     }
 
+
+    public void drawString(
+            Font font1,
+            Font font2,
+            String str,
+            float x,
+            float y) {
+        drawString(font1, font2, str, x, y, null);
+    }
 
     /**
      *  Draws the text given by the specified string,
@@ -251,48 +259,43 @@ public class Page {
      *  If the main font is missing some glyphs - the fallback font is used.
      *  The baseline of the leftmost character is at position (x, y) on the page.
      *
-     *  @param font1 the main font.
-     *  @param font2 the fallback font.
+     *  @param font the main font.
+     *  @param fallbackFont the fallback font.
      *  @param str the string to be drawn.
      *  @param x the x coordinate.
      *  @param y the y coordinate.
+     *  @param colors map used to highlight specific words.
      */
     public void drawString(
-            Font font1,
-            Font font2,
+            Font font,
+            Font fallbackFont,
             String str,
             float x,
-            float y) throws IOException {
-        if (font2 == null) {
-            drawString(font1, str, x, y);
+            float y,
+            Map<String, Integer> colors) {
+        if (font.isCoreFont || font.isCJK || fallbackFont == null || fallbackFont.isCoreFont || fallbackFont.isCJK) {
+            drawString(font, str, x, y, colors);
         }
         else {
-            Font activeFont = font1;
+            Font activeFont = font;
             StringBuilder buf = new StringBuilder();
             for (int i = 0; i < str.length(); i++) {
                 int ch = str.charAt(i);
-                if ((font1.isCJK && ch >= 0x4E00 && ch <= 0x9FCC)
-                        || (!font1.isCJK && font1.unicodeToGID[ch] != 0)) {
-                    if (font1 != activeFont) {
-                        String str2 = buf.toString();
-                        drawString(activeFont, str2, x, y);
-                        x += activeFont.stringWidth(str2);
-                        buf.setLength(0);
-                        activeFont = font1;
+                if (activeFont.unicodeToGID[ch] == 0) {
+                    drawString(activeFont, buf.toString(), x, y, colors);
+                    x += activeFont.stringWidth(buf.toString());
+                    buf.setLength(0);
+                    // Switch the active font
+                    if (activeFont == font) {
+                        activeFont = fallbackFont;
                     }
-                }
-                else {
-                    if (font2 != activeFont) {
-                        String str2 = buf.toString();
-                        drawString(activeFont, str2, x, y);
-                        x += activeFont.stringWidth(str2);
-                        buf.setLength(0);
-                        activeFont = font2;
+                    else {
+                        activeFont = font;
                     }
                 }
                 buf.append((char) ch);
             }
-            drawString(activeFont, buf.toString(), x, y);
+            drawString(activeFont, buf.toString(), x, y, colors);
         }
     }
 
@@ -311,10 +314,18 @@ public class Page {
             Font font,
             String str,
             double x,
-            double y) throws IOException {
+            double y) {
         drawString(font, str, (float) x, (float) y);
     }
 
+
+    public void drawString(
+            Font font,
+            String str,
+            float x,
+            float y) {
+        drawString(font, str, x, y, null);
+    }
 
     /**
      *  Draws the text given by the specified string,
@@ -325,13 +336,14 @@ public class Page {
      *  @param str the string to be drawn.
      *  @param x the x coordinate.
      *  @param y the y coordinate.
+     *  @param colors map used to highlight specific words.
      */
     public void drawString(
             Font font,
             String str,
             float x,
-            float y) throws IOException {
-
+            float y,
+            Map<String, Integer> colors) {
         if (str == null || str.equals("")) {
             return;
         }
@@ -376,68 +388,83 @@ public class Page {
         append(height - y);
         append(" Tm\n");
 
-        append("[<");
-        drawString(font, str);
-        append(">] TJ\n");
+        if (colors == null) {
+            append("[<");
+            drawString(font, str);
+            append(">] TJ\n");
+        }
+        else {
+            drawColoredString(font, str, colors);
+        }
 
         append("ET\n");
     }
 
 
-    private void drawString(Font font, String str) throws IOException {
-        int len = str.length();
-        for (int i = 0; i < len; i++) {
-            if (font.isCoreFont) {
-                drawOneByteChar(str.charAt(i), font, str, i);
-            }
-            else {
-                drawTwoByteChar(str.charAt(i), font);
-            }
+    private void drawString(Font font, String str) {
+        if (font.isCoreFont) {
+            drawAsciiString(font, str);
+        }
+        else {
+            drawUnicodeString(font, str);
         }
     }
 
 
-    private void drawOneByteChar(
-            int c1, Font font, String str, int i) throws IOException {
-        if (c1 < font.firstChar || c1 > font.lastChar) {
-            append(String.format("%02X", 0x20));
-            return;
-        }
-        append(String.format("%02X", c1));
-
-        if (font.isCoreFont && font.kernPairs && i < (str.length() - 1)) {
-            c1 -= 32;
-            int c2 = str.charAt(i + 1);
-            if (c2 < font.firstChar || c2 > font.lastChar) {
-                c2 = 32;
+    private void drawAsciiString(Font font, String str) {
+        for (int i = 0; i < str.length(); i++) {
+            int c1 = str.charAt(i);
+            if (c1 < font.firstChar || c1 > font.lastChar) {
+                append(String.format("%02X", 0x20));
+                return;
             }
-            for (int j = 2; j < font.metrics[c1].length; j += 2) {
-                if (font.metrics[c1][j] == c2) {
-                    append(">");
-                    append(-font.metrics[c1][j + 1]);
-                    append("<");
-                    break;
+            append(String.format("%02X", c1));
+            if (font.isCoreFont && font.kernPairs && i < (str.length() - 1)) {
+                c1 -= 32;
+                int c2 = str.charAt(i + 1);
+                if (c2 < font.firstChar || c2 > font.lastChar) {
+                    c2 = 32;
+                }
+                for (int j = 2; j < font.metrics[c1].length; j += 2) {
+                    if (font.metrics[c1][j] == c2) {
+                        append(">");
+                        append(-font.metrics[c1][j + 1]);
+                        append("<");
+                        break;
+                    }
                 }
             }
         }
     }
 
 
-    private void drawTwoByteChar(int c1, Font font) throws IOException {
-        if (c1 < font.firstChar || c1 > font.lastChar) {
-            if (font.isCJK) {
-                append(String.format("%04X", 0x0020));
-            }
-            else {
-                append(String.format("%04X", font.unicodeToGID[0x0020]));
+    private void drawUnicodeString(Font font, String str) {
+        if (font.isCJK) {
+            for (int i = 0; i < str.length(); i++) {
+                int c1 = str.charAt(i);
+                if (c1 == 0xFEFF) {     // BOM marker
+                    continue;
+                }
+                if (c1 < font.firstChar || c1 > font.lastChar) {
+                    append(String.format("%04X", 0x0020));
+                }
+                else {
+                    append(String.format("%04X", c1));
+                }
             }
         }
         else {
-            if (font.isCJK) {
-                append(String.format("%04X", c1));
-            }
-            else {
-                append(String.format("%04X", font.unicodeToGID[c1]));
+            for (int i = 0; i < str.length(); i++) {
+                int c1 = str.charAt(i);
+                if (c1 == 0xFEFF) {     // BOM marker
+                    continue;
+                }
+                if (c1 < font.firstChar || c1 > font.lastChar) {
+                    append(String.format("%04X", font.unicodeToGID[0x0020]));
+                }
+                else {
+                    append(String.format("%04X", font.unicodeToGID[c1]));
+                }
             }
         }
     }
@@ -475,8 +502,7 @@ public class Page {
      * @param g the green component is float value from 0.0 to 1.0.
      * @param b the blue component is float value from 0.0 to 1.0.
      */
-    public void setPenColor(
-            double r, double g, double b)  {
+    public void setPenColor(double r, double g, double b) {
         setPenColor((float) r, (float) g, (float) b);
     }
 
@@ -489,16 +515,34 @@ public class Page {
      * @param g the green component is float value from 0.0f to 1.0f.
      * @param b the blue component is float value from 0.0f to 1.0f.
      */
-    public void setPenColor(
-            float r, float g, float b) {
-        if (pen[0] != r ||
-                pen[1] != g ||
-                pen[2] != b) {
+    public void setPenColor(float r, float g, float b) {
+        if (pen[0] != r || pen[1] != g || pen[2] != b) {
             setColor(r, g, b);
             append(" RG\n");
             pen[0] = r;
             pen[1] = g;
             pen[2] = b;
+        }
+    }
+
+
+    /**
+     * Sets the color for stroking operations using CMYK.
+     * The pen color is used when drawing lines and splines.
+     *
+     * @param c the cyan component is float value from 0.0f to 1.0f.
+     * @param m the magenta component is float value from 0.0f to 1.0f.
+     * @param y the yellow component is float value from 0.0f to 1.0f.
+     * @param k the black component is float value from 0.0f to 1.0f.
+     */
+    public void setPenColorCMYK(float c, float m, float y, float k) {
+        if (penCMYK[0] != c || penCMYK[1] != m || penCMYK[2] != y || penCMYK[3] != k) {
+            setColorCMYK(c, m, y, k);
+            append(" K\n");
+            penCMYK[0] = c;
+            penCMYK[1] = m;
+            penCMYK[2] = y;
+            penCMYK[3] = k;
         }
     }
 
@@ -511,8 +555,7 @@ public class Page {
      * @param g the green component is float value from 0.0 to 1.0.
      * @param b the blue component is float value from 0.0 to 1.0.
      */
-    public void setBrushColor(
-            double r, double g, double b) {
+    public void setBrushColor(double r, double g, double b) {
         setBrushColor((float) r, (float) g, (float) b);
     }
 
@@ -525,11 +568,8 @@ public class Page {
      * @param g the green component is float value from 0.0f to 1.0f.
      * @param b the blue component is float value from 0.0f to 1.0f.
      */
-    public void setBrushColor(
-            float r, float g, float b) {
-        if (brush[0] != r ||
-                brush[1] != g ||
-                brush[2] != b) {
+    public void setBrushColor(float r, float g, float b) {
+        if (brush[0] != r || brush[1] != g || brush[2] != b) {
             setColor(r, g, b);
             append(" rg\n");
             brush[0] = r;
@@ -540,10 +580,30 @@ public class Page {
 
 
     /**
+     * Sets the color for brush operations using CMYK.
+     * This is the color used when drawing regular text and filling shapes.
+     *
+     * @param c the cyan component is float value from 0.0f to 1.0f.
+     * @param m the magenta component is float value from 0.0f to 1.0f.
+     * @param y the yellow component is float value from 0.0f to 1.0f.
+     * @param k the black component is float value from 0.0f to 1.0f.
+     */
+    public void setBrushColorCMYK(float c, float m, float y, float k) {
+        if (brushCMYK[0] != c || brushCMYK[1] != m || brushCMYK[2] != y || brushCMYK[3] != k) {
+            setColorCMYK(c, m, y, k);
+            append(" k\n");
+            brushCMYK[0] = c;
+            brushCMYK[1] = m;
+            brushCMYK[2] = y;
+            brushCMYK[3] = k;
+        }
+    }
+
+
+    /**
      * Sets the color for brush operations.
      *
      * @param color the color.
-     * @throws IOException
      */
     public void setBrushColor(float[] color) {
         setBrushColor(color[0], color[1], color[2]);
@@ -560,8 +620,7 @@ public class Page {
     }
 
 
-    private void setColor(
-            float r, float g, float b)  {
+    private void setColor(float r, float g, float b) {
         append(r);
         append(' ');
         append(g);
@@ -570,13 +629,23 @@ public class Page {
     }
 
 
+    private void setColorCMYK(float c, float m, float y, float k) {
+        append(c);
+        append(' ');
+        append(m);
+        append(' ');
+        append(y);
+        append(' ');
+        append(k);
+    }
+
+
     /**
      * Sets the pen color.
      *
      * @param color the color. See the Color class for predefined values or define your own using 0x00RRGGBB packed integers.
-     * @throws IOException
      */
-    public void setPenColor(int color)  {
+    public void setPenColor(int color) {
         float r = ((color >> 16) & 0xff)/255f;
         float g = ((color >>  8) & 0xff)/255f;
         float b = ((color)       & 0xff)/255f;
@@ -588,7 +657,6 @@ public class Page {
      * Sets the brush color.
      *
      * @param color the color. See the Color class for predefined values or define your own using 0x00RRGGBB packed integers.
-     * @throws IOException
      */
     public void setBrushColor(int color) {
         float r = ((color >> 16) & 0xff)/255f;
@@ -603,9 +671,9 @@ public class Page {
      *  The default is the finest line width.
      */
     public void setDefaultLineWidth() {
-        if (pen_width != 0f) {
-            pen_width = 0f;
-            append(pen_width);
+        if (penWidth != 0f) {
+            penWidth = 0f;
+            append(penWidth);
             append(" w\n");
         }
     }
@@ -646,7 +714,7 @@ public class Page {
     /**
      *  Sets the default line dash pattern - solid line.
      */
-    public void setDefaultLinePattern()  {
+    public void setDefaultLinePattern() {
         append("[] 0");
         append(" d\n");
     }
@@ -668,9 +736,9 @@ public class Page {
      *  @param width the pen width.
      */
     public void setPenWidth(float width) {
-        if (pen_width != width) {
-            pen_width = width;
-            append(pen_width);
+        if (penWidth != width) {
+            penWidth = width;
+            append(penWidth);
             append(" w\n");
         }
     }
@@ -682,9 +750,9 @@ public class Page {
      *  @param style the cap style of the current line. Supported values: Cap.BUTT, Cap.ROUND and Cap.PROJECTING_SQUARE
      */
     public void setLineCapStyle(int style) {
-        if (line_cap_style != style) {
-            line_cap_style = style;
-            append(line_cap_style);
+        if (lineCapStyle != style) {
+            lineCapStyle = style;
+            append(lineCapStyle);
             append(" J\n");
         }
     }
@@ -696,9 +764,9 @@ public class Page {
      *  @param style the line join style code. Supported values: Join.MITER, Join.ROUND and Join.BEVEL
      */
     public void setLineJoinStyle(int style) {
-        if (line_join_style != style) {
-            line_join_style = style;
-            append(line_join_style);
+        if (lineJoinStyle != style) {
+            lineJoinStyle = style;
+            append(lineJoinStyle);
             append(" j\n");
         }
     }
@@ -710,7 +778,7 @@ public class Page {
      *  @param x the x coordinate of new pen position.
      *  @param y the y coordinate of new pen position.
      */
-    public void moveTo(double x, double y) throws IOException {
+    public void moveTo(double x, double y) {
         moveTo((float) x, (float) y);
     }
 
@@ -733,6 +801,8 @@ public class Page {
      *  Draws a line from the current pen position to the point with coordinates (x, y),
      *  using the current pen width and stroke color.
      *  Make sure you call strokePath(), closePath() or fillPath() after the last call to this method.
+     *  @param x the x coordinate of the new pen position.
+     *  @param y the y coordinate of the new pen position.
      */
     public void lineTo(double x, double y) {
         lineTo((float) x, (float) y);
@@ -743,6 +813,8 @@ public class Page {
      *  Draws a line from the current pen position to the point with coordinates (x, y),
      *  using the current pen width and stroke color.
      *  Make sure you call strokePath(), closePath() or fillPath() after the last call to this method.
+     *  @param x the x coordinate of the new pen position.
+     *  @param y the y coordinate of the new pen position.
      */
     public void lineTo(float x, float y) {
         append(x);
@@ -853,6 +925,7 @@ public class Page {
      *
      *  @param path the path.
      *  @param operation specifies 'stroke' or 'fill' operation.
+     *  @throws Exception  If an input or output exception occurred
      */
     public void drawPath(
             List<Point> path, char operation) throws Exception {
@@ -884,6 +957,7 @@ public class Page {
         append(operation);
         append('\n');
     }
+
 
     /**
      *  Draws a circle on the page.
@@ -1071,6 +1145,7 @@ public class Page {
      *  Draws a point on the page using the current pen color.
      *
      *  @param p the point.
+     *  @throws Exception  If an input or output exception occurred
      */
     public void drawPoint(Point p) throws Exception {
         if (p.shape != Point.INVISIBLE)  {
@@ -1206,6 +1281,7 @@ public class Page {
      *  Sets the text rendering mode.
      *
      *  @param mode the rendering mode.
+     *  @throws Exception  If an input or output exception occurred
      */
     public void setTextRenderingMode(int mode) throws Exception {
         if (mode >= 0 && mode <= 7) {
@@ -1222,7 +1298,7 @@ public class Page {
      *
      *  @param degrees the angle.
      */
-    public void setTextDirection(int degrees) throws Exception {
+    public void setTextDirection(int degrees) {
         if (degrees > 360) degrees %= 360;
         if (degrees == 0) {
             tm = new float[] { 1f,  0f,  0f,  1f};
@@ -1256,7 +1332,7 @@ public class Page {
      *  @param p2 second control point
      *  @param p3 end point
      */
-    public void bezierCurveTo(Point p1, Point p2, Point p3) throws IOException {
+    public void bezierCurveTo(Point p1, Point p2, Point p3) {
         append(p1);
         append(p2);
         append(p3);
@@ -1268,7 +1344,7 @@ public class Page {
      *  Sets the start of text block.
      *  Please see Example_32. This method must have matching call to setTextEnd().
      */
-    public void setTextStart() throws IOException {
+    public void setTextStart() {
         append("BT\n");
     }
 
@@ -1280,7 +1356,7 @@ public class Page {
      *  @param x the x coordinate of new text location.
      *  @param y the y coordinate of new text location.
      */
-    public void setTextLocation(float x, float y) throws IOException {
+    public void setTextLocation(float x, float y) {
         append(x);
         append(' ');
         append(height - y);
@@ -1288,7 +1364,7 @@ public class Page {
     }
 
 
-    public void setTextBegin(float x, float y) throws IOException {
+    public void setTextBegin(float x, float y) {
         append("BT\n");
         append(x);
         append(' ');
@@ -1303,37 +1379,37 @@ public class Page {
      *
      *  @param leading the leading.
      */
-    public void setTextLeading(float leading) throws IOException {
+    public void setTextLeading(float leading) {
         append(leading);
         append(" TL\n");
     }
 
 
-    public void setCharSpacing(float spacing) throws IOException {
+    public void setCharSpacing(float spacing) {
         append(spacing);
         append(" Tc\n");
     }
 
 
-    public void setWordSpacing(float spacing) throws IOException {
+    public void setWordSpacing(float spacing) {
         append(spacing);
         append(" Tw\n");
     }
 
 
-    public void setTextScaling(float scaling) throws IOException {
+    public void setTextScaling(float scaling) {
         append(scaling);
         append(" Tz\n");
     }
 
 
-    public void setTextRise(float rise) throws IOException {
+    public void setTextRise(float rise) {
         append(rise);
         append(" Ts\n");
     }
 
 
-    public void setTextFont(Font font) throws IOException {
+    public void setTextFont(Font font) {
         this.font = font;
         append("/F");
         append(font.objNumber);
@@ -1346,8 +1422,9 @@ public class Page {
     /**
      *  Prints a line of text and moves to the next line.
      *  Please see Example_32.
+     *  @param str the line of text that is printed
      */
-    public void println(String str) throws IOException {
+    public void println(String str) {
         print(str);
         println();
     }
@@ -1356,11 +1433,9 @@ public class Page {
     /**
      *  Prints a line of text.
      *  Please see Example_32.
+     *  @param str the line of text that is printed
      */
-    public void print(String str) throws IOException {
-        if (font == null) {
-            return;
-        }
+    public void print(String str) {
         append("[<");
         drawString(font, str);
         append(">] TJ\n");
@@ -1371,7 +1446,7 @@ public class Page {
      *  Move to the next line.
      *  Please see Example_32.
      */
-    public void println() throws IOException {
+    public void println() {
         append("T*\n");
     }
 
@@ -1380,7 +1455,7 @@ public class Page {
      *  Sets the end of text block.
      *  Please see Example_32.
      */
-    public void setTextEnd() throws IOException {
+    public void setTextEnd() {
         append("ET\n");
     }
 
@@ -1426,14 +1501,13 @@ public class Page {
     /**
      *  Clips the path.
      */
-    public void clipPath() throws IOException {
+    public void clipPath() {
         append("W\n");
         append("n\n");  // Close the path without painting it.
     }
 
 
-    public void clipRect(float x, float y, float w, float h)
-            throws IOException {
+    public void clipRect(float x, float y, float w, float h) {
         moveTo(x, y);
         lineTo(x + w, y);
         lineTo(x + w, y + h);
@@ -1442,23 +1516,23 @@ public class Page {
     }
 
 
-    public void save() throws IOException {
+    public void save() {
         append("q\n");
         savedStates.add(new State(
-                pen, brush, pen_width, line_cap_style, line_join_style, linePattern));
+                pen, brush, penWidth, lineCapStyle, lineJoinStyle, linePattern));
         savedHeight = height;
     }
 
 
-    public void restore() throws IOException {
+    public void restore() {
         append("Q\n");
         if (savedStates.size() > 0) {
             State savedState = savedStates.remove(savedStates.size() - 1);
             pen = savedState.getPen();
             brush = savedState.getBrush();
-            pen_width = savedState.getPenWidth();
-            line_cap_style = savedState.getLineCapStyle();
-            line_join_style = savedState.getLineJoinStyle();
+            penWidth = savedState.getPenWidth();
+            lineCapStyle = savedState.getLineCapStyle();
+            lineJoinStyle = savedState.getLineJoinStyle();
             linePattern = savedState.getLinePattern();
         }
         if (savedHeight != Float.MAX_VALUE) {
@@ -1559,7 +1633,7 @@ public class Page {
     }
 
 
-    protected void append(float val){
+    protected void append(float val) {
         append(PDF.df.format(val));
     }
 
@@ -1576,44 +1650,16 @@ public class Page {
 
     /**
      *  Appends the specified array of bytes to the page.
+     *  @param buffer the array of bytes that is appended.
+     *  @throws IOException  If an input or output exception occurred
      */
     public void append(byte[] buffer) throws IOException {
         buf.write(buffer);
     }
 
 
-    protected void drawString(
-            Font font,
-            String str,
-            float x,
-            float y,
-            Map<String, Integer> colors) throws Exception {
-        setTextBegin(x, y);
-        setTextFont(font);
-
-        StringBuilder buf1 = new StringBuilder();
-        StringBuilder buf2 = new StringBuilder();
-        for (int i = 0; i < str.length(); i++) {
-            char ch = str.charAt(i);
-            if (Character.isLetterOrDigit(ch)) {
-                printBuffer(buf2, colors);
-                buf1.append(ch);
-            }
-            else {
-                printBuffer(buf1, colors);
-                buf2.append(ch);
-            }
-        }
-        printBuffer(buf1, colors);
-        printBuffer(buf2, colors);
-
-        setTextEnd();
-    }
-
-
-    private void printBuffer(
-            StringBuilder buf,
-            Map<String, Integer> colors) throws Exception {
+    private void drawWord(
+            Font font, StringBuilder buf, Map<String, Integer> colors) {
         String str = buf.toString();
         if (str.length() > 0) {
             if (colors.containsKey(str)) {
@@ -1623,13 +1669,36 @@ public class Page {
                 setBrushColor(Color.black);
             }
         }
-        print(str);
+        append("[<");
+        drawString(font, str);
+        append(">] TJ\n");
         buf.setLength(0);
     }
 
 
-    protected void setStructElementsPageObjNumber(
-            int pageObjNumber) throws Exception {
+    protected void drawColoredString(
+            Font font,
+            String str,
+            Map<String, Integer> colors) {
+        StringBuilder buf1 = new StringBuilder();
+        StringBuilder buf2 = new StringBuilder();
+        for (int i = 0; i < str.length(); i++) {
+            char ch = str.charAt(i);
+            if (Character.isLetterOrDigit(ch)) {
+                drawWord(font, buf2, colors);
+                buf1.append(ch);
+            }
+            else {
+                drawWord(font, buf1, colors);
+                buf2.append(ch);
+            }
+        }
+        drawWord(font, buf1, colors);
+        drawWord(font, buf2, colors);
+    }
+
+
+    protected void setStructElementsPageObjNumber(int pageObjNumber) {
         for (StructElem element : structures) {
             element.pageObjNumber = pageObjNumber;
         }
@@ -1638,24 +1707,24 @@ public class Page {
 
     public void addBMC(
             String structure,
-            String altDescription,
-            String actualText) throws Exception {
-        addBMC(structure, null, altDescription, actualText);
+            String actualText,
+            String altDescription) {
+        addBMC(structure, null, actualText, altDescription);
     }
 
 
     public void addBMC(
             String structure,
             String language,
-            String altDescription,
-            String actualText) throws Exception {
+            String actualText,
+            String altDescription) {
         if (pdf.compliance == Compliance.PDF_UA) {
             StructElem element = new StructElem();
             element.structure = structure;
             element.mcid = mcid;
             element.language = language;
-            element.altDescription = altDescription;
             element.actualText = actualText;
+            element.altDescription = altDescription;
             structures.add(element);
 
             append("/");
@@ -1668,7 +1737,7 @@ public class Page {
     }
 
 
-    public void addEMC() throws Exception {
+    public void addEMC() {
         if (pdf.compliance == Compliance.PDF_UA) {
             append("EMC\n");
         }
@@ -1676,13 +1745,15 @@ public class Page {
 
 
     protected void addAnnotation(Annotation annotation) {
+        annotation.y1 = this.height - annotation.y1;
+        annotation.y2 = this.height - annotation.y2;
         annots.add(annotation);
         if (pdf.compliance == Compliance.PDF_UA) {
             StructElem element = new StructElem();
             element.structure = StructElem.LINK;
             element.language = annotation.language;
-            element.altDescription = annotation.altDescription;
             element.actualText = annotation.actualText;
+            element.altDescription = annotation.altDescription;
             element.annotation = annotation;
             structures.add(element);
         }
@@ -1690,7 +1761,7 @@ public class Page {
 
 
     protected void beginTransform(
-            float x, float y, float xScale, float yScale) throws Exception {
+            float x, float y, float xScale, float yScale) {
         append("q\n");
 
         append(xScale);
@@ -1713,7 +1784,7 @@ public class Page {
     }
 
 
-    protected void endTransform() throws Exception {
+    protected void endTransform() {
         append("Q\n");
     }
 
@@ -1732,7 +1803,7 @@ public class Page {
 
 
     public void drawString(
-            Font font, String str, float x, float y, float dx) throws Exception {
+            Font font, String str, float x, float y, float dx) {
         float x1 = x;
         for (int i = 0; i < str.length(); i++) {
             drawString(font, str.substring(i, i + 1), x1, y);
@@ -1759,11 +1830,12 @@ public class Page {
     }
 
 
-    public void invertYAxis() throws Exception {
+    public void invertYAxis() {
         append("1 0 0 -1 0 ");
         append(this.height);
         append(" cm\n");
     }
+
 
     /**
      * Rotates the content drawn to the page. Useful if the orientation of the pdf differs.
@@ -1827,22 +1899,17 @@ public class Page {
 
     }
 
-
     /**
      * Transformation matrix.
      * Use save before, restore afterwards!
      * 9 value array like generated by androids Matrix.getValues()
-     *
-     * @throws IOException
+     * @param values the 9 value array generated by Matrix.getValues()
      */
-    public void transform(float[] values) throws IOException {
-        float scalex = (values[MSCALE_X]);
-        float scaley = (values[MSCALE_Y]);
-        float skewx = values[MSKEW_X];
-        float skewy = values[MSKEW_Y];
+    public void transform(float[] values) {
+        float scalex = values[MSCALE_X];
+        float scaley = values[MSCALE_Y];
         float transx = values[MTRANS_X];
         float transy = values[MTRANS_Y];
-
 
         if (!heightTransformed && scaley != 0) {
             // Because with the height the y coordinate in the pdf coordinate system gets calculated:
@@ -1852,15 +1919,15 @@ public class Page {
 
         append(scalex);
         append(" ");
-        append(skewx);
+        append(values[MSKEW_X]);
         append(" ");
-        append(skewy);
+        append(values[MSKEW_Y]);
         append(" ");
         append(scaley);
         append(" ");
 
-        if (Math.asin(skewy) != 0f) {
-            transx -= skewy * height;
+        if (Math.asin(values[MSKEW_Y]) != 0f) {
+            transx -= values[MSKEW_Y] * height / scaley;
         }
 
         append(transx);
@@ -1868,7 +1935,30 @@ public class Page {
         append(-transy);
         append(" cm\n");
 
+    }
 
+
+    public float[] addHeader(TextLine textLine) throws Exception {
+        return addHeader(textLine, 1.5f*textLine.font.ascent);
+    }
+
+
+    public float[] addHeader(TextLine textLine, float offset) throws Exception {
+        textLine.setLocation((getWidth() - textLine.getWidth())/2, offset);
+        float[] xy = textLine.drawOn(this);
+        xy[1] += font.descent;
+        return xy;
+    }
+
+
+    public float[] addFooter(TextLine textLine) throws Exception {
+        return addFooter(textLine, textLine.font.ascent);
+    }
+
+
+    public float[] addFooter(TextLine textLine, float offset) throws Exception {
+        textLine.setLocation((getWidth() - textLine.getWidth())/2, getHeight() - offset);
+        return textLine.drawOn(this);
     }
 
 }   // End of Page.java

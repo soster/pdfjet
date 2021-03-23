@@ -1,30 +1,25 @@
 /**
  *  PlainText.java
  *
-Copyright (c) 2018, Innovatics Inc.
-All rights reserved.
+Copyright 2020 Innovatics Inc.
 
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
- 
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and / or other materials provided with the distribution.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 */
 
 package com.pdfjet;
@@ -46,31 +41,43 @@ public class PlainText implements Drawable {
     private int backgroundColor = Color.white;
     private int borderColor = Color.white;
     private int textColor = Color.black;
-    private List<float[]> endOfLinePoints = null;
-
-    private String language = null;
-    private String altDescription = null;
-    private String actualText = null;
+    private String language;
+    private String actualText;
+    private String altDescription;
 
 
     public PlainText(Font font, String[] textLines) {
         this.font = font;
         this.fontSize = font.getSize();
         this.textLines = textLines;
-        this.endOfLinePoints = new ArrayList<float[]>();
         StringBuilder buf = new StringBuilder();
         for (String str : textLines) {
             buf.append(str);
             buf.append(' ');
         }
-        this.altDescription = buf.toString();
         this.actualText = buf.toString();
+        this.altDescription = buf.toString();
     }
 
 
     public PlainText setFontSize(float fontSize) {
         this.fontSize = fontSize;
         return this;
+    }
+
+
+    public void setPosition(double x, double y) {
+        setLocation((float) x, (float) y);
+    }
+
+
+    public void setPosition(float x, float y) {
+        setLocation(x, y);
+    }
+
+
+    public PlainText setLocation(double x, double y) {
+        return setLocation((float) x, (float) y);
     }
 
 
@@ -111,22 +118,17 @@ public class PlainText implements Drawable {
     }
 
 
-    public List<float[]> getEndOfLinePoints() {
-        return endOfLinePoints;
-    }
-
-
     /**
      *  Draws this PlainText on the specified page.
      *
      *  @param page the page to draw this PlainText on.
      *  @return x and y coordinates of the bottom right corner of this component.
-     *  @throws Exception
+     *  @throws Exception  If an input or output exception occurred
      */
     public float[] drawOn(Page page) throws Exception {
         float originalSize = font.getSize();
         font.setSize(fontSize);
-        float y_text = y + font.getAscent();
+        float yText = y + font.getAscent();
 
         page.addBMC(StructElem.SPAN, language, Single.space, Single.space);
         page.setBrushColor(backgroundColor);
@@ -138,19 +140,18 @@ public class PlainText implements Drawable {
         page.drawRect(x, y, w, h);
         page.addEMC();
 
-        page.addBMC(StructElem.SPAN, language, altDescription, actualText);
+        page.addBMC(StructElem.SPAN, language, actualText, altDescription);
         page.setTextStart();
         page.setTextFont(font);
         page.setBrushColor(textColor);
         page.setTextLeading(leading);
-        page.setTextLocation(x, y_text);
+        page.setTextLocation(x, yText);
         for (String str : textLines) {
             if (font.skew15) {
-                setTextSkew(page, 0.26f, x, y_text);
+                setTextSkew(page, 0.26f, x, yText);
             }
             page.println(str);
-            endOfLinePoints.add(new float[] { x + font.stringWidth(str), y_text });
-            y_text += leading;
+            yText += leading;
         }
         page.setTextEnd();
         page.addEMC();
@@ -161,8 +162,7 @@ public class PlainText implements Drawable {
     }
 
 
-    private void setTextSkew(
-            Page page, float skew, float x, float y) throws Exception {
+    private void setTextSkew(Page page, float skew, float x, float y) {
         page.append(1f);
         page.append(' ');
         page.append(0f);

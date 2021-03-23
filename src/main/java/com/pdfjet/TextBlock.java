@@ -1,30 +1,25 @@
 /**
  *  TextBlock.java
  *
-Copyright (c) 2018, Innovatics Inc.
-All rights reserved.
+Copyright 2020 Innovatics Inc.
 
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and / or other materials provided with the distribution.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 */
 package com.pdfjet;
 
@@ -35,13 +30,13 @@ import java.util.*;
  *  Class for creating blocks of text.
  *
  */
-public class TextBlock {
+public class TextBlock implements Drawable {
 
-    private Font font = null;
-    private Font fallbackFont = null;
+    protected Font font;
+    protected Font fallbackFont = null;
+    protected String text = null;
 
-    private String text = null;
-    private float space = 0f;
+    private float spaceBetweenLines;
     private int textAlign = Align.LEFT;
 
     private float x;
@@ -51,6 +46,13 @@ public class TextBlock {
 
     private int background = Color.white;
     private int brush = Color.black;
+    private boolean drawBorder;
+
+    private String uri = null;
+    private String key = null;
+    private String uriLanguage = null;
+    private String uriActualText = null;
+    private String uriAltDescription = null;
 
 
     /**
@@ -60,7 +62,14 @@ public class TextBlock {
      */
     public TextBlock(Font font) {
         this.font = font;
-        this.space = this.font.getDescent();
+        this.spaceBetweenLines = this.font.descent;
+    }
+
+
+    public TextBlock(Font font, String text) {
+        this.font = font;
+        this.text = text;
+        this.spaceBetweenLines = this.font.descent;
     }
 
 
@@ -88,6 +97,16 @@ public class TextBlock {
     }
 
 
+    public void setPosition(float x, float y) {
+        setLocation(x, y);
+    }
+
+
+    public void setPosition(double x, double y) {
+        setLocation(x, y);
+    }
+
+
     /**
      *  Sets the location where this text block will be drawn on the page.
      *
@@ -99,6 +118,17 @@ public class TextBlock {
         this.x = x;
         this.y = y;
         return this;
+    }
+
+     /**
+     *  Sets the location where this text block will be drawn on the page.
+     *
+     *  @param x the x coordinate of the top left corner of the text block.
+     *  @param y the y coordinate of the top left corner of the text block.
+     *  @return the TextBlock object.
+     */
+    public TextBlock setLocation(double x, double y) {
+        return setLocation((float) x, (float) y);
     }
 
 
@@ -140,20 +170,21 @@ public class TextBlock {
      *  Returns the text block height.
      *
      *  @return the text block height.
+     *  @throws Exception  If an input or output exception occurred
      */
     public float getHeight() throws Exception {
-        return drawOn(null).h;
+        return drawOn(null)[1];
     }
 
 
     /**
      *  Sets the space between two lines of text.
      *
-     *  @param space the space between two lines.
+     *  @param spaceBetweenLines the space between two lines.
      *  @return the TextBlock object.
      */
-    public TextBlock setSpaceBetweenLines(float space) {
-        this.space = space;
+    public TextBlock setSpaceBetweenLines(float spaceBetweenLines) {
+        this.spaceBetweenLines = spaceBetweenLines;
         return this;
     }
 
@@ -164,7 +195,7 @@ public class TextBlock {
      *  @return float the space.
      */
     public float getSpaceBetweenLines() {
-        return space;
+        return spaceBetweenLines;
     }
 
 
@@ -172,6 +203,7 @@ public class TextBlock {
      *  Sets the text alignment.
      *
      *  @param textAlign the alignment parameter.
+     *  @return this TextBlock object.
      *  Supported values: Align.LEFT, Align.RIGHT and Align.CENTER.
      */
     public TextBlock setTextAlignment(int textAlign) {
@@ -234,6 +266,11 @@ public class TextBlock {
     }
 
 
+    public void setDrawBorder(boolean drawBorder) {
+        this.drawBorder = drawBorder;
+    }
+
+
     // Is the text Chinese, Japanese or Korean?
     private boolean isCJK(String text) {
         int cjk = 0;
@@ -259,7 +296,7 @@ public class TextBlock {
      *  @param page the page to draw this text block on.
      *  @return the TextBlock object.
      */
-    public TextBlock drawOn(Page page) throws Exception {
+    public float[] drawOn(Page page) throws Exception {
         if (page != null) {
             if (getBgColor() != Color.white) {
                 page.setBrushColor(this.background);
@@ -271,14 +308,12 @@ public class TextBlock {
     }
 
 
-    private TextBlock drawText(Page page) throws Exception {
-
+    private float[] drawText(Page page) throws Exception {
         List<String> list = new ArrayList<String>();
-        StringBuilder buf = new StringBuilder();
-        String[] lines = text.split("\\r?\\n");
+        String[] lines = text.split("\\r?\\n", -1);
         for (String line : lines) {
             if (isCJK(line)) {
-                buf.setLength(0);
+                StringBuilder buf = new StringBuilder();
                 for (int i = 0; i < line.length(); i++) {
                     Character ch = line.charAt(i);
                     if (font.stringWidth(fallbackFont, buf.toString() + ch) < this.w) {
@@ -290,21 +325,22 @@ public class TextBlock {
                         buf.append(ch);
                     }
                 }
-                if (!buf.toString().trim().equals("")) {
-                    list.add(buf.toString().trim());
+                String str = buf.toString().trim();
+                if (!str.equals("")) {
+                    list.add(str);
                 }
             }
             else {
                 if (font.stringWidth(fallbackFont, line) < this.w) {
-                    list.add(line);
+                    list.add(line.trim());
                 }
                 else {
-                    buf.setLength(0);
-                    String[] tokens = line.split("\\s+");
+                    StringBuilder buf = new StringBuilder();
+                    String[] tokens = TextUtils.splitTextIntoTokens(line, font, fallbackFont, this.w);
                     for (String token : tokens) {
-                        if (font.stringWidth(fallbackFont,
-                                buf.toString() + " " + token) < this.w) {
-                            buf.append(" " + token);
+                        if (font.stringWidth(fallbackFont, (buf.toString() + " " + token).trim()) < this.w) {
+                            buf.append(" ");
+                            buf.append(token);
                         }
                         else {
                             list.add(buf.toString().trim());
@@ -312,47 +348,71 @@ public class TextBlock {
                             buf.append(token);
                         }
                     }
-
-                    if (!buf.toString().trim().equals("")) {
-                        list.add(buf.toString().trim());
+                    String str = buf.toString().trim();
+                    if (!str.equals("")) {
+                        list.add(str);
                     }
                 }
             }
         }
         lines = list.toArray(new String[] {});
 
-        float x_text;
-        float y_text = y + font.getAscent();
-
+        float xText;
+        float yText = y + font.getAscent();
         for (int i = 0; i < lines.length; i++) {
             if (textAlign == Align.LEFT) {
-                x_text = x;
+                xText = x;
             }
             else if (textAlign == Align.RIGHT) {
-                x_text = (x + this.w) - (font.stringWidth(fallbackFont, lines[i]));
+                xText = (x + this.w) - (font.stringWidth(fallbackFont, lines[i]));
             }
             else if (textAlign == Align.CENTER) {
-                x_text = x + (this.w - font.stringWidth(fallbackFont, lines[i]))/2;
+                xText = x + (this.w - font.stringWidth(fallbackFont, lines[i]))/2;
             }
             else {
                 throw new Exception("Invalid text alignment option.");
             }
-
             if (page != null) {
-                page.drawString(
-                        font, fallbackFont, lines[i], x_text, y_text);
+                page.drawString(font, fallbackFont, lines[i], xText, yText);
             }
-
             if (i < (lines.length - 1)) {
-                y_text += font.getBodyHeight() + space;
-            }
-            else {
-                y_text += font.getDescent() + space;
+                yText += font.bodyHeight + spaceBetweenLines;
             }
         }
 
-        this.h = y_text - y;
+        this.h = (yText - y) + font.descent;
+        if (page != null && drawBorder) {
+            Box box = new Box();
+            box.setLocation(x, y);
+            box.setSize(w, h);
+            box.drawOn(page);
+        }
 
+        if (page != null && (uri != null || key != null)) {
+            page.addAnnotation(new Annotation(
+                    uri,
+                    key,    // The destination name
+                    x,
+                    y,
+                    x + w,
+                    y + h,
+                    uriLanguage,
+                    uriActualText,
+                    uriAltDescription));
+        }
+
+        return new float[] {this.x + this.w, this.y + this.h};
+    }
+
+
+    /**
+     *  Sets the URI for the "click text line" action.
+     *
+     *  @param uri the URI
+     *  @return this TextBlock.
+     */
+    public TextBlock setURIAction(String uri) {
+        this.uri = uri;
         return this;
     }
 

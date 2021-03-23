@@ -1,35 +1,27 @@
 /**
  *  Bidi.java
  *
-Copyright (c) 2018, Innovatics Inc.
-All rights reserved.
+Copyright 2020 Innovatics Inc.
 
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
- 
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and / or other materials provided with the distribution.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 */
-
 package com.pdfjet;
-
-import java.util.*;
 
 
 /**
@@ -40,9 +32,9 @@ import java.util.*;
 public class Bidi {
 
 /*
-General,Isolated,End,Middle,Beginning
-*/
-private static char[] forms = new char[] {
+ * General,Isolated,End,Middle,Beginning
+ */
+private static final char[] forms = new char[] {
 '\u0623','\uFE83','\uFE84','\u0623','\u0623',
 '\u0628','\uFE8F','\uFE90','\uFE92','\uFE91',
 '\u062A','\uFE95','\uFE96','\uFE98','\uFE97',
@@ -97,18 +89,18 @@ private static char[] forms = new char[] {
     public static String reorderVisually(String str) {
         StringBuilder buf1 = new StringBuilder();
         StringBuilder buf2 = new StringBuilder();
-        boolean right_to_left = true;
+        boolean rightToLeft = true;
         for (int i = 0; i < str.length(); i++) {
             char ch = str.charAt(i);
             if (ch == '\u200E') {
                 // LRM  U+200E  LEFT-TO-RIGHT MARK  Left-to-right zero-width character
-                right_to_left = false;
+                rightToLeft = false;
                 continue;
             }
             if (ch == '\u200F' || ch == '\u061C') {
                 // RLM  U+200F  RIGHT-TO-LEFT MARK  Right-to-left zero-width non-Arabic character
                 // ALM  U+061C  ARABIC LETTER MARK  Right-to-left zero-width Arabic character
-                right_to_left = true;
+                rightToLeft = true;
                 continue;
             }
             if (isArabic(ch) ||
@@ -116,7 +108,7 @@ private static char[] forms = new char[] {
                     ch == '«' || ch == '»' ||
                     ch == '(' || ch == ')' ||
                     ch == '[' || ch == ']') {
-                right_to_left = true;
+                rightToLeft = true;
                 if (buf2.length() > 0) {
                     buf1.append(process(buf2));
                     buf2.setLength(0);
@@ -144,11 +136,11 @@ private static char[] forms = new char[] {
                 }
             }
             else if (isAlphaNumeric(ch)) {
-                right_to_left = false;
+                rightToLeft = false;
                 buf2.append(ch);
             }
             else {
-                if (right_to_left) {
+                if (rightToLeft) {
                     buf1.append(ch);
                 }
                 else {
@@ -164,20 +156,20 @@ private static char[] forms = new char[] {
         for (int i = (buf1.length() - 1); i >= 0; i--) {
             char ch = buf1.charAt(i);
             if (isArabicLetter(ch)) {
-                char prev_ch = (i > 0) ? buf1.charAt(i - 1) : '\u0000';
-                char next_ch = (i < (buf1.length() - 1)) ? buf1.charAt(i + 1) : '\u0000';
+                char prevCh = (i > 0) ? buf1.charAt(i - 1) : '\u0000';
+                char nextCh = (i < (buf1.length() - 1)) ? buf1.charAt(i + 1) : '\u0000';
                 for (int j = 0; j < forms.length; j += 5) {
                     if (ch == forms[j]) {
-                        if (!isArabicLetter(prev_ch) && !isArabicLetter(next_ch)) {
+                        if (!isArabicLetter(prevCh) && !isArabicLetter(nextCh)) {
                             buf3.append(forms[j + 1]);  // Isolated
                         }
-                        else if (isArabicLetter(prev_ch) && !isArabicLetter(next_ch)) {
+                        else if (isArabicLetter(prevCh) && !isArabicLetter(nextCh)) {
                             buf3.append(forms[j + 2]);  // End
                         }
-                        else if (isArabicLetter(prev_ch) && isArabicLetter(next_ch)) {
+                        else if (isArabicLetter(prevCh) && isArabicLetter(nextCh)) {
                             buf3.append(forms[j + 3]);  // Middle
                         }
-                        else if (!isArabicLetter(prev_ch) && isArabicLetter(next_ch)) {
+                        else if (!isArabicLetter(prevCh) && isArabicLetter(nextCh)) {
                             buf3.append(forms[j + 4]);  // Beginning
                         }
                     }

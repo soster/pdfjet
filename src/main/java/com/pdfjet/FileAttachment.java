@@ -1,44 +1,37 @@
 /**
  *  FileAttachment.java
  *
-Copyright (c) 2018, Innovatics Inc.
-All rights reserved.
+Copyright 2020 Innovatics Inc.
 
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and / or other materials provided with the distribution.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 */
-
 package com.pdfjet;
-
 
 /**
  *  Used to attach file objects.
  *
  */
-public class FileAttachment {
+public class FileAttachment implements Drawable {
 
     protected int objNumber = -1;
-    protected PDF pdf = null;
-    protected EmbeddedFile embeddedFile = null;
+    protected PDF pdf;
+    protected EmbeddedFile embeddedFile;
     protected String icon = "PushPin";
     protected String title = "";
     protected String contents = "Right mouse click or double click on the icon to save the attached file.";
@@ -52,10 +45,22 @@ public class FileAttachment {
         this.embeddedFile = file;
     }
 
+    public void setPosition(float x, float y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    public void setPosition(double x, double y) {
+        setPosition((float) x, (float) y);
+    }
 
     public void setLocation(float x, float y) {
         this.x = x;
         this.y = y;
+    }
+
+    public void setLocation(double x, double y) {
+        setLocation((float) x, (float) y);
     }
 
 
@@ -84,19 +89,20 @@ public class FileAttachment {
     }
 
 
-    public void drawOn(Page page) throws Exception {
+    public float[] drawOn(Page page) throws Exception {
         Annotation annotation = new Annotation(
                 null,
                 null,
                 x,
-                page.height - y,
+                y,
                 x + h,
-                page.height - (y + h),
+                y + h,
                 null,
                 null,
                 null);
         annotation.fileAttachment = this;
-        page.annots.add(annotation);
+        page.addAnnotation(annotation);
+        return new float[] {this.x + this.h, this.y + this.h};
     }
 
 }   // End of FileAttachment.java

@@ -1,30 +1,25 @@
 /**
  *  Box.java
  *
-Copyright (c) 2018, Innovatics Inc.
-All rights reserved.
+Copyright 2020 Innovatics Inc.
 
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
- 
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and / or other materials provided with the distribution.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 */
 
 package com.pdfjet;
@@ -47,15 +42,14 @@ public class Box implements Drawable {
 
     private float width = 0.3f;
     private String pattern = "[] 0";
-    private boolean fill_shape = false;
-    
-    private String language = null;
-    private String altDescription = Single.space;
-    private String actualText = Single.space;
+    private boolean fillShape = false;
 
     protected String uri = null;
     protected String key = null;
 
+    private String language = null;
+    private String actualText = Single.space;
+    private String altDescription = Single.space;
 
     /**
      *  The default constructor.
@@ -96,15 +90,14 @@ public class Box implements Drawable {
         this.h = h;
     }
 
-
     /**
      *  Sets the position of this box on the page.
      *
      *  @param x the x coordinate of the top left corner of this box when drawn on the page.
      *  @param y the y coordinate of the top left corner of this box when drawn on the page.
      */
-    public Box setPosition(double x, double y) {
-        return setLocation((float) x, (float) y);
+    public void setPosition(float x, float y) {
+        setLocation(x, y);
     }
 
 
@@ -114,8 +107,8 @@ public class Box implements Drawable {
      *  @param x the x coordinate of the top left corner of this box when drawn on the page.
      *  @param y the y coordinate of the top left corner of this box when drawn on the page.
      */
-    public Box setPosition(float x, float y) {
-        return setLocation(x, y);
+    public void setPosition(double x, double y) {
+        setLocation(x, y);
     }
 
 
@@ -124,11 +117,24 @@ public class Box implements Drawable {
      *
      *  @param x the x coordinate of the top left corner of this box when drawn on the page.
      *  @param y the y coordinate of the top left corner of this box when drawn on the page.
+     *  @return this Box object.
      */
     public Box setLocation(float x, float y) {
         this.x = x;
         this.y = y;
         return this;
+    }
+
+
+    /**
+     *  Sets the location of this box on the page.
+     *
+     *  @param x the x coordinate of the top left corner of this box when drawn on the page.
+     *  @param y the y coordinate of the top left corner of this box when drawn on the page.
+     *  @return this Box object.
+     */
+    public Box setLocation(double x, double y) {
+        return setLocation((float) x, (float) y);
     }
 
 
@@ -184,7 +190,7 @@ public class Box implements Drawable {
     public void setLineWidth(float width) {
         this.width = width;
     }
-    
+
 
     /**
      *  Sets the URI for the "click box" action.
@@ -259,13 +265,13 @@ public class Box implements Drawable {
 
 
     /**
-     *  Sets the private fill_shape variable.
-     *  If the value of fill_shape is true - the box is filled with the current brush color.
+     *  Sets the private fillShape variable.
+     *  If the value of fillShape is true - the box is filled with the current brush color.
      *
-     *  @param fill_shape the value used to set the private fill_shape variable.
+     *  @param fillShape the value used to set the private fillShape variable.
      */
-    public void setFillShape(boolean fill_shape) {
-        this.fill_shape = fill_shape;
+    public void setFillShape(boolean fillShape) {
+        this.fillShape = fillShape;
     }
 
 
@@ -273,14 +279,11 @@ public class Box implements Drawable {
      *  Places this box in the another box.
      *
      *  @param box the other box.
-     *  @param x_offset the x offset from the top left corner of the box.
-     *  @param y_offset the y offset from the top left corner of the box.
+     *  @param xOffset the x offset from the top left corner of the box.
+     *  @param yOffset the y offset from the top left corner of the box.
      */
-    public void placeIn(
-            Box box,
-            double x_offset,
-            double y_offset) throws Exception {
-        placeIn(box, (float) x_offset, (float) y_offset);
+    public void placeIn(Box box, double xOffset, double yOffset) {
+        placeIn(box, (float) xOffset, (float) yOffset);
     }
 
 
@@ -288,15 +291,12 @@ public class Box implements Drawable {
      *  Places this box in the another box.
      *
      *  @param box the other box.
-     *  @param x_offset the x offset from the top left corner of the box.
-     *  @param y_offset the y offset from the top left corner of the box.
+     *  @param xOffset the x offset from the top left corner of the box.
+     *  @param yOffset the y offset from the top left corner of the box.
      */
-    public void placeIn(
-            Box box,
-            float x_offset,
-            float y_offset) throws Exception {
-        this.x = box.x + x_offset;
-        this.y = box.y + y_offset;
+    public void placeIn(Box box, float xOffset, float yOffset) {
+        this.x = box.x + xOffset;
+        this.y = box.y + yOffset;
     }
 
 
@@ -305,7 +305,7 @@ public class Box implements Drawable {
      *
      *  @param factor the factor used to scale the box.
      */
-    public void scaleBy(double factor) throws Exception {
+    public void scaleBy(double factor) {
         scaleBy((float) factor);
     }
 
@@ -315,7 +315,7 @@ public class Box implements Drawable {
      *
      *  @param factor the factor used to scale the box.
      */
-    public void scaleBy(float factor) throws Exception {
+    public void scaleBy(float factor) {
         this.x *= factor;
         this.y *= factor;
     }
@@ -326,13 +326,13 @@ public class Box implements Drawable {
      *
      *  @param page the page to draw this box on.
      *  @return x and y coordinates of the bottom right corner of this component.
-     *  @throws Exception
+     *  @throws Exception  If an input or output exception occurred
      */
     public float[] drawOn(Page page) throws Exception {
-        page.addBMC(StructElem.SPAN, language, altDescription, actualText);
+        page.addBMC(StructElem.SPAN, language, actualText, altDescription);
         page.setPenWidth(width);
         page.setLinePattern(pattern);
-        if (fill_shape) {
+        if (fillShape) {
             page.setBrushColor(color);
         }
         else {
@@ -342,7 +342,7 @@ public class Box implements Drawable {
         page.lineTo(x + w, y);
         page.lineTo(x + w, y + h);
         page.lineTo(x, y + h);
-        if (fill_shape) {
+        if (fillShape) {
             page.fillPath();
         }
         else {
@@ -355,15 +355,15 @@ public class Box implements Drawable {
                     uri,
                     key,    // The destination name
                     x,
-                    page.height - y,
+                    y,
                     x + w,
-                    page.height - (y + h),
+                    y + h,
                     language,
-                    altDescription,
-                    actualText));
+                    actualText,
+                    altDescription));
         }
 
-        return new float[] {x + w, y + h};
+        return new float[] {x + w, y + h + width};
     }
 
 }   // End of Box.java

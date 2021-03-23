@@ -1,30 +1,25 @@
 /**
  *  Form.java
  *
-Copyright (c) 2018, Innovatics Inc.
-All rights reserved.
+Copyright 2020 Innovatics Inc.
 
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and / or other materials provided with the distribution.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 */
 package com.pdfjet;
 
@@ -36,7 +31,7 @@ import java.util.*;
  */
 public class Form implements Drawable {
 
-    private List<Field> fields;
+    private final List<Field> fields;
     private float x;
     private float y;
     private Font f1;
@@ -48,12 +43,20 @@ public class Form implements Drawable {
     private float rowHeight = 12f;
     private int labelColor = Color.black;
     private int valueColor = Color.blue;
-    private List<float[]> endOfLinePoints;
 
 
     public Form(List<Field> fields) {
         this.fields = fields;
-        this.endOfLinePoints = new ArrayList<float[]>();
+    }
+
+
+    public void setPosition(float x, float y) {
+        setLocation(x, y);
+    }
+
+
+    public void setPosition(double x, double y) {
+        setLocation(x, y);
     }
 
 
@@ -61,6 +64,10 @@ public class Form implements Drawable {
         this.x = x;
         this.y = y;
         return this;
+    }
+
+    public Form setLocation(double x, double y) {
+        return setLocation((float) x, (float) y);
     }
 
 
@@ -112,17 +119,12 @@ public class Form implements Drawable {
     }
 
 
-    public List<float[]> getEndOfLinePoints() {
-        return endOfLinePoints;
-    }
-
-
     /**
      *  Draws this Form on the specified page.
      *
      *  @param page the page to draw this form on.
      *  @return x and y coordinates of the bottom right corner of this component.
-     *  @throws Exception
+     *  @throws Exception  If an input or output exception occurred
      */
     public float[] drawOn(Page page) throws Exception {
         for (Field field : fields) {
@@ -148,43 +150,42 @@ public class Form implements Drawable {
         Box box = new Box();
         box.setLocation(x, y);
         box.setSize(rowLength, boxHeight);
-        box.drawOn(page);
+        if (page != null) {
+            box.drawOn(page);
+        }
 
-        float field_y = 0f;
-        int row_span = 1;
-        float row_y = 0;
+        float yField = 0f;
+        int rowSpan = 1;
+        float yRow = 0;
         for (Field field : fields) {
             if (field.x == 0f) {
-                row_y += row_span*rowHeight;
-                row_span = field.values.length;
+                yRow += rowSpan*rowHeight;
+                rowSpan = field.values.length;
             }
-            field_y = row_y;
+            yField = yRow;
             for (int i = 0; i < field.values.length; i++) {
-                Font font = (i == 0) ? f1 : f2;
-                float fontSize = (i == 0) ? labelFontSize : valueFontSize;
-                int color = (i == 0) ? labelColor : valueColor;
-                new TextLine(font, field.values[i])
-                        .setFontSize(fontSize)
-                        .setColor(color)
-                        .placeIn(box, field.x + f1.getDescent(), field_y - font.getDescent())
-                        .setAltDescription((i == 0) ? field.altDescription[i] : (field.altDescription[i] + ","))
-                        .setActualText((i == 0) ? field.actualText[i] : (field.actualText[i] + ","))
-                        .drawOn(page);
-                endOfLinePoints.add(new float[] {
-                        field.x + f1.getDescent() + font.stringWidth(field.values[i]),
-                        field_y - font.getDescent(),
-                });
-                if (i == (field.values.length - 1)) {
-                    new Line(0f, 0f, rowLength, 0f)
-                            .placeIn(box, 0f, field_y)
+                if (page != null) {
+                    Font font = (i == 0) ? f1 : f2;
+                    float fontSize = (i == 0) ? labelFontSize : valueFontSize;
+                    int color = (i == 0) ? labelColor : valueColor;
+                    new TextLine(font, field.values[i])
+                            .setFontSize(fontSize)
+                            .setColor(color)
+                            .placeIn(box, field.x + font.descent, yField - font.descent)
+                            .setAltDescription((i == 0) ? field.altDescription[i] : (field.altDescription[i] + ","))
                             .drawOn(page);
-                    if (field.x != 0f) {
-                        new Line(0f, -(field.values.length-1)*rowHeight, 0f, 0f)
-                                .placeIn(box, field.x, field_y)
+                    if (i == (field.values.length - 1)) {
+                        new Line(0f, 0f, rowLength, 0f)
+                                .placeIn(box, 0f, yField)
                                 .drawOn(page);
+                        if (field.x != 0f) {
+                            new Line(0f, -(field.values.length-1)*rowHeight, 0f, 0f)
+                                    .placeIn(box, field.x, yField)
+                                    .drawOn(page);
+                        }
                     }
                 }
-                field_y += rowHeight;
+                yField += rowHeight;
             }
         }
 
@@ -194,7 +195,7 @@ public class Form implements Drawable {
 
     public static String[] format(String title, String text, Font font, float width) {
 
-        String[] original = text.split("\\r?\\n");
+        String[] original = text.split("\\r?\\n", -1);
         List<String> lines = new ArrayList<String>();
         StringBuilder buf = new StringBuilder();
         for (int i = 0; i < original.length; i++) {
@@ -211,7 +212,7 @@ public class Form implements Drawable {
                     while (j > 0 && line.charAt(j) != ' ') {
                         j -= 1;
                     }
-                    String str = line.substring(0, j).replaceAll("\\s+$", "");
+                    String str = line.substring(0, j).trim();
                     lines.add(str);
                     buf.setLength(0);
                     while (j < line.length() && line.charAt(j) == ' ') {

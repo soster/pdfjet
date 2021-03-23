@@ -1,8 +1,7 @@
 /**
  *  Paragraph.java
  *
-Copyright (c) 2018, Innovatics Inc.
-All rights reserved.
+Copyright 2020 Innovatics Inc.
 */
 
 package com.pdfjet;
@@ -45,17 +44,6 @@ public class Paragraph {
     public Paragraph add(TextLine text) {
         list.add(text);
         return this;
-    }
-
-
-    /**
-     *  Removes the last text line added to this paragraph.
-     *
-     */
-    public void removeLastTextLine() {
-        if (list.size() >= 1) {
-            list.remove(list.size() - 1);
-        }
     }
 
 

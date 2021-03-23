@@ -1,30 +1,25 @@
 /**
  *  Path.java
  *
-Copyright (c) 2018, Innovatics Inc.
-All rights reserved.
+Copyright 2020 Innovatics Inc.
 
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and / or other materials provided with the distribution.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 */
 
 package com.pdfjet;
@@ -43,13 +38,13 @@ public class Path implements Drawable {
     private int color = Color.black;
     private float width = 0.3f;
     private String pattern = "[] 0";
-    private boolean fill_shape = false;
-    private boolean close_path = false;
+    private boolean fillShape = false;
+    private boolean closePath = false;
 
     private List<Point> points = null;
 
-    private float box_x;
-    private float box_y;
+    private float xBox;
+    private float yBox;
 
     private int lineCapStyle = 0;
     private int lineJoinStyle = 0;
@@ -136,22 +131,22 @@ public class Path implements Drawable {
 
 
     /**
-     *  Sets the close_path variable.
+     *  Sets the closePath variable.
      *
-     *  @param close_path if close_path is true a line will be draw between the first and last point of this path.
+     *  @param closePath if closePath is true a line will be draw between the first and last point of this path.
      */
-    public void setClosePath(boolean close_path) {
-        this.close_path = close_path;
+    public void setClosePath(boolean closePath) {
+        this.closePath = closePath;
     }
 
 
     /**
-     *  Sets the fill_shape private variable. If fill_shape is true - the shape of the path will be filled with the current brush color.
+     *  Sets the fillShape private variable. If fillShape is true - the shape of the path will be filled with the current brush color.
      *
-     *  @param fill_shape the fill_shape flag.
+     *  @param fillShape the fillShape flag.
      */
-    public void setFillShape(boolean fill_shape) {
-        this.fill_shape = fill_shape;
+    public void setFillShape(boolean fillShape) {
+        this.fillShape = fillShape;
     }
 
 
@@ -200,45 +195,61 @@ public class Path implements Drawable {
      *
      *  @param box the specified box.
      */
-    public void placeIn(Box box) throws Exception {
+    public void placeIn(Box box) {
         placeIn(box, 0.0f, 0.0f);
     }
 
 
     /**
-     *  Places the path inside the spacified box at coordinates (x_offset, y_offset) of the top left corner.
+     *  Places the path inside the spacified box at coordinates (xOffset, yOffset) of the top left corner.
      *
      *  @param box the specified box.
-     *  @param x_offset the x_offset.
-     *  @param y_offset the y_offset.
+     *  @param xOffset the xOffset.
+     *  @param yOffset the yOffset.
      */
     public void placeIn(
             Box box,
-            double x_offset,
-            double y_offset) throws Exception {
-    	placeIn(box, (float) x_offset, (float) y_offset);
+            double xOffset,
+            double yOffset) {
+        placeIn(box, (float) xOffset, (float) yOffset);
     }
 
 
     /**
-     *  Places the path inside the spacified box at coordinates (x_offset, y_offset) of the top left corner.
+     *  Places the path inside the spacified box at coordinates (xOffset, yOffset) of the top left corner.
      *
      *  @param box the specified box.
-     *  @param x_offset the x_offset.
-     *  @param y_offset the y_offset.
+     *  @param xOffset the xOffset.
+     *  @param yOffset the yOffset.
      */
     public void placeIn(
             Box box,
-            float x_offset,
-            float y_offset) throws Exception {
-        box_x = box.x + x_offset;
-        box_y = box.y + y_offset;
+            float xOffset,
+            float yOffset) {
+        xBox = box.x + xOffset;
+        yBox = box.y + yOffset;
     }
 
 
-    public void setLocation(float x, float y) {
-        box_x += x;
-        box_y += y;
+    public void setPosition(double x, double y) {
+        setLocation((float) x, (float) y);
+    }
+
+
+    public void setPosition(float x, float y) {
+        setLocation(x, y);
+    }
+
+
+    public Path setLocation(double x, double y) {
+        return setLocation((float) x, (float) y);
+    }
+
+
+    public Path setLocation(float x, float y) {
+        xBox += x;
+        yBox += y;
+        return this;
     }
 
 
@@ -247,7 +258,7 @@ public class Path implements Drawable {
      *
      *  @param factor the specified factor.
      */
-    public void scaleBy(double factor) throws Exception {
+    public void scaleBy(double factor) {
         scaleBy((float) factor);
     }
 
@@ -257,7 +268,7 @@ public class Path implements Drawable {
      *
      *  @param factor the specified factor.
      */
-    public void scaleBy(float factor) throws Exception {
+    public void scaleBy(float factor) {
         for (int i = 0; i < points.size(); i++) {
             Point point = points.get(i);
             point.x *= factor;
@@ -276,14 +287,13 @@ public class Path implements Drawable {
      * @param r2 the vertical radius of the ellipse.
      * @param segment the segment to draw - please see the Segment class.
      * @return a list of the curve points.
-     * @throws Exception
      */
     public static List<Point> getCurvePoints(
             float x,
             float y,
             float r1,
             float r2,
-            int segment) throws Exception {
+            int segment) {
         // The best 4-spline magic number
         float m4 = 0.551784f;
         List<Point> list = new ArrayList<Point>();
@@ -322,10 +332,10 @@ public class Path implements Drawable {
      *
      *  @param page the page to draw this path on.
      *  @return x and y coordinates of the bottom right corner of this component.
-     *  @throws Exception
+     *  @throws Exception  If an input or output exception occurred
      */
     public float[] drawOn(Page page) throws Exception {
-        if (fill_shape) {
+        if (fillShape) {
             page.setBrushColor(color);
         }
         else {
@@ -338,15 +348,15 @@ public class Path implements Drawable {
 
         for (int i = 0; i < points.size(); i++) {
             Point point = points.get(i);
-            point.x += box_x;
-            point.y += box_y;
+            point.x += xBox;
+            point.y += yBox;
         }
 
-        if (fill_shape) {
+        if (fillShape) {
             page.drawPath(points, 'f');
         }
         else {
-            if (close_path) {
+            if (closePath) {
                 page.drawPath(points, 's');
             }
             else {
@@ -354,17 +364,17 @@ public class Path implements Drawable {
             }
         }
 
-        float x_max = 0f;
-        float y_max = 0f;
+        float xMax = 0f;
+        float yMax = 0f;
         for (int i = 0; i < points.size(); i++) {
             Point point = points.get(i);
-            if (point.x > x_max) { x_max = point.x; }
-            if (point.y > y_max) { y_max = point.y; }
-            point.x -= box_x;
-            point.y -= box_y;
+            if (point.x > xMax) { xMax = point.x; }
+            if (point.y > yMax) { yMax = point.y; }
+            point.x -= xBox;
+            point.y -= yBox;
         }
 
-        return new float[] {x_max, y_max};
+        return new float[] {xMax, yMax};
     }
 
 }   // End of Path.java

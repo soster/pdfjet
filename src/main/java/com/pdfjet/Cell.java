@@ -1,36 +1,27 @@
 /**
  *  Cell.java
  *
-Copyright (c) 2018, Innovatics Inc.
-All rights reserved.
+Copyright 2020 Innovatics Inc.
 
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and / or other materials provided with the distribution.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 */
-
 package com.pdfjet;
-
-import java.util.*;
-
 
 /**
  *  Used to create table cell objects.
@@ -43,15 +34,19 @@ public class Cell {
     protected Font fallbackFont;
     protected String text;
     protected Image image;
+    protected BarCode barCode;
+    protected TextBlock textBlock;
     protected Point point;
     protected CompositeTextLine compositeTextLine;
-    protected boolean ignoreImageHeight = false;
+    protected Drawable drawable;
 
-    protected float width = 70f;
-    protected float top_padding = 2f;
-    protected float bottom_padding = 2f;
-    protected float left_padding = 2f;
-    protected float right_padding = 2f;
+    protected float width = 50f;
+
+    protected float topPadding = 2f;
+    protected float bottomPadding = 2f;
+    protected float leftPadding = 2f;
+    protected float rightPadding = 2f;
+
     protected float lineWidth = 0.2f;
 
     private int background = -1;
@@ -78,7 +73,6 @@ public class Cell {
     private String uri;
 
     private int valign = Align.TOP;
-
 
     /**
      *  Creates a cell object and sets the font.
@@ -187,6 +181,16 @@ public class Cell {
 
 
     /**
+     *  Sets the barcode inside this cell.
+     *
+     *  @param barCode the barcode.
+     */
+    public void setBarcode(BarCode barCode) {
+        this.barCode = barCode;
+    }
+
+
+    /**
      *  Returns the cell image.
      *
      *  @return the image.
@@ -238,12 +242,40 @@ public class Cell {
 
 
     /**
+     * Sets the drawable object.
+     *
+     * @param drawable the drawable object.
+     */
+    public void setDrawable(Drawable drawable) {
+        this.drawable = drawable;
+    }
+
+
+    /**
+     * Returns the drawable object.
+     *
+     * @return the drawable object.
+     */
+    public Drawable getDrawable() {
+        return this.drawable;
+    }
+
+
+    public void setTextBlock(TextBlock textBlock) {
+        this.textBlock = textBlock;
+    }
+
+
+    /**
      *  Sets the width of this cell.
      *
      *  @param width the specified width.
      */
     public void setWidth(float width) {
         this.width = width;
+        if (textBlock != null) {
+            textBlock.setWidth(this.width - (this.leftPadding + this.rightPadding));
+        }
     }
 
 
@@ -263,7 +295,7 @@ public class Cell {
      *  @param padding the top padding.
      */
     public void setTopPadding(float padding) {
-        this.top_padding = padding;
+        this.topPadding = padding;
     }
 
 
@@ -273,7 +305,7 @@ public class Cell {
      *  @param padding the bottom padding.
      */
     public void setBottomPadding(float padding) {
-        this.bottom_padding = padding;
+        this.bottomPadding = padding;
     }
 
 
@@ -283,7 +315,7 @@ public class Cell {
      *  @param padding the left padding.
      */
     public void setLeftPadding(float padding) {
-        this.left_padding = padding;
+        this.leftPadding = padding;
     }
 
 
@@ -293,7 +325,7 @@ public class Cell {
      *  @param padding the right padding.
      */
     public void setRightPadding(float padding) {
-        this.right_padding = padding;
+        this.rightPadding = padding;
     }
 
 
@@ -303,10 +335,10 @@ public class Cell {
      *  @param padding the right padding.
      */
     public void setPadding(float padding) {
-        this.top_padding = padding;
-        this.bottom_padding = padding;
-        this.left_padding = padding;
-        this.right_padding = padding;
+        this.topPadding = padding;
+        this.bottomPadding = padding;
+        this.leftPadding = padding;
+        this.rightPadding = padding;
     }
 
 
@@ -316,10 +348,56 @@ public class Cell {
      *  @return the cell height.
      */
     public float getHeight() {
-        if (image != null && !ignoreImageHeight) {
-            return image.getHeight() + top_padding + bottom_padding;
+        float cellHeight = 0f;
+
+        if (image != null) {
+            float height = image.getHeight() + topPadding + bottomPadding;
+            if (height > cellHeight) {
+                cellHeight = height;
+            }
         }
-        return font.body_height + top_padding + bottom_padding;
+
+        if (barCode != null) {
+            float height = barCode.getHeight() + topPadding + bottomPadding;
+            if (height > cellHeight) {
+                cellHeight = height;
+            }
+        }
+
+        if (textBlock != null) {
+            try {
+                float height = textBlock.drawOn(null)[1] + topPadding + bottomPadding;
+                if (height > cellHeight) {
+                    cellHeight = height;
+                }
+            }
+            catch (Exception e) {
+            }
+        }
+
+        if (drawable != null) {
+            try {
+                float height = drawable.drawOn(null)[1] + topPadding + bottomPadding;
+                if (height > cellHeight) {
+                    cellHeight = height;
+                }
+            }
+            catch (Exception e) {
+            }
+        }
+
+        if (text != null) {
+            float fontHeight = font.getHeight();
+            if (fallbackFont != null && fallbackFont.getHeight() > fontHeight) {
+                fontHeight = fallbackFont.getHeight();
+            }
+            float height = fontHeight + topPadding + bottomPadding;
+            if (height > cellHeight) {
+                cellHeight = height;
+            }
+        }
+
+        return cellHeight;
     }
 
 
@@ -356,6 +434,7 @@ public class Cell {
     /**
      *  Returns the background color of this cell.
      *
+     *  @return the background colo specified as 0xRRGGBB integer.
      */
     public int getBgColor() {
         return this.background;
@@ -375,6 +454,7 @@ public class Cell {
     /**
      *  Returns the pen color.
      *
+     *  @return the color specified as 0xRRGGBB integer.
      */
     public int getPenColor() {
         return pen;
@@ -447,6 +527,7 @@ public class Cell {
      *  Sets the cell border object.
      *
      *  @param border the border object.
+     *  @param visible the visibility of the border.
      */
     public void setBorder(int border, boolean visible) {
         if (visible) {
@@ -461,6 +542,7 @@ public class Cell {
     /**
      *  Returns the cell border object.
      *
+     *  @param border the border.
      *  @return the cell border object.
      */
     public boolean getBorder(int border) {
@@ -577,8 +659,7 @@ public class Cell {
 
 
     /**
-     *  Draws the point, text and borders of this cell.
-     *
+     * Draws the point, text and borders of this cell.
      */
     protected void paint(
             Page page,
@@ -590,11 +671,43 @@ public class Cell {
             drawBackground(page, x, y, w, h);
         }
         if (image != null) {
-            image.setLocation(x + left_padding, y + top_padding);
-            image.drawOn(page);
+            if (getTextAlignment() == Align.LEFT) {
+                image.setLocation(x + leftPadding, y + topPadding);
+                image.drawOn(page);
+            }
+            else if (getTextAlignment() == Align.CENTER) {
+                image.setLocation((x + w/2f) - image.getWidth()/2f, y + topPadding);
+                image.drawOn(page);
+            }
+            else if (getTextAlignment() == Align.RIGHT) {
+                image.setLocation((x + w) - (image.getWidth() + leftPadding), y + topPadding);
+                image.drawOn(page);
+            }
+        }
+        if (barCode != null) {
+            try {
+                if (getTextAlignment() == Align.LEFT) {
+                    barCode.drawOnPageAtLocation(page, x + leftPadding, y + topPadding);
+                }
+                else if (getTextAlignment() == Align.CENTER) {
+                    float barcodeWidth = barCode.drawOn(null)[0];
+                    barCode.drawOnPageAtLocation(page, (x + w/2f) - barcodeWidth/2f, y + topPadding);
+                }
+                else if (getTextAlignment() == Align.RIGHT) {
+                    float barcodeWidth = barCode.drawOn(null)[0];
+                    barCode.drawOnPageAtLocation(page, (x + w) - (barcodeWidth + leftPadding), y + topPadding);
+                }
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        if (textBlock != null) {
+            textBlock.setLocation(x + leftPadding, y + topPadding);
+            textBlock.drawOn(page);
         }
         drawBorders(page, x, y, w, h);
-        if (text != null) {
+        if (text != null && !text.equals("")) {
             drawText(page, x, y, w, h);
         }
         if (point != null) {
@@ -602,7 +715,7 @@ public class Cell {
                 point.x = x + 2*point.r;
             }
             else if (point.align == Align.RIGHT) {
-                point.x = (x + w) - this.right_padding/2;
+                point.x = (x + w) - this.rightPadding/2;
             }
             point.y = y + h/2;
             page.setBrushColor(point.getColor());
@@ -611,14 +724,19 @@ public class Cell {
                         point.getURIAction(),
                         null,
                         point.x - point.r,
-                        page.height - (point.y - point.r),
+                        point.y - point.r,
                         point.x + point.r,
-                        page.height - (point.y + point.r),
+                        point.y + point.r,
                         null,
                         null,
                         null));
             }
             page.drawPoint(point);
+        }
+
+        if (drawable != null) {
+            drawable.setPosition(x + leftPadding, y + topPadding);
+            drawable.drawOn(page);
         }
     }
 
@@ -627,10 +745,10 @@ public class Cell {
             Page page,
             float x,
             float y,
-            float cell_w,
-            float cell_h) throws Exception {
+            float cellW,
+            float cellH) {
         page.setBrushColor(background);
-        page.fillRect(x, y + lineWidth / 2, cell_w, cell_h + lineWidth);
+        page.fillRect(x, y + lineWidth / 2, cellW, cellH + lineWidth);
     }
 
 
@@ -638,8 +756,8 @@ public class Cell {
             Page page,
             float x,
             float y,
-            float cell_w,
-            float cell_h) throws Exception {
+            float cellW,
+            float cellH) {
 
         page.setPenColor(pen);
         page.setPenWidth(lineWidth);
@@ -649,7 +767,7 @@ public class Cell {
                 getBorder(Border.LEFT) &&
                 getBorder(Border.RIGHT)) {
             page.addBMC(StructElem.SPAN, Single.space, Single.space);
-            page.drawRect(x, y, cell_w, cell_h);
+            page.drawRect(x, y, cellW, cellH);
             page.addEMC();
         }
         else {
@@ -657,28 +775,28 @@ public class Cell {
             if (getBorder(Border.TOP)) {
                 page.addBMC(StructElem.SPAN, Single.space, Single.space);
                 page.moveTo(x - qWidth, y);
-                page.lineTo(x + cell_w, y);
+                page.lineTo(x + cellW, y);
                 page.strokePath();
                 page.addEMC();
             }
             if (getBorder(Border.BOTTOM)) {
                 page.addBMC(StructElem.SPAN, Single.space, Single.space);
-                page.moveTo(x - qWidth, y + cell_h);
-                page.lineTo(x + cell_w, y + cell_h);
+                page.moveTo(x - qWidth, y + cellH);
+                page.lineTo(x + cellW, y + cellH);
                 page.strokePath();
                 page.addEMC();
             }
             if (getBorder(Border.LEFT)) {
                 page.addBMC(StructElem.SPAN, Single.space, Single.space);
                 page.moveTo(x, y - qWidth);
-                page.lineTo(x, y + cell_h + qWidth);
+                page.lineTo(x, y + cellH + qWidth);
                 page.strokePath();
                 page.addEMC();
             }
             if (getBorder(Border.RIGHT)) {
                 page.addBMC(StructElem.SPAN, Single.space, Single.space);
-                page.moveTo(x + cell_w, y - qWidth);
-                page.lineTo(x + cell_w, y + cell_h + qWidth);
+                page.moveTo(x + cellW, y - qWidth);
+                page.lineTo(x + cellW, y + cellH + qWidth);
                 page.strokePath();
                 page.addEMC();
             }
@@ -691,19 +809,19 @@ public class Cell {
             Page page,
             float x,
             float y,
-            float cell_w,
-            float cell_h) throws Exception {
+            float cellW,
+            float cellH) throws Exception {
 
-        float x_text;
-        float y_text;
+        float xText;
+        float yText;
         if (valign == Align.TOP) {
-            y_text = y + font.ascent + this.top_padding;
+            yText = y + font.ascent + this.topPadding;
         }
         else if (valign == Align.CENTER) {
-            y_text = y + cell_h/2 + font.ascent/2;
+            yText = y + cellH/2 + font.ascent/2;
         }
         else if (valign == Align.BOTTOM) {
-            y_text = (y + cell_h) - this.bottom_padding;
+            yText = (y + cellH) - this.bottomPadding;
         }
         else {
             throw new Exception("Invalid vertical text alignment option.");
@@ -714,20 +832,20 @@ public class Cell {
 
         if (getTextAlignment() == Align.RIGHT) {
             if (compositeTextLine == null) {
-                x_text = (x + cell_w) - (font.stringWidth(text) + this.right_padding);
+                xText = (x + cellW) - (font.stringWidth(text) + this.rightPadding);
                 page.addBMC(StructElem.SPAN, text, text);
-                page.drawString(font, fallbackFont, text, x_text, y_text);
+                page.drawString(font, fallbackFont, text, xText, yText);
                 page.addEMC();
                 if (getUnderline()) {
-                    underlineText(page, font, text, x_text, y_text);
+                    underlineText(page, font, text, xText, yText);
                 }
                 if (getStrikeout()) {
-                    strikeoutText(page, font, text, x_text, y_text);
+                    strikeoutText(page, font, text, xText, yText);
                 }
             }
             else {
-                x_text = (x + cell_w) - (compositeTextLine.getWidth() + this.right_padding);
-                compositeTextLine.setLocation(x_text, y_text);
+                xText = (x + cellW) - (compositeTextLine.getWidth() + this.rightPadding);
+                compositeTextLine.setLocation(xText, yText);
                 page.addBMC(StructElem.SPAN, text, text);
                 compositeTextLine.drawOn(page);
                 page.addEMC();
@@ -735,42 +853,42 @@ public class Cell {
         }
         else if (getTextAlignment() == Align.CENTER) {
             if (compositeTextLine == null) {
-                x_text = x + this.left_padding +
-                        (((cell_w - (left_padding + right_padding)) - font.stringWidth(text)) / 2);
+                xText = x + this.leftPadding +
+                        (((cellW - (leftPadding + rightPadding)) - font.stringWidth(text)) / 2);
                 page.addBMC(StructElem.SPAN, text, text);
-                page.drawString(font, fallbackFont, text, x_text, y_text);
+                page.drawString(font, fallbackFont, text, xText, yText);
                 page.addEMC();
                 if (getUnderline()) {
-                    underlineText(page, font, text, x_text, y_text);
+                    underlineText(page, font, text, xText, yText);
                 }
                 if (getStrikeout()) {
-                    strikeoutText(page, font, text, x_text, y_text);
+                    strikeoutText(page, font, text, xText, yText);
                 }
             }
             else {
-                x_text = x + this.left_padding +
-                        (((cell_w - (left_padding + right_padding)) - compositeTextLine.getWidth()) / 2);
-                compositeTextLine.setLocation(x_text, y_text);
+                xText = x + this.leftPadding +
+                        (((cellW - (leftPadding + rightPadding)) - compositeTextLine.getWidth()) / 2);
+                compositeTextLine.setLocation(xText, yText);
                 page.addBMC(StructElem.SPAN, text, text);
                 compositeTextLine.drawOn(page);
                 page.addEMC();
             }
         }
         else if (getTextAlignment() == Align.LEFT) {
-            x_text = x + this.left_padding;
+            xText = x + this.leftPadding;
             if (compositeTextLine == null) {
                 page.addBMC(StructElem.SPAN, text, text);
-                page.drawString(font, fallbackFont, text, x_text, y_text);
+                page.drawString(font, fallbackFont, text, xText, yText);
                 page.addEMC();
                 if (getUnderline()) {
-                    underlineText(page, font, text, x_text, y_text);
+                    underlineText(page, font, text, xText, yText);
                 }
                 if (getStrikeout()) {
-                    strikeoutText(page, font, text, x_text, y_text);
+                    strikeoutText(page, font, text, xText, yText);
                 }
             }
             else {
-                compositeTextLine.setLocation(x_text, y_text);
+                compositeTextLine.setLocation(xText, yText);
                 page.addBMC(StructElem.SPAN, text, text);
                 compositeTextLine.drawOn(page);
                 page.addEMC();
@@ -783,14 +901,13 @@ public class Cell {
         if (uri != null) {
             float w = (compositeTextLine != null) ?
                     compositeTextLine.getWidth() : font.stringWidth(text);
-            // Please note: The font descent is a negative number.
             page.addAnnotation(new Annotation(
                     uri,
                     null,
-                    x_text,
-                    (page.height - y_text) + font.descent,
-                    x_text + w,
-                    (page.height - y_text) + font.ascent,
+                    xText,
+                    yText - font.ascent,
+                    xText + w,
+                    yText + font.descent,
                     null,
                     null,
                     null));
@@ -799,19 +916,18 @@ public class Cell {
 
 
     private void underlineText(
-            Page page, Font font, String text, float x, float y) throws Exception {
+            Page page, Font font, String text, float x, float y) {
         page.addBMC(StructElem.SPAN, "underline", "underline");
-        float descent = font.getDescent();
         page.setPenWidth(font.underlineThickness);
-        page.moveTo(x, y + descent);
-        page.lineTo(x + font.stringWidth(text), y + descent);
+        page.moveTo(x, y + font.descent);
+        page.lineTo(x + font.stringWidth(text), y + font.descent);
         page.strokePath();
         page.addEMC();
     }
 
 
     private void strikeoutText(
-            Page page, Font font, String text, float x, float y) throws Exception {
+            Page page, Font font, String text, float x, float y) {
         page.addBMC(StructElem.SPAN, "strike out", "strike out");
         page.setPenWidth(font.underlineThickness);
         page.moveTo(x, y - font.getAscent()/3f);
@@ -827,74 +943,31 @@ public class Cell {
      *  @return the number of vertical cells needed to wrap around the cell text.
      */
     public int getNumVerCells() {
-        int n = 1;
-        if (getText() == null) {
-            return n;
+        int numOfVerCells = 1;
+        if (this.text == null) {
+            return numOfVerCells;
         }
 
-        String[] textLines = getText().split("\\r?\\n");
-        if (textLines.length == 0) {
-            return n;
-        }
-
-        n = 0;
-        for (String textLine : textLines) {
-            String[] tokens = textLine.split("\\s+");
-            StringBuilder sb = new StringBuilder();
-            if (tokens.length > 1) {
-                for (int i = 0; i < tokens.length; i++) {
-                    String token = tokens[i];
-                    if (font.stringWidth(sb.toString() + " " + token) >
-                            (getWidth() - (this.left_padding + this.right_padding))) {
-                        sb = new StringBuilder(token);
-                        n++;
-                    }
-                    else {
-                        if (i > 0) {
-                            sb.append(" ");
-                        }
-                        sb.append(token);
-                    }
-                }
+        float effectiveWidth = this.width - (this.leftPadding + this.rightPadding);
+        String[] tokens = TextUtils.splitTextIntoTokens(this.text, this.font, this.fallbackFont, effectiveWidth);
+        StringBuilder buf = new StringBuilder();
+        for (String token : tokens) {
+            if (font.stringWidth(fallbackFont, (buf.toString() + " " + token).trim()) > effectiveWidth) {
+                numOfVerCells++;
+                buf = new StringBuilder(token);
             }
-            n++;
-        }
-
-        return n;
-    }
-
-
-    /**
-     *  Use this method to find out how many vertically stacked cell are needed after call to wrapAroundCellText2.
-     *
-     *  @return the number of vertical cells needed to wrap around the cell text.
-     */
-    public int getNumVerCells2() {
-        int n = 1;
-        if (getText() == null) {
-            return n;
-        }
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < this.text.length(); i++) {
-            String str = new String(new char[] { this.text.charAt(i) });
-            if (font.stringWidth(sb.toString() + str) >
-                    (getWidth() - (this.left_padding + this.right_padding))) {
-                n++;
-                sb.setLength(0);
+            else {
+                buf.append(" ");
+                buf.append(token);
             }
-            sb.append(str);
         }
-        return n;
+
+        return numOfVerCells;
     }
 
 
-    public void setIgnoreImageHeight(boolean ignoreImageHeight) {
-        this.ignoreImageHeight = ignoreImageHeight;
-    }
-
-
-    public boolean getIgnoreImageHeight() {
-        return this.ignoreImageHeight;
+    public TextBlock getTextBlock() {
+        return textBlock;
     }
 
 }   // End of Cell.java
