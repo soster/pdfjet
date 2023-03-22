@@ -1,7 +1,7 @@
 /**
  *  OptionalContentGroup.java
  *
-Copyright 2020 Innovatics Inc.
+Copyright 2023 Innovatics Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -42,27 +42,63 @@ public class OptionalContentGroup {
     protected boolean exportable;
     private List<Drawable> components;
 
+    /**
+     * Creates OptionalContentGroup object
+     * 
+     * @param name the name of the group
+     */
     public OptionalContentGroup(String name) {
         this.name = name;
         this.components = new ArrayList<Drawable>();
     }
 
+
+    /**
+     * Add drawable object to the group
+     * 
+     * @param drawable the drawable object
+     */
     public void add(Drawable drawable) {
         components.add(drawable);
     }
 
+
+    /**
+     * Sets the visibility of this group
+     * 
+     * @param visible flag
+     */
     public void setVisible(boolean visible) {
         this.visible = visible;
     }
 
+
+    /**
+     * Sets the printability of this group
+     * 
+     * @param printable flag
+     */
     public void setPrintable(boolean printable) {
         this.printable = printable;
     }
 
+
+    /**
+     * Sets the exportability of this group
+     * 
+     * @param exportable flag
+     */
     public void setExportable(boolean exportable) {
         this.exportable = exportable;
     }
 
+
+    /**
+     * Draws this content group on a page
+     * 
+     * @param page the page to draw on
+     * @throws Exception if there is a problem
+     */
     public void drawOn(Page page) throws Exception {
         if (!components.isEmpty()) {
             page.pdf.groups.add(this);

@@ -1,7 +1,7 @@
 /**
  *  Table.java
  *
-Copyright 2020 Innovatics Inc.
+Copyright 2023 Innovatics Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -21,7 +21,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
 package com.pdfjet;
 
 import java.util.*;
@@ -516,7 +515,6 @@ public class Table {
             y += cellH;
 
             // Consider the height of the next row when checking if we must go to a new page
-            float textCellHeight = 0f;
             if (i < (tableData.size() - 1)) {
                 List<Cell> nextRow = tableData.get(i + 1);
                 for (Cell cell : nextRow) {

@@ -1,7 +1,7 @@
 /**
  *  CheckBox.java
  *
-Copyright 2020 Innovatics Inc.
+Copyright 2023 Innovatics Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -220,7 +220,7 @@ public class CheckBox implements Drawable {
      *  @param page the Page where the CheckBox is to be drawn.
      */
     public float[] drawOn(Page page) throws Exception {
-        page.addBMC(StructElem.SPAN, language, actualText, altDescription);
+        page.addBMC(StructElem.P, language, actualText, altDescription);
 
         this.w = font.getAscent();
         this.h = this.w;

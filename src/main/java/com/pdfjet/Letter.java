@@ -1,7 +1,7 @@
 /**
  *  Letter.java
  *
-Copyright 2020 Innovatics Inc.
+Copyright 2023 Innovatics Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,6 +31,8 @@ package com.pdfjet;
  *
  */
 public class Letter {
+    /** Portrait orientation */
     public static final float[] PORTRAIT = new float[] {612.0f, 792.0f};
+    /** Landscape orientation */
     public static final float[] LANDSCAPE = new float[] {792.0f, 612.0f};
 }

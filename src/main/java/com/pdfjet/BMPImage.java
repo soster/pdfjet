@@ -1,7 +1,7 @@
 /**
  *  BMPImage.java
  *
-Copyright 2020 Jonas Krogsböll
+Copyright 2023 Jonas Krogsböll
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -64,7 +64,7 @@ class BMPImage {
            (bm[0] == 'P' && bm[1] == 'T')) {
             skipNBytes(is, 8);
             int offset = readSignedInt(is);
-            int sizeOfHeader = readSignedInt(is);
+            readSignedInt(is); // Skip the sizeOfHeader
             w = readSignedInt(is);
             h = readSignedInt(is);
             skipNBytes(is, 2);
@@ -213,8 +213,7 @@ class BMPImage {
         return ret;
     }
 
-    private void parsePalette(java.io.InputStream is, int size)
-            throws Exception {
+    private void parsePalette(java.io.InputStream is, int size) throws Exception {
         palette = new byte[size][];
         for (int i = 0; i < size; i++) {
             palette[i] = getBytes(is, 4);
@@ -230,15 +229,13 @@ class BMPImage {
         }
     }
 
-    private byte[] getBytes(java.io.InputStream inputStream, int length)
-            throws Exception {
+    private byte[] getBytes(java.io.InputStream inputStream, int length) throws Exception {
         byte[] buf = new byte[length];
         inputStream.read(buf, 0, buf.length);
         return buf;
     }
 
-    private int read2BytesLE(java.io.InputStream inputStream)
-            throws Exception {
+    private int read2BytesLE(java.io.InputStream inputStream) throws Exception {
         byte[] buf = getBytes(inputStream, 2);
         int val = 0;
         val |= buf[ 1 ] & 0xff;
@@ -247,8 +244,7 @@ class BMPImage {
         return val;
     }
 
-    private int readSignedInt(java.io.InputStream inputStream)
-            throws Exception {
+    private int readSignedInt(java.io.InputStream inputStream) throws Exception {
         byte[] buf = getBytes(inputStream, 4);
         long val = 0L;
         val |= buf[ 3 ] & 0xff;

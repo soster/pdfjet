@@ -1,7 +1,7 @@
 /**
  *  Path.java
  *
-Copyright 2020 Innovatics Inc.
+Copyright 2023 Innovatics Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -21,7 +21,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
 package com.pdfjet;
 
 import java.util.*;
@@ -46,8 +45,8 @@ public class Path implements Drawable {
     private float xBox;
     private float yBox;
 
-    private int lineCapStyle = 0;
-    private int lineJoinStyle = 0;
+    private CapStyle lineCapStyle = CapStyle.BUTT;
+    private JoinStyle lineJoinStyle = JoinStyle.MITER;
 
 
     /**
@@ -153,9 +152,10 @@ public class Path implements Drawable {
     /**
      *  Sets the line cap style.
      *
-     *  @param style the cap style of this path. Supported values: Cap.BUTT, Cap.ROUND and Cap.PROJECTING_SQUARE
+     *  @param style the cap style of this path.
+     *  Supported values: CapStyle.BUTT, CapStyle.ROUND and CapStyle.PROJECTING_SQUARE
      */
-    public void setLineCapStyle(int style) {
+    public void setLineCapStyle(CapStyle style) {
         this.lineCapStyle = style;
     }
 
@@ -165,7 +165,7 @@ public class Path implements Drawable {
      *
      *  @return the line cap style for this path.
      */
-    public int getLineCapStyle() {
+    public CapStyle getLineCapStyle() {
         return this.lineCapStyle;
     }
 
@@ -173,9 +173,9 @@ public class Path implements Drawable {
     /**
      *  Sets the line join style.
      *
-     *  @param style the line join style code. Supported values: Join.MITER, Join.ROUND and Join.BEVEL
+     *  @param style the line join style code. Supported values: JoinStyle.MITER, JoinStyle.ROUND and JoinStyle.BEVEL
      */
-    public void setLineJoinStyle(int style) {
+    public void setLineJoinStyle(JoinStyle style) {
         this.lineJoinStyle = style;
     }
 
@@ -185,7 +185,7 @@ public class Path implements Drawable {
      *
      *  @return the line join style.
      */
-    public int getLineJoinStyle() {
+    public JoinStyle getLineJoinStyle() {
         return this.lineJoinStyle;
     }
 

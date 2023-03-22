@@ -10,7 +10,6 @@
  * the first 32 characters of the hash.
  *
  */
-
 package com.pdfjet;
 
 

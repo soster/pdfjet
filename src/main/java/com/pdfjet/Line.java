@@ -1,7 +1,7 @@
 /**
  *  Line.java
  *
-Copyright 2020 Innovatics Inc.
+Copyright 2023 Innovatics Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -21,7 +21,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
 package com.pdfjet;
 
 
@@ -43,7 +42,7 @@ public class Line implements Drawable {
     private int color = Color.black;
     private float width = 0.3f;
     private String pattern = "[] 0";
-    private int capStyle = 0;
+    private CapStyle capStyle = CapStyle.BUTT;
 
     private String language = null;
     private String altDescription = Single.space;
@@ -269,10 +268,11 @@ public class Line implements Drawable {
     /**
      *  Sets the line cap style.
      *
-     *  @param style the cap style of the current line. Supported values: Cap.BUTT, Cap.ROUND and Cap.PROJECTING_SQUARE
+     *  @param style the cap style of the current line.
+     *  Supported values: CapStyle.BUTT, CapStyle.ROUND and CapStyle.PROJECTING_SQUARE
      *  @return this Line object.
      */
-    public Line setCapStyle(int style) {
+    public Line setCapStyle(CapStyle style) {
         this.capStyle = style;
         return this;
     }
@@ -283,7 +283,7 @@ public class Line implements Drawable {
      *
      *  @return the cap style.
      */
-    public int getCapStyle() {
+    public CapStyle getCapStyle() {
         return capStyle;
     }
 
@@ -391,7 +391,7 @@ public class Line implements Drawable {
         page.setPenWidth(width);
         page.setLineCapStyle(capStyle);
         page.setLinePattern(pattern);
-        page.addBMC(StructElem.SPAN, language, actualText, altDescription);
+        page.addBMC(StructElem.P, language, actualText, altDescription);
         page.drawLine(
                 x1 + xBox,
                 y1 + yBox,

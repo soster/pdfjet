@@ -1,7 +1,7 @@
 /**
  *  RadioButton.java
  *
-Copyright 2020 Innovatics Inc.
+Copyright 2023 Innovatics Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -172,7 +172,7 @@ public class RadioButton implements Drawable {
      *  @throws Exception  If an input or output exception occurred
      */
     public float[] drawOn(Page page) throws Exception {
-        page.addBMC(StructElem.SPAN, language, actualText, altDescription);
+        page.addBMC(StructElem.P, language, actualText, altDescription);
 
         this.r1 = font.getAscent()/2;
         this.r2 = r1/2;

@@ -1,7 +1,7 @@
 /**
  *  TextLine.java
  *
-Copyright 2020 Innovatics Inc.
+Copyright 2023 Innovatics Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -21,13 +21,11 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
 package com.pdfjet;
 
 
 /**
  *  Used to create text line objects.
- *
  *
  */
 public class TextLine implements Drawable {
@@ -61,6 +59,8 @@ public class TextLine implements Drawable {
     private String uriLanguage = null;
     private String uriActualText = null;
     private String uriAltDescription = null;
+
+    private String structureType = StructElem.P;
 
 
     /**
@@ -514,6 +514,12 @@ public class TextLine implements Drawable {
     }
 
 
+    public TextLine setStructureType(String structureType) {
+        this.structureType = structureType;
+        return this;
+    }
+
+
     /**
      *  Places this text line in the specified box.
      *
@@ -578,7 +584,7 @@ public class TextLine implements Drawable {
         y += yBox;
 
         page.setBrushColor(color);
-        page.addBMC(StructElem.P, language, text, altDescription);
+        page.addBMC(structureType, language, text, altDescription);
         page.drawString(font, fallbackFont, text, x, y);
         page.addEMC();
 
@@ -591,7 +597,7 @@ public class TextLine implements Drawable {
             double yAdjust = font.underlinePosition * Math.cos(radians) + verticalOffset;
             double x2 = x + lineLength * Math.cos(radians);
             double y2 = y - lineLength * Math.sin(radians);
-            page.addBMC(StructElem.P, language, text, "Underlined text: " + text);
+            page.addBMC(structureType, language, text, "Underlined text: " + text);
             page.moveTo(x + xAdjust, y + yAdjust);
             page.lineTo(x2 + xAdjust, y2 + yAdjust);
             page.strokePath();
@@ -606,7 +612,7 @@ public class TextLine implements Drawable {
             double yAdjust = (font.bodyHeight / 4.0) * Math.cos(radians);
             double x2 = x + lineLength * Math.cos(radians);
             double y2 = y - lineLength * Math.sin(radians);
-            page.addBMC(StructElem.P, language, text, "Strikethrough text: " + text);
+            page.addBMC(structureType, language, text, "Strikethrough text: " + text);
             page.moveTo(x - xAdjust, y - yAdjust);
             page.lineTo(x2 - xAdjust, y2 - yAdjust);
             page.strokePath();

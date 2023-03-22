@@ -1,7 +1,7 @@
 /**
  *  Image.java
  *
-Copyright 2020 Innovatics Inc.
+Copyright 2023 Innovatics Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -21,7 +21,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
 package com.pdfjet;
 
 import java.io.*;
@@ -171,7 +170,13 @@ public class Image implements Drawable {
     }
 
 
-    // Creates new image from PDFobj
+    /**
+     * Creates new image from PDFobj
+     * 
+     * @param pdf the PDF
+     * @param obj the PDFobj
+     * @throws Exception if can not parse the width or height
+     */
     public Image(PDF pdf, PDFobj obj) throws Exception {
         w = Float.parseFloat(obj.getValue("/Width"));
         h = Float.parseFloat(obj.getValue("/Height"));
@@ -258,6 +263,13 @@ public class Image implements Drawable {
     }
 
 
+    /**
+     * Sets the location of this image
+     * 
+     * @param x the horizontal location
+     * @param y the vertical location
+     * @return the image
+     */
     public Image setLocation(double x, double y) {
         return setLocation((float) x, (float) y);
     }
@@ -300,12 +312,24 @@ public class Image implements Drawable {
     }
 
 
+    /**
+     * Resizes the image
+     * 
+     * @param width the desired width
+     * @return the image
+     */
     public Image resizeWidth(float width) {
         float factor = width / getWidth();
         return this.scaleBy(factor, factor);
     }
 
 
+    /**
+     * Resizes the image
+     * 
+     * @param height the desired height
+     * @return the image
+     */
     public Image resizeHeight(float height) {
         float factor = height / getHeight();
         return this.scaleBy(factor, factor);
@@ -401,7 +425,7 @@ public class Image implements Drawable {
      *  @throws Exception If an input or output exception occurred
      */
     public float[] drawOn(Page page) throws Exception {
-        page.addBMC(StructElem.SPAN, language, actualText, altDescription);
+        page.addBMC(StructElem.P, language, actualText, altDescription);
 
         x += xBox;
         y += yBox;
@@ -790,6 +814,12 @@ public class Image implements Drawable {
     }
 
 
+    /**
+     * Resizes this image
+     * 
+     * @param page the PDF page
+     * @param keepAspectRatio flag
+     */
     public void resizeToFit(Page page, boolean keepAspectRatio) {
         if (keepAspectRatio) {
             this.scaleBy(Math.min((page.width - x)/w, (page.height - y)/h));
@@ -800,6 +830,11 @@ public class Image implements Drawable {
     }
 
 
+    /**
+     * Flips this image upside down
+     * 
+     * @param flipUpsideDown flag
+     */
     public void flipUpsideDown(boolean flipUpsideDown) {
         this.flipUpsideDown = flipUpsideDown;
     }

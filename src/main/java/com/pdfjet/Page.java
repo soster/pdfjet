@@ -1,7 +1,7 @@
 /**
  *  Page.java
  *
-Copyright 2020 Innovatics Inc.
+Copyright 2023 Innovatics Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -21,7 +21,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
 package com.pdfjet;
 
 import java.io.*;
@@ -62,8 +61,8 @@ public class Page {
     private float[] penCMYK = {0f, 0f, 0f, 1f};
     private float[] brushCMYK = {0f, 0f, 0f, 1f};
     private float penWidth = -1.0f;
-    private int lineCapStyle = 0;
-    private int lineJoinStyle = 0;
+    private CapStyle lineCapStyle = CapStyle.BUTT;
+    private JoinStyle lineJoinStyle = JoinStyle.MITER;
     private String linePattern = "[] 0";
     private Font font;
     private final List<State> savedStates = new ArrayList<State>();
@@ -747,12 +746,13 @@ public class Page {
     /**
      *  Sets the current line cap style.
      *
-     *  @param style the cap style of the current line. Supported values: Cap.BUTT, Cap.ROUND and Cap.PROJECTING_SQUARE
+     *  @param style the cap style of the current line.
+     *  Supported values: CapStyle.BUTT, CapStyle.ROUND and CapStyle.PROJECTING_SQUARE
      */
-    public void setLineCapStyle(int style) {
+    public void setLineCapStyle(CapStyle style) {
         if (lineCapStyle != style) {
             lineCapStyle = style;
-            append(lineCapStyle);
+            append(lineCapStyle.ordinal());
             append(" J\n");
         }
     }
@@ -761,12 +761,12 @@ public class Page {
     /**
      *  Sets the line join style.
      *
-     *  @param style the line join style code. Supported values: Join.MITER, Join.ROUND and Join.BEVEL
+     *  @param style the line join style code. Supported values: JoinStyle.MITER, JoinStyle.ROUND and JoinStyle.BEVEL
      */
-    public void setLineJoinStyle(int style) {
+    public void setLineJoinStyle(JoinStyle style) {
         if (lineJoinStyle != style) {
             lineJoinStyle = style;
-            append(lineJoinStyle);
+            append(lineJoinStyle.ordinal());
             append(" j\n");
         }
     }
@@ -953,7 +953,6 @@ public class Page {
                 }
             }
         }
-
         append(operation);
         append('\n');
     }
@@ -1324,8 +1323,37 @@ public class Page {
 
 
     /**
+     *  Draws a cubic bezier curve starting from the current point to the end point p3
+     *
+     *  @param x1 first control point x
+     *  @param y1 first control point y
+     *  @param x2 second control point x
+     *  @param y2 second control point y
+     *  @param x3 end point x
+     *  @param y3 end point y
+     */
+    public void curveTo(
+        float x1, float y1, float x2, float y2, float x3, float y3) {
+        append(x1);
+        append(' ');
+        append(height - y1);
+        append(' ');
+        append(x2);
+        append(' ');
+        append(height - y2);
+        append(' ');
+        append(x3);
+        append(' ');
+        append(height - y3);
+        append(' ');
+        append("c\n");
+    }
+
+
+    /**
      *  Draws a bezier curve starting from the current point.
-     *  <strong>Please note:</strong> You must call the fillPath, closePath or strokePath method after the last bezierCurveTo call.
+     *  <strong>Please note:</strong> You must call the fillPath,
+     *  closePath or strokePath method after the last bezierCurveTo call.
      *  <p><i>Author:</i> <strong>Pieter Libin</strong>, pieter@emweb.be</p>
      *
      *  @param p1 first control point

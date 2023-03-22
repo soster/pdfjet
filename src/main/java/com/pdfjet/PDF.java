@@ -1,7 +1,7 @@
 /**
  *  PDF.java
  *
-Copyright 2020 Innovatics Inc.
+Copyright 2023 Innovatics Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -55,7 +55,8 @@ public class PDF {
     private String author = "";
     private String subject = "";
     private String keywords = "";
-    private String creator = "PDFjet v7.01.7";
+    private String producer = "PDFjet v7.06.1";
+    private String creator = producer;
     private String createDate;      // XMP metadata
     private String creationDate;    // PDF Info Object
     private int byteCount = 0;
@@ -222,6 +223,14 @@ public class PDF {
                 sb.append("  <pdfaid:conformance>B</pdfaid:conformance>\n");
             }
 
+            sb.append("  <pdf:Producer>");
+            sb.append(producer);
+            sb.append("</pdf:Producer>\n");
+
+            sb.append("  <pdf:Keywords>");
+            sb.append(keywords);
+            sb.append("</pdf:Keywords>\n");
+
             sb.append("  <dc:title><rdf:Alt><rdf:li xml:lang=\"x-default\">");
             sb.append(title);
             sb.append("</rdf:li></rdf:Alt></dc:title>\n");
@@ -233,10 +242,6 @@ public class PDF {
             sb.append("  <dc:description><rdf:Alt><rdf:li xml:lang=\"x-default\">");
             sb.append(subject);
             sb.append("</rdf:li></rdf:Alt></dc:description>\n");
-
-            sb.append("  <pdf:Keywords>");
-            sb.append(keywords);
-            sb.append("</pdf:Keywords>\n");
 
             sb.append("  <xmp:CreatorTool>");
             sb.append(creator);
@@ -436,6 +441,9 @@ public class PDF {
         append(")\n");
         append("/Subject (");
         append(subject);
+        append(")\n");
+        append("/Producer (");
+        append(producer);
         append(")\n");
         append("/Creator (");
         append(creator);
@@ -759,6 +767,36 @@ public class PDF {
 
 
     private void addPageContent(Page page) throws Exception {
+        if (eval && fonts.size() > 0) {
+            Font f1 = fonts.get(0);
+            float fontSize = f1.getSize();
+            f1.setSize(8.0f);
+            float[] tm = page.tm;
+            float[] brushColor = page.getBrushColor();
+
+            page.setTextDirection(0);
+            page.setBrushColor(Color.blue);
+            String message1 =
+                    "This document was created with the evaluation version of PDFjet";
+            String message2 =
+                    "To acquire a license please visit http://pdfjet.com";
+            page.drawString(
+                    f1,
+                    message1,
+                    (page.width - f1.stringWidth(message1))/2,
+                    10.0f);
+            page.drawString(
+                    f1,
+                    message2,
+                    (page.width - f1.stringWidth(message2))/2,
+                    20.0f);
+
+            // Revert back to the original values:
+            f1.setSize(fontSize);
+            page.tm = tm;
+            page.setBrushColor(brushColor);
+        }
+
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         DeflaterOutputStream dos = new DeflaterOutputStream(baos, new Deflater());
         byte[] buf = page.buf.toByteArray();
@@ -1615,54 +1653,6 @@ public class PDF {
         }
         return numOfChildren;
     }
-
-    /*
-    public void removePages(
-            Set<Integer> pageNumbers,
-            Map<Integer, PDFobj> objects) throws Exception {
-        Set<Integer> pageObjectNumbers = new HashSet<Integer>();
-        List<String> temp = new ArrayList<String>();
-        PDFobj pages = getPagesObject(objects);
-        List<String> dict = pages.getDict();
-        for (int i = 0; i < dict.size(); i++) {
-            if (dict.get(i).equals("/Kids")) {
-                temp.add(dict.get(i++));
-                temp.add(dict.get(i++));
-                int pageNumber = 1;
-                while (!dict.get(i).equals("]")) {
-                    if (!pageNumbers.contains(pageNumber)) {
-                        temp.add(dict.get(i++));
-                        temp.add(dict.get(i++));
-                        temp.add(dict.get(i++));
-                    }
-                    else {
-                        pageObjectNumbers.add(
-                                Integer.valueOf(dict.get(i++)));
-                        i++;
-                        i++;
-                    }
-                    pageNumber++;
-                }
-                temp.add(dict.get(i));
-            }
-            else if (dict.get(i).equals("/Count")) {
-                temp.add(dict.get(i++));
-                int count = Integer.valueOf(dict.get(i)) - pageNumbers.size();
-                temp.add(String.valueOf(count));
-            }
-            else {
-                temp.add(dict.get(i));
-            }
-        }
-
-        pages.setDict(temp);
-        Iterator<Integer> iter = pageObjectNumbers.iterator();
-        while (iter.hasNext()) {
-            objects.remove(iter.next());
-        }
-    }
-
-     */
 
 
     public void addObjects(List<PDFobj> objects) throws Exception {

@@ -1,7 +1,7 @@
 /**
  *  Text.java
  *
-Copyright 2020 Innovatics Inc.
+Copyright 2023 Innovatics Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -21,7 +21,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
 package com.pdfjet;
 
 import java.util.*;
@@ -43,7 +42,6 @@ public class Text implements Drawable {
     private float leading;
     private float paragraphLeading;
     private final List<float[]> beginParagraphPoints;
-    private final List<float[]> endParagraphPoints;
     private float spaceBetweenTextLines;
     private boolean drawBorder = true;
 
@@ -55,7 +53,6 @@ public class Text implements Drawable {
         this.leading = font.getBodyHeight();
         this.paragraphLeading = 2*leading;
         this.beginParagraphPoints = new ArrayList<float[]>();
-        this.endParagraphPoints = new ArrayList<float[]>();
         this.spaceBetweenTextLines = font.stringWidth(fallbackFont, Single.space);
     }
 
@@ -160,7 +157,6 @@ public class Text implements Drawable {
         }
 
         StringBuilder buf = new StringBuilder();
-        boolean firstTextSegment = true;
         for (int i = 0; i < tokens.length; i++) {
             String token = (i == 0) ? tokens[i] : (Single.space + tokens[i]);
             float lineWidth = textLine.font.stringWidth(textLine.fallbackFont, buf.toString());
@@ -179,7 +175,6 @@ public class Text implements Drawable {
                             .setLanguage(textLine.getLanguage())
                             .drawOn(page);
                 }
-                firstTextSegment = false;
                 xText = x1;
                 yText += leading;
                 buf.setLength(0);

@@ -1,7 +1,7 @@
 /**
  *  Cell.java
  *
-Copyright 2020 Innovatics Inc.
+Copyright 2023 Innovatics Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -766,35 +766,35 @@ public class Cell {
                 getBorder(Border.BOTTOM) &&
                 getBorder(Border.LEFT) &&
                 getBorder(Border.RIGHT)) {
-            page.addBMC(StructElem.SPAN, Single.space, Single.space);
+            page.addBMC(StructElem.P, Single.space, Single.space);
             page.drawRect(x, y, cellW, cellH);
             page.addEMC();
         }
         else {
             float qWidth = lineWidth / 4;
             if (getBorder(Border.TOP)) {
-                page.addBMC(StructElem.SPAN, Single.space, Single.space);
+                page.addBMC(StructElem.P, Single.space, Single.space);
                 page.moveTo(x - qWidth, y);
                 page.lineTo(x + cellW, y);
                 page.strokePath();
                 page.addEMC();
             }
             if (getBorder(Border.BOTTOM)) {
-                page.addBMC(StructElem.SPAN, Single.space, Single.space);
+                page.addBMC(StructElem.P, Single.space, Single.space);
                 page.moveTo(x - qWidth, y + cellH);
                 page.lineTo(x + cellW, y + cellH);
                 page.strokePath();
                 page.addEMC();
             }
             if (getBorder(Border.LEFT)) {
-                page.addBMC(StructElem.SPAN, Single.space, Single.space);
+                page.addBMC(StructElem.P, Single.space, Single.space);
                 page.moveTo(x, y - qWidth);
                 page.lineTo(x, y + cellH + qWidth);
                 page.strokePath();
                 page.addEMC();
             }
             if (getBorder(Border.RIGHT)) {
-                page.addBMC(StructElem.SPAN, Single.space, Single.space);
+                page.addBMC(StructElem.P, Single.space, Single.space);
                 page.moveTo(x + cellW, y - qWidth);
                 page.lineTo(x + cellW, y + cellH + qWidth);
                 page.strokePath();
@@ -833,7 +833,7 @@ public class Cell {
         if (getTextAlignment() == Align.RIGHT) {
             if (compositeTextLine == null) {
                 xText = (x + cellW) - (font.stringWidth(text) + this.rightPadding);
-                page.addBMC(StructElem.SPAN, text, text);
+                page.addBMC(StructElem.P, text, text);
                 page.drawString(font, fallbackFont, text, xText, yText);
                 page.addEMC();
                 if (getUnderline()) {
@@ -846,7 +846,7 @@ public class Cell {
             else {
                 xText = (x + cellW) - (compositeTextLine.getWidth() + this.rightPadding);
                 compositeTextLine.setLocation(xText, yText);
-                page.addBMC(StructElem.SPAN, text, text);
+                page.addBMC(StructElem.P, text, text);
                 compositeTextLine.drawOn(page);
                 page.addEMC();
             }
@@ -855,7 +855,7 @@ public class Cell {
             if (compositeTextLine == null) {
                 xText = x + this.leftPadding +
                         (((cellW - (leftPadding + rightPadding)) - font.stringWidth(text)) / 2);
-                page.addBMC(StructElem.SPAN, text, text);
+                page.addBMC(StructElem.P, text, text);
                 page.drawString(font, fallbackFont, text, xText, yText);
                 page.addEMC();
                 if (getUnderline()) {
@@ -869,7 +869,7 @@ public class Cell {
                 xText = x + this.leftPadding +
                         (((cellW - (leftPadding + rightPadding)) - compositeTextLine.getWidth()) / 2);
                 compositeTextLine.setLocation(xText, yText);
-                page.addBMC(StructElem.SPAN, text, text);
+                page.addBMC(StructElem.P, text, text);
                 compositeTextLine.drawOn(page);
                 page.addEMC();
             }
@@ -877,7 +877,7 @@ public class Cell {
         else if (getTextAlignment() == Align.LEFT) {
             xText = x + this.leftPadding;
             if (compositeTextLine == null) {
-                page.addBMC(StructElem.SPAN, text, text);
+                page.addBMC(StructElem.P, text, text);
                 page.drawString(font, fallbackFont, text, xText, yText);
                 page.addEMC();
                 if (getUnderline()) {
@@ -889,7 +889,7 @@ public class Cell {
             }
             else {
                 compositeTextLine.setLocation(xText, yText);
-                page.addBMC(StructElem.SPAN, text, text);
+                page.addBMC(StructElem.P, text, text);
                 compositeTextLine.drawOn(page);
                 page.addEMC();
             }
@@ -917,7 +917,7 @@ public class Cell {
 
     private void underlineText(
             Page page, Font font, String text, float x, float y) {
-        page.addBMC(StructElem.SPAN, "underline", "underline");
+        page.addBMC(StructElem.P, "underline", "underline");
         page.setPenWidth(font.underlineThickness);
         page.moveTo(x, y + font.descent);
         page.lineTo(x + font.stringWidth(text), y + font.descent);
@@ -928,7 +928,7 @@ public class Cell {
 
     private void strikeoutText(
             Page page, Font font, String text, float x, float y) {
-        page.addBMC(StructElem.SPAN, "strike out", "strike out");
+        page.addBMC(StructElem.P, "strike out", "strike out");
         page.setPenWidth(font.underlineThickness);
         page.moveTo(x, y - font.getAscent()/3f);
         page.lineTo(x + font.stringWidth(text), y - font.getAscent()/3f);

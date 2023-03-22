@@ -1,7 +1,7 @@
 /**
  *  Bookmark.java
  *
-Copyright 2020 Innovatics Inc.
+Copyright 2023 Innovatics Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -21,10 +21,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
 package com.pdfjet;
 
-import java.lang.*;
 import java.util.*;
 
 /**
@@ -33,9 +31,12 @@ import java.util.*;
  */
 public class Bookmark {
 
+    protected Page page = null;
+    protected float y = 0f;
+    protected int objNumber = 0;
+    protected String prefix = null;
+
     private int destNumber = 0;
-    private Page page = null;
-    private float y = 0f;
     private String key = null;
     private String title = null;
     private Bookmark parent = null;
@@ -43,10 +44,6 @@ public class Bookmark {
     private Bookmark next = null;
     private List<Bookmark> children = null;
     private Destination dest = null;
-
-    protected int objNumber = 0;
-    protected String prefix = null;
-
 
     public Bookmark(PDF pdf) {
         pdf.toc = this;

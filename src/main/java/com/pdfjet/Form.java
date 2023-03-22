@@ -1,7 +1,7 @@
 /**
  *  Form.java
  *
-Copyright 2020 Innovatics Inc.
+Copyright 2023 Innovatics Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -45,74 +45,154 @@ public class Form implements Drawable {
     private int valueColor = Color.blue;
 
 
+    /**
+     * Creates a Form object
+     * 
+     * @param fields the fields contained in this form
+     */
     public Form(List<Field> fields) {
         this.fields = fields;
     }
 
 
+    /**
+     * Sets the position of this form on the page
+     *
+     * @param x the horizontal position
+     * @param y the vertical position
+     */
     public void setPosition(float x, float y) {
         setLocation(x, y);
     }
 
 
+    /**
+     * Sets the position of this form on the page
+     *
+     * @param x the horizontal position
+     * @param y the vertical position
+     */
     public void setPosition(double x, double y) {
         setLocation(x, y);
     }
 
 
+    /**
+     * Sets the location of this form on the page
+     *
+     * @param x the horizontal location
+     * @param y the vertical locations
+     * @return the form
+     */
     public Form setLocation(float x, float y) {
         this.x = x;
         this.y = y;
         return this;
     }
 
+
+    /**
+     * Sets the location of this form on the page
+     *
+     * @param x the horizontal location
+     * @param y the vertical locations
+     * @return the form
+     */
     public Form setLocation(double x, double y) {
         return setLocation((float) x, (float) y);
     }
 
 
+    /**
+     * Sets the row length
+     * 
+     * @param rowLength the row length
+     * @return this form
+     */
     public Form setRowLength(float rowLength) {
         this.rowLength = rowLength;
         return this;
     }
 
 
+    /**
+     * Sets the row height
+     * 
+     * @param rowHeight the row height
+     * @return this form
+     */
     public Form setRowHeight(float rowHeight) {
         this.rowHeight = rowHeight;
         return this;
     }
 
 
+    /**
+     * Sets the font for the label
+     * 
+     * @param f1 the font
+     * @return this form
+     */
     public Form setLabelFont(Font f1) {
         this.f1 = f1;
         return this;
     }
 
 
+    /**
+     * Sets the size for the label font
+     * 
+     * @param labelFontSize the label font size
+     * @return the form
+     */
     public Form setLabelFontSize(float labelFontSize) {
         this.labelFontSize = labelFontSize;
         return this;
     }
 
 
+    /**
+     * Sets the font for the value
+     * 
+     * @param f2 the value font
+     * @return the form
+     */
     public Form setValueFont(Font f2) {
         this.f2 = f2;
         return this;
     }
 
 
+    /**
+     * Sets the size for the value font
+     * 
+     * @param valueFontSize the font size
+     * @return the form
+     */
     public Form setValueFontSize(float valueFontSize) {
         this.valueFontSize = valueFontSize;
         return this;
     }
 
 
+    /**
+     * Sets the label color
+     * 
+     * @param labelColor the label color
+     * @return the form
+     */
     public Form setLabelColor(int labelColor) {
         this.labelColor = labelColor;
         return this;
     }
 
 
+    /**
+     * Sets the color for the value
+     * 
+     * @param valueColor the value color
+     * @return the form
+     */
     public Form setValueColor(int valueColor) {
         this.valueColor = valueColor;
         return this;
@@ -193,6 +273,15 @@ public class Form implements Drawable {
     }
 
 
+    /**
+     * Formats the form
+     * 
+     * @param title the form title
+     * @param text the form text
+     * @param font the form font
+     * @param width the width of the form
+     * @return the form
+     */
     public static String[] format(String title, String text, Font font, float width) {
 
         String[] original = text.split("\\r?\\n", -1);
