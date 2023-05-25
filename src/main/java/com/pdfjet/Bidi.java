@@ -23,14 +23,12 @@ SOFTWARE.
 */
 package com.pdfjet;
 
-
 /**
  *  Provides BIDI processing for Arabic and Hebrew.
  *
  *  Please see Example_27.
  */
 public class Bidi {
-
 /*
  * General,Isolated,End,Middle,Beginning
  */
@@ -68,7 +66,6 @@ private static final char[] forms = new char[] {
 '\u0649','\uFEEF','\uFEF0','\u0649','\u0649',
 };
 
-
     private static boolean isArabicLetter(char ch) {
         for (int i = 0; i < forms.length; i += 5) {
             if (ch == forms[i]) {
@@ -77,7 +74,6 @@ private static final char[] forms = new char[] {
         }
         return false;
     }
-
 
     /**
      *  Reorders the string so that Arabic and Hebrew text flows from right
@@ -115,35 +111,26 @@ private static final char[] forms = new char[] {
                 }
                 if (ch == '«') {
                     buf1.append('»');
-                }
-                else if (ch == '»') {
+                } else if (ch == '»') {
                     buf1.append('«');
-                }
-                else if (ch == '(') {
+                } else if (ch == '(') {
                     buf1.append(')');
-                }
-                else if (ch == ')') {
+                } else if (ch == ')') {
                     buf1.append('(');
-                }
-                else if (ch == '[') {
+                } else if (ch == '[') {
                     buf1.append(']');
-                }
-                else if (ch == ']') {
+                } else if (ch == ']') {
                     buf1.append('[');
-                }
-                else {
+                } else {
                     buf1.append(ch);
                 }
-            }
-            else if (isAlphaNumeric(ch)) {
+            } else if (isAlphaNumeric(ch)) {
                 rightToLeft = false;
                 buf2.append(ch);
-            }
-            else {
+            } else {
                 if (rightToLeft) {
                     buf1.append(ch);
-                }
-                else {
+                } else {
                     buf2.append(ch);
                 }
             }
@@ -162,36 +149,29 @@ private static final char[] forms = new char[] {
                     if (ch == forms[j]) {
                         if (!isArabicLetter(prevCh) && !isArabicLetter(nextCh)) {
                             buf3.append(forms[j + 1]);  // Isolated
-                        }
-                        else if (isArabicLetter(prevCh) && !isArabicLetter(nextCh)) {
+                        } else if (isArabicLetter(prevCh) && !isArabicLetter(nextCh)) {
                             buf3.append(forms[j + 2]);  // End
-                        }
-                        else if (isArabicLetter(prevCh) && isArabicLetter(nextCh)) {
+                        } else if (isArabicLetter(prevCh) && isArabicLetter(nextCh)) {
                             buf3.append(forms[j + 3]);  // Middle
-                        }
-                        else if (!isArabicLetter(prevCh) && isArabicLetter(nextCh)) {
+                        } else if (!isArabicLetter(prevCh) && isArabicLetter(nextCh)) {
                             buf3.append(forms[j + 4]);  // Beginning
                         }
                     }
                 }
-            }
-            else {
+            } else {
                 buf3.append(ch);
             }
         }
         return buf3.toString();
     }
 
-
     public static boolean isArabic(char ch) {
         return (ch >= 0x600 && ch <= 0x6FF);
     }
 
-
     private static boolean isHebrew(char ch) {
         return (ch >= 0x0591 && ch <= 0x05F4);
     }
-
 
     private static boolean isAlphaNumeric(char ch) {
         if (ch >= '0' && ch <= '9') {
@@ -205,7 +185,6 @@ private static final char[] forms = new char[] {
         }
         return false;
     }
-
 
     private static StringBuilder process(StringBuilder buf) {
         StringBuilder buf1 = buf.reverse();
@@ -223,5 +202,4 @@ private static final char[] forms = new char[] {
         }
         return buf3;
     }
-
 }

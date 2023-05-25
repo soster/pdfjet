@@ -27,7 +27,6 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-
 /**
  * Used to embed SVG images in the PDF document.
  */
@@ -36,6 +35,7 @@ public class SVGImage {
     float y = 0f;
     float w = 0f;       // SVG width
     float h = 0f;       // SVG height
+    String viewBox = null;
     int fill = Color.transparent;
     int stroke = Color.transparent;
     float strokeWidth = 0f;
@@ -52,8 +52,18 @@ public class SVGImage {
     /**
      * Used to embed SVG images in the PDF document.
      *
+     * @param filePath the file path.
+     * @throws Exception if exception occurred.
+     */
+    public SVGImage(String filePath) throws Exception {
+        this(new BufferedInputStream(new FileInputStream(filePath)));
+    }
+
+    /**
+     * Used to embed SVG images in the PDF document.
+     *
      * @param stream the input stream.
-     * @throws Exception  if exception occurred.
+     * @throws Exception if exception occurred.
      */
     public SVGImage(InputStream stream) throws Exception {
         colorMap = new ColorMap();
@@ -78,6 +88,10 @@ public class SVGImage {
             } else if (!token && buf.toString().endsWith(" height=")) {
                 token = true;
                 param = "height";
+                buf.setLength(0);
+            } else if (!token && buf.toString().endsWith(" viewBox=")) {
+                token = true;
+                param = "viewBox";
                 buf.setLength(0);
             } else if (!token && buf.toString().endsWith(" d=")) {
                 token = true;
@@ -105,6 +119,8 @@ public class SVGImage {
                     this.w = Float.valueOf(buf.toString());
                 } else if (param.equals("height")) {
                     this.h = Float.valueOf(buf.toString());
+                } else if (param.equals("viewBox")) {
+                    this.viewBox = buf.toString();
                 } else if (param.equals("data")) {
                     path.data = buf.toString();
                 } else if (param.equals("fill")) {
@@ -142,11 +158,31 @@ public class SVGImage {
             paths.add(path);
         }
         stream.close();
+        processPaths(paths);
+    }
 
-        for (int i = 0; i < paths.size(); i++) {
-            path = paths.get(i);
+    private void processPaths(List<SVGPath> paths) {
+        float[] box = new float[4];
+        if (viewBox != null) {
+            String[] list = viewBox.trim().split("\\s+");
+            box[0] = Float.valueOf(list[0]);
+            box[1] = Float.valueOf(list[1]);
+            box[2] = Float.valueOf(list[2]);
+            box[3] = Float.valueOf(list[3]);
+        }
+        for (SVGPath path : paths) {
             path.operations = SVG.getOperations(path.data);
             path.operations = SVG.toPDF(path.operations);
+            if (viewBox != null) {
+                for (PathOp op : path.operations) {
+                    op.x = (op.x - box[0]) * w / box[2];
+                    op.y = (op.y - box[1]) * h / box[3];
+                    op.x1 = (op.x1 - box[0]) * w / box[2];
+                    op.y1 = (op.y1 - box[1]) * h / box[3];
+                    op.x2 = (op.x2 - box[0]) * w / box[2];
+                    op.y2 = (op.y2 - box[1]) * h / box[3];
+                }
+            }
         }
     }
 
@@ -163,8 +199,17 @@ public class SVGImage {
         return this;
     }
 
-    public void setScale(float factor) {
-        // TODO:
+    public void scaleBy(float factor) {
+        for (SVGPath path : paths) {
+            for (PathOp op : path.operations) {
+                op.x1 *= factor;
+                op.y1 *= factor;
+                op.x2 *= factor;
+                op.y2 *= factor;
+                op.x *= factor;
+                op.y *= factor;
+            }
+        }
     }
 
     public float getWidth() {

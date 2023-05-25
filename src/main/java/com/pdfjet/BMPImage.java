@@ -23,13 +23,11 @@ SOFTWARE.
 */
 package com.pdfjet;
 
-
 import java.io.ByteArrayOutputStream;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 
 class BMPImage {
-
     int w = 0;              // Image width in pixels
     int h = 0;              // Image height in pixels
 
@@ -76,8 +74,7 @@ class BMPImage {
                 if (offset > 54) {
                     skipNBytes(is, offset-54);
                 }
-            }
-            else {
+            } else {
                 skipNBytes(is, 12);
                 int numpalcol = readSignedInt(is);
                 if (numpalcol == 0) {
@@ -87,8 +84,7 @@ class BMPImage {
                 parsePalette(is, numpalcol);
             }
             parseData(is);
-        }
-        else {
+        } else {
             throw new Exception("BMP data could not be parsed!");
         }
 
@@ -109,10 +105,11 @@ class BMPImage {
                 case  4: row = bit4to8(row, w); break;  // opslag i palette
                 case  8: break;                         // opslag i palette
                 case 16:
-                    if (r5g6b5)
+                    if (r5g6b5) {
                         row = bit16to24(row, w);        // 5,6,5 bit
-                    else
+                    } else {
                         row = bit16to24b(row, w);
+                    }
                     break;
                 case 24: break;                         // bytes are correct
                 case 32: row = bit32to24(row, w); break;
@@ -188,8 +185,7 @@ class BMPImage {
         for(int i = 0; i < width; i++) {
             if (i % 2 == 0) {
                 ret[i] =(byte) ((row[i/2] & m11110000)>>4);
-            }
-            else {
+            } else {
                 ret[i] =(byte) ((row[i/2] & m00001111));
             }
         }
@@ -268,5 +264,4 @@ class BMPImage {
     public byte[] getData() {
         return this.deflated;
     }
-
 }

@@ -32,7 +32,6 @@ import java.util.*;
  *  Used to create composite text line objects.
  */
 public class CompositeTextLine implements Drawable {
-
     private static final int X = 0;
     private static final int Y = 1;
 
@@ -51,14 +50,12 @@ public class CompositeTextLine implements Drawable {
 
     private float fontSize = 0f;
 
-
     public CompositeTextLine(float x, float y) {
         position[X] = x;
         position[Y] = y;
         current[X]  = x;
         current[Y]  = y;
     }
-
 
     /**
      *  Sets the font size.
@@ -69,7 +66,6 @@ public class CompositeTextLine implements Drawable {
         this.fontSize = fontSize;
     }
 
-
     /**
      *  Gets the font size.
      *
@@ -78,7 +74,6 @@ public class CompositeTextLine implements Drawable {
     public float getFontSize() {
         return fontSize;
     }
-
 
     /**
      *  Sets the superscript factor for this composite text line.
@@ -89,7 +84,6 @@ public class CompositeTextLine implements Drawable {
         this.superscriptSizeFactor = superscript;
     }
 
-
     /**
      *  Gets the superscript factor for this text line.
      *
@@ -98,7 +92,6 @@ public class CompositeTextLine implements Drawable {
     public float getSuperscriptFactor() {
         return superscriptSizeFactor;
     }
-
 
     /**
      *  Sets the subscript factor for this composite text line.
@@ -109,7 +102,6 @@ public class CompositeTextLine implements Drawable {
         this.subscriptSizeFactor = subscript;
     }
 
-
     /**
      *  Gets the subscript factor for this text line.
      *
@@ -118,7 +110,6 @@ public class CompositeTextLine implements Drawable {
     public float getSubscriptFactor() {
         return subscriptSizeFactor;
     }
-
 
     /**
      *  Sets the superscript position for this composite text line.
@@ -129,7 +120,6 @@ public class CompositeTextLine implements Drawable {
         this.superscriptPosition = superscriptPosition;
     }
 
-
     /**
      *  Gets the superscript position for this text line.
      *
@@ -138,7 +128,6 @@ public class CompositeTextLine implements Drawable {
     public float getSuperscriptPosition() {
         return superscriptPosition;
     }
-
 
     /**
      *  Sets the subscript position for this composite text line.
@@ -149,7 +138,6 @@ public class CompositeTextLine implements Drawable {
         this.subscriptPosition = subscriptPosition;
     }
 
-
     /**
      *  Gets the subscript position for this text line.
      *
@@ -158,7 +146,6 @@ public class CompositeTextLine implements Drawable {
     public float getSubscriptPosition() {
         return subscriptPosition;
     }
-
 
     /**
      *  Add a new text line.
@@ -178,16 +165,14 @@ public class CompositeTextLine implements Drawable {
             component.setLocation(
                     current[X],
                     current[Y] - fontSize * superscriptPosition);
-        }
-        else if (component.getTextEffect() == Effect.SUBSCRIPT) {
+        } else if (component.getTextEffect() == Effect.SUBSCRIPT) {
             if (fontSize > 0f) {
                 component.font.setSize(fontSize * subscriptSizeFactor);
             }
             component.setLocation(
                     current[X],
                     current[Y] + fontSize * subscriptPosition);
-        }
-        else {
+        } else {
             if (fontSize > 0f) {
                 component.getFont().setSize(fontSize);
             }
@@ -196,7 +181,6 @@ public class CompositeTextLine implements Drawable {
         current[X] += component.getWidth();
         textLines.add(component);
     }
-
 
     /**
      *  Loop through all the text lines and reset their position based on
@@ -209,7 +193,7 @@ public class CompositeTextLine implements Drawable {
         setLocation(x, y);
     }
 
-     /**
+    /**
      *  Loop through all the text lines and reset their position based on
      *  the new position set here.
      *
@@ -220,7 +204,6 @@ public class CompositeTextLine implements Drawable {
         setLocation(x, y);
     }
 
-
     public void setXY(float x, float y) {
         setLocation(x, y);
     }
@@ -228,7 +211,6 @@ public class CompositeTextLine implements Drawable {
     public void setXY(double x, double y) {
         setLocation(x, y);
     }
-
 
     /**
      *  Loop through all the text lines and reset their location based on
@@ -253,13 +235,11 @@ public class CompositeTextLine implements Drawable {
                 component.setLocation(
                         current[X],
                         current[Y] - fontSize * superscriptPosition);
-            }
-            else if (component.getTextEffect() == Effect.SUBSCRIPT) {
+            } else if (component.getTextEffect() == Effect.SUBSCRIPT) {
                 component.setLocation(
                         current[X],
                         current[Y] + fontSize * subscriptPosition);
-            }
-            else {
+            } else {
                 component.setLocation(current[X], current[Y]);
             }
             current[X] += component.getWidth();
@@ -279,7 +259,6 @@ public class CompositeTextLine implements Drawable {
         return setLocation((float) x, (float) y);
     }
 
-
     /**
      *  Return the position of this composite text line.
      *
@@ -288,7 +267,6 @@ public class CompositeTextLine implements Drawable {
     public float[] getPosition() {
         return position;
     }
-
 
     /**
      *  Return the nth entry in the TextLine array.
@@ -306,7 +284,6 @@ public class CompositeTextLine implements Drawable {
         return textLines.get(index);
     }
 
-
     /**
      *  Returns the number of text lines.
      *
@@ -315,7 +292,6 @@ public class CompositeTextLine implements Drawable {
     public int getNumberOfTextLines() {
        return textLines.size();
     }
-
 
     /**
      *  Returns the vertical coordinates of the top left and bottom right corners
@@ -333,13 +309,11 @@ public class CompositeTextLine implements Drawable {
                 cur = (position[Y] - component.font.ascent) - fontSize * superscriptPosition;
                 if (cur < min)
                     min = cur;
-            }
-            else if (component.getTextEffect() == Effect.SUBSCRIPT) {
+            } else if (component.getTextEffect() == Effect.SUBSCRIPT) {
                 cur = (position[Y] + component.font.descent) + fontSize * subscriptPosition;
                 if (cur > max)
                     max = cur;
-            }
-            else {
+            } else {
                 cur = position[Y] - component.font.ascent;
                 if (cur < min)
                     min = cur;
@@ -352,7 +326,6 @@ public class CompositeTextLine implements Drawable {
         return new float[] {min, max};
     }
 
-
     /**
      *  Returns the height of this CompositeTextLine.
      *
@@ -363,7 +336,6 @@ public class CompositeTextLine implements Drawable {
         return yy[1] - yy[0];
     }
 
-
     /**
      *  Returns the width of this CompositeTextLine.
      *
@@ -372,7 +344,6 @@ public class CompositeTextLine implements Drawable {
     public float getWidth() {
         return (current[X] - position[X]);
     }
-
 
     /**
      *  Draws this line on the specified page.
@@ -392,5 +363,4 @@ public class CompositeTextLine implements Drawable {
         }
         return new float[] {xMax, yMax};
     }
-
 }

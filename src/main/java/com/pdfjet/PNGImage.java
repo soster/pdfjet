@@ -27,7 +27,6 @@ import java.io.*;
 import java.util.*;
 import java.util.zip.*;
 
-
 /**
  * Used to embed PNG images in the PDF document.
  * <p>
@@ -40,7 +39,6 @@ import java.util.zip.*;
  *     optipng -i0 -o7 myimage.png
  */
 public class PNGImage {
-
     int w;                      // Image width in pixels
     int h;                      // Image height in pixels
 
@@ -53,7 +51,6 @@ public class PNGImage {
 
     private byte bitDepth = 8;
     private byte colorType = 0;
-
 
     /**
      * Used to embed PNG images in the PDF document.
@@ -73,7 +70,6 @@ public class PNGImage {
                 this.h = toIntValue(chunk.getData(), 4);    // Height
                 this.bitDepth = chunk.getData()[8];         // Bit Depth
                 this.colorType = chunk.getData()[9];        // Color Type
-
                 // System.out.println(
                 //         "Bit Depth == " + chunk.getData()[8]);
                 // System.out.println(
@@ -81,97 +77,74 @@ public class PNGImage {
                 // System.out.println(chunk.getData()[10]);
                 // System.out.println(chunk.getData()[11]);
                 // System.out.println(chunk.getData()[12]);
-
                 if (chunk.getData()[12] == 1) {
                     System.out.println("Interlaced PNG images are not supported.\nConvert the image using OptiPNG:\noptipng -i0 -o7 myimage.png\n");
                 }
-            }
-            else if (chunkType.equals("IDAT")) {
+            } else if (chunkType.equals("IDAT")) {
                 iDAT = appendIdatChunk(iDAT, chunk.getData());
-            }
-            else if (chunkType.equals("PLTE")) {
+            } else if (chunkType.equals("PLTE")) {
                 pLTE = chunk.getData();
                 if (pLTE.length % 3 != 0) {
                     throw new Exception("Incorrect palette length.");
                 }
-            }
-            else if (chunkType.equals("gAMA")) {
+            } else if (chunkType.equals("gAMA")) {
                 // System.out.println("gAMA chunk found!");
-            }
-            else if (chunkType.equals("tRNS")) {
+            } else if (chunkType.equals("tRNS")) {
                 if (colorType == 3) {
                     tRNS = chunk.getData();
                 }
-            }
-            else if (chunkType.equals("cHRM")) {
+            } else if (chunkType.equals("cHRM")) {
                 // System.out.println("cHRM chunk found!");
-            }
-            else if (chunkType.equals("sBIT")) {
+            } else if (chunkType.equals("sBIT")) {
                 // System.out.println("sBIT chunk found!");
-            }
-            else if (chunkType.equals("bKGD")) {
+            } else if (chunkType.equals("bKGD")) {
                 // System.out.println("bKGD chunk found!");
             }
         }
 
         byte[] inflatedImageData = Decompressor.inflate(iDAT);
-
         byte[] image;
         if (colorType == 0) {
             // Grayscale Image
             if (bitDepth == 16) {
                 image = getImageColorType0BitDepth16(inflatedImageData);
-            }
-            else if (bitDepth == 8) {
+            } else if (bitDepth == 8) {
                 image = getImageColorType0BitDepth8(inflatedImageData);
-            }
-            else if (bitDepth == 4) {
+            } else if (bitDepth == 4) {
                 image = getImageColorType0BitDepth4(inflatedImageData);
-            }
-            else if (bitDepth == 2) {
+            } else if (bitDepth == 2) {
                 image = getImageColorType0BitDepth2(inflatedImageData);
-            }
-            else if (bitDepth == 1) {
+            } else if (bitDepth == 1) {
                 image = getImageColorType0BitDepth1(inflatedImageData);
-            }
-            else {
+            } else {
                 throw new Exception("Image with unsupported bit depth == " + bitDepth);
             }
-        }
-        else if (colorType == 6) {
+        } else if (colorType == 6) {
             if (bitDepth == 8) {
                 image = getImageColorType6BitDepth8(inflatedImageData);
-            }
-            else {
+            } else {
                 throw new Exception("Image with unsupported bit depth == " + bitDepth);
             }
-        }
-        else {
+        } else {
             // Color Image
             if (pLTE == null) {
                 // Trucolor Image
                 if (bitDepth == 16) {
                     image = getImageColorType2BitDepth16(inflatedImageData);
-                }
-                else {
+                } else {
                     image = getImageColorType2BitDepth8(inflatedImageData);
                 }
-            }
-            else {
+            } else {
                 // Indexed Image
                 if (bitDepth == 8) {
                     image = getImageColorType3BitDepth8(inflatedImageData);
-                }
-                else if (bitDepth == 4) {
+                } else if (bitDepth == 4) {
                     image = getImageColorType3BitDepth4(inflatedImageData);
-                }
-                else if (bitDepth == 2) {
+                } else if (bitDepth == 2) {
                     image = getImageColorType3BitDepth2(inflatedImageData);
-                }
-                else if (bitDepth == 1) {
+                } else if (bitDepth == 1) {
                     image = getImageColorType3BitDepth1(inflatedImageData);
-                }
-                else {
+                } else {
                     throw new Exception("Image with unsupported bit depth == " + bitDepth);
                 }
             }
@@ -180,40 +153,32 @@ public class PNGImage {
         deflatedImageData = Compressor.deflate(image);
     }
 
-
     public int getWidth() {
         return this.w;
     }
-
 
     public int getHeight() {
         return this.h;
     }
 
-
     public int getColorType() {
         return this.colorType;
     }
-
 
     public int getBitDepth() {
         return this.bitDepth;
     }
 
-
     public byte[] getData() {
         return this.deflatedImageData;
     }
-
 
     public byte[] getAlpha() {
         return this.deflatedAlphaData;
     }
 
-
     private List<Chunk> processPNG(InputStream inputStream) throws Exception {
         List<Chunk> chunks = new ArrayList<Chunk>();
-
         while (true) {
             Chunk chunk = getChunk(inputStream);
             if ((new String(chunk.type)).equals("IEND")) {
@@ -221,17 +186,14 @@ public class PNGImage {
             }
             chunks.add(chunk);
         }
-
         return chunks;
     }
 
-
-    private void validatePNG(InputStream inputStream) throws Exception {
+    private void validatePNG(InputStream stream) throws Exception {
         byte[] buf = new byte[8];
-        if (inputStream.read(buf, 0, buf.length) == -1) {
+        if (stream.read(buf, 0, buf.length) == -1) {
             throw new Exception("File is too short!");
         }
-
         if ((buf[0] & 0xFF) == 0x89 &&
                 buf[1] == 0x50 &&
                 buf[2] == 0x4E &&
@@ -241,12 +203,10 @@ public class PNGImage {
                 buf[6] == 0x1A &&
                 buf[7] == 0x0A) {
             // The PNG signature is correct.
-        }
-        else {
+        } else {
             throw new Exception("Wrong PNG signature.");
         }
     }
-
 
     private Chunk getChunk(InputStream inputStream) throws Exception {
         Chunk chunk = new Chunk();
@@ -264,12 +224,10 @@ public class PNGImage {
         return chunk;
     }
 
-
     private long getLong(InputStream inputStream) throws Exception {
         byte[] buf = getNBytes(inputStream, 4);
         return (toIntValue(buf, 0) & 0x00000000ffffffffL);
     }
-
 
     private byte[] getNBytes(InputStream inputStream, long length) throws Exception {
         byte[] buf = new byte[(int) length];
@@ -279,7 +237,6 @@ public class PNGImage {
         return buf;
     }
 
-
     private int toIntValue(byte[] buf, int off) {
         return (buf[off] & 0xff) << 24 |
                 (buf[off + 1] & 0xff) << 16 |
@@ -287,11 +244,9 @@ public class PNGImage {
                 (buf[off + 3] & 0xff);
     }
 
-
     // Truecolor Image with Bit Depth == 16
     private byte[] getImageColorType2BitDepth16(byte[] buf) {
         byte[] image = new byte[buf.length - this.h];
-
         byte[] filters = new byte[this.h];
         int bytesPerLine = 6 * this.w + 1;
         int k = 0;
@@ -299,21 +254,17 @@ public class PNGImage {
         for (int i = 0; i < buf.length; i++) {
             if (i % bytesPerLine == 0) {
                 filters[j++] = buf[i];
-            }
-            else {
+            } else {
                 image[k++] = buf[i];
             }
         }
         applyFilters(filters, image, this.w, this.h, 6);
-
         return image;
     }
-
 
     // Truecolor Image with Bit Depth == 8
     private byte[] getImageColorType2BitDepth8(byte[] buf) {
         byte[] image = new byte[buf.length - this.h];
-
         byte[] filters = new byte[this.h];
         int bytesPerLine = 3 * this.w + 1;
         int k = 0;
@@ -321,22 +272,18 @@ public class PNGImage {
         for (int i = 0; i < buf.length; i++) {
             if (i % bytesPerLine == 0) {
                 filters[j++] = buf[i];
-            }
-            else {
+            } else {
                 image[k++] = buf[i];
             }
         }
         applyFilters(filters, image, this.w, this.h, 3);
-
         return image;
     }
-
 
     // Truecolor Image with Alpha Transparency
     private byte[] getImageColorType6BitDepth8(byte[] buf) {
         byte[] idata = new byte[3 * this.w * this.h];   // Image data
         byte[] alpha = new byte[this.w * this.h];       // Alpha values
-
         byte[] image = new byte[4 * this.w * this.h];
         byte[] filters = new byte[this.h];
         int bytesPerLine = 4 * this.w + 1;
@@ -346,13 +293,11 @@ public class PNGImage {
         for (; i < buf.length; i++) {
             if (i % bytesPerLine == 0) {
                 filters[j++] = buf[i];
-            }
-            else {
+            } else {
                 image[k++] = buf[i];
             }
         }
         applyFilters(filters, image, this.w, this.h, 4);
-
         k = 0;
         j = 0;
         i = 0;
@@ -363,16 +308,13 @@ public class PNGImage {
             alpha[k++] = image[i++];
         }
         deflatedAlphaData = Compressor.deflate(alpha);
-
         return idata;
     }
-
 
     // Indexed-color image with bit depth == 8
     // Each value is a palette index; a PLTE chunk shall appear.
     private byte[] getImageColorType3BitDepth8(byte[] buf) {
         byte[] image = new byte[3 * (this.w * this.h)];
-
         byte[] filters = new byte[this.h];
         byte[] alpha = null;
         if (tRNS != null) {
@@ -387,8 +329,7 @@ public class PNGImage {
         for (int i = 0; i < buf.length; i++) {
             if (i % bytesPerLine == 0) {
                 filters[m++] = buf[i];
-            }
-            else {
+            } else {
                 int k = ((int) buf[i]) & 0xff;
                 if (tRNS != null && k < tRNS.length) {
                     alpha[n] = tRNS[k];
@@ -400,7 +341,6 @@ public class PNGImage {
             }
         }
         applyFilters(filters, image, this.w, this.h, 3);
-
         if (tRNS != null) {
             deflatedAlphaData = Compressor.deflate(alpha);
         }
@@ -408,11 +348,9 @@ public class PNGImage {
         return image;
     }
 
-
     // Indexed Image with Bit Depth == 4
     private byte[] getImageColorType3BitDepth4(byte[] buf) {
         byte[] image = new byte[6 * (buf.length - this.h)];
-
         int bytesPerLine = this.w / 2 + 1;
         if (this.w % 2 > 0) {
             bytesPerLine += 1;
@@ -427,14 +365,12 @@ public class PNGImage {
             }
 
             int l = buf[i];
-
             k = 3 * ((l >> 4) & 0x0000000f);
             image[j++] = pLTE[k];
             image[j++] = pLTE[k + 1];
             image[j++] = pLTE[k + 2];
 
             if (j % (3 * this.w) == 0) continue;
-
             k = 3 * (l & 0x0000000f);
             image[j++] = pLTE[k];
             image[j++] = pLTE[k + 1];
@@ -444,11 +380,9 @@ public class PNGImage {
         return image;
     }
 
-
     // Indexed Image with Bit Depth == 2
     private byte[] getImageColorType3BitDepth2(byte[] buf) {
         byte[] image = new byte[12 * (buf.length - this.h)];
-
         int bytesPerLine = this.w / 4 + 1;
         if (this.w % 4 > 0) {
             bytesPerLine += 1;
@@ -494,11 +428,9 @@ public class PNGImage {
         return image;
     }
 
-
     // Indexed Image with Bit Depth == 1
     private byte[] getImageColorType3BitDepth1(byte[] buf) {
         byte[] image = new byte[24 * (buf.length - this.h)];
-
         int bytesPerLine = this.w / 8 + 1;
         if (this.w % 8 > 0) {
             bytesPerLine += 1;
@@ -572,11 +504,9 @@ public class PNGImage {
         return image;
     }
 
-
     // Grayscale Image with Bit Depth == 16
     private byte[] getImageColorType0BitDepth16(byte[] buf) {
         byte[] image = new byte[buf.length - this.h];
-
         byte[] filters = new byte[this.h];
         int bytesPerLine = 2 * this.w + 1;
         int k = 0;
@@ -585,22 +515,18 @@ public class PNGImage {
             if (i % bytesPerLine == 0) {
                 filters[j] = buf[i];
                 j += 1;
-            }
-            else {
+            } else {
                 image[k] = buf[i];
                 k += 1;
             }
         }
         applyFilters(filters, image, this.w, this.h, 2);
-
         return image;
     }
-
 
     // Grayscale Image with Bit Depth == 8
     private byte[] getImageColorType0BitDepth8(byte[] buf) {
         byte[] image = new byte[buf.length - this.h];
-
         byte[] filters = new byte[this.h];
         int bytesPerLine = this.w + 1;
         int k = 0;
@@ -608,76 +534,61 @@ public class PNGImage {
         for (int i = 0; i < buf.length; i++) {
             if (i % bytesPerLine == 0) {
                 filters[j++] = buf[i];
-            }
-            else {
+            } else {
                 image[k++] = buf[i];
             }
         }
         applyFilters(filters, image, this.w, this.h, 1);
-
         return image;
     }
-
 
     // Grayscale Image with Bit Depth == 4
     private byte[] getImageColorType0BitDepth4(byte[] buf) {
         byte[] image = new byte[buf.length - this.h];
-
         int bytesPerLine = this.w / 2 + 1;
         if (this.w % 2 > 0) {
             bytesPerLine += 1;
         }
-
         int j = 0;
         for (int i = 0; i < buf.length; i++) {
             if (i % bytesPerLine != 0) {
                 image[j++] = buf[i];
             }
         }
-
         return image;
     }
-
 
     // Grayscale Image with Bit Depth == 2
     private byte[] getImageColorType0BitDepth2(byte[] buf) {
         byte[] image = new byte[buf.length - this.h];
-
         int bytesPerLine = this.w / 4 + 1;
         if (this.w % 4 > 0) {
             bytesPerLine += 1;
         }
-
         int j = 0;
         for (int i = 0; i < buf.length; i++) {
             if (i % bytesPerLine != 0) {
                 image[j++] = buf[i];
             }
         }
-
         return image;
     }
-
 
     // Grayscale Image with Bit Depth == 1
     private byte[] getImageColorType0BitDepth1(byte[] buf) {
         byte[] image = new byte[buf.length - this.h];
-
         int bytesPerLine = this.w / 8 + 1;
         if (this.w % 8 > 0) {
             bytesPerLine += 1;
         }
-
         int j = 0;
         for (int i = 0; i < buf.length; i++) {
             if (i % bytesPerLine != 0) {
                 image[j++] = buf[i];
             }
         }
-
         return image;
     }
-
 
     private void applyFilters(
             byte[] filters,
@@ -712,25 +623,20 @@ public class PNGImage {
                 int index = bytesPerLine * row + col;
                 if (filter == 0x01) {           // Sub
                     image[index] += (byte) a;
-                }
-                else if (filter == 0x02) {      // Up
+                } else if (filter == 0x02) {      // Up
                     image[index] += (byte) b;
-                }
-                else if (filter == 0x03) {      // Average
+                } else if (filter == 0x03) {      // Average
                     image[index] += (byte) Math.floor((a + b) / 2.0);
-                }
-                else if (filter == 0x04) {      // Paeth
+                } else if (filter == 0x04) {      // Paeth
                     int p = a + b - c;
                     int pa = Math.abs(p - a);
                     int pb = Math.abs(p - b);
                     int pc = Math.abs(p - c);
                     if (pa <= pb && pa <= pc) {
                         image[index] += (byte) a;
-                    }
-                    else if (pb <= pc) {
+                    } else if (pb <= pc) {
                         image[index] += (byte) b;
-                    }
-                    else {
+                    } else {
                         image[index] += (byte) c;
                     }
                 }
@@ -738,12 +644,10 @@ public class PNGImage {
         }
     }
 
-
     private byte[] appendIdatChunk(byte[] array1, byte[] array2) {
         if (array1 == null) {
             return array2;
-        }
-        else if (array2 == null) {
+        } else if (array2 == null) {
             return array1;
         }
         byte[] joinedArray = new byte[array1.length + array2.length];
@@ -751,7 +655,6 @@ public class PNGImage {
         System.arraycopy(array2, 0, joinedArray, array1.length, array2.length);
         return joinedArray;
     }
-
 /*
     public static void main(String[] args) throws Exception {
         FileInputStream fis = new FileInputStream(args[0]);
@@ -773,8 +676,7 @@ public class PNGImage {
             bos.write(1);
             writeInt(alpha.length, bos);
             bos.write(alpha);
-        }
-        else {
+        } else {
             bos.write(0);
         }
         writeInt(image.length, bos);
@@ -783,7 +685,6 @@ public class PNGImage {
         bos.close();
     }
 
-
     private static void writeInt(int i, OutputStream os) throws IOException {
         os.write((i >> 24) & 0xff);
         os.write((i >> 16) & 0xff);
@@ -791,5 +692,4 @@ public class PNGImage {
         os.write((i >>  0) & 0xff);
     }
 */
-
 }   // End of PNGImage.java

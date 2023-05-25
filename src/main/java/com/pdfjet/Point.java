@@ -21,9 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
 package com.pdfjet;
-
 
 /**
  *  Used to create point objects with different shapes and draw them on a page.
@@ -32,7 +30,6 @@ package com.pdfjet;
  *  Please see Example_05.
  */
 public class Point implements Drawable {
-
     public static final int INVISIBLE = -1;
     public static final int CIRCLE = 0;
     public static final int DIAMOND = 1;
@@ -75,7 +72,6 @@ public class Point implements Drawable {
     public Point() {
     }
 
-
     /**
      *  Constructor for creating point objects.
      *
@@ -85,7 +81,6 @@ public class Point implements Drawable {
     public Point(double x, double y) {
         this((float) x, (float) y);
     }
-
 
     /**
      *  Constructor for creating point objects.
@@ -98,7 +93,6 @@ public class Point implements Drawable {
         this.y = y;
     }
 
-
     /**
      *  Constructor for creating point objects.
      *
@@ -109,7 +103,6 @@ public class Point implements Drawable {
     public Point(double x, double y, boolean isControlPoint) {
         this((float) x, (float) y, isControlPoint);
     }
-
 
     /**
      *  Constructor for creating point objects.
@@ -123,7 +116,6 @@ public class Point implements Drawable {
         this.y = y;
         this.isControlPoint = isControlPoint;
     }
-
 
     /**
      *  Sets the position (x, y) of this point.
@@ -153,7 +145,6 @@ public class Point implements Drawable {
         setLocation(x, y);
     }
 
-
     /**
      *  Sets the location (x, y) of this point.
      *
@@ -178,7 +169,6 @@ public class Point implements Drawable {
         return setLocation((float) x, (float) y);
     }
 
-
     /**
      *  Sets the x coordinate of this point.
      *
@@ -187,7 +177,6 @@ public class Point implements Drawable {
     public void setX(double x) {
         this.x = (float) x;
     }
-
 
     /**
      *  Sets the x coordinate of this point.
@@ -198,7 +187,6 @@ public class Point implements Drawable {
         this.x = x;
     }
 
-
     /**
      *  Returns the x coordinate of this point.
      *
@@ -207,7 +195,6 @@ public class Point implements Drawable {
     public float getX() {
         return x;
     }
-
 
     /**
      *  Sets the y coordinate of this point.
@@ -218,7 +205,6 @@ public class Point implements Drawable {
         this.y = (float) y;
     }
 
-
     /**
      *  Sets the y coordinate of this point.
      *
@@ -227,7 +213,6 @@ public class Point implements Drawable {
     public void setY(float y) {
         this.y = y;
     }
-
 
     /**
      *  Returns the y coordinate of this point.
@@ -238,7 +223,6 @@ public class Point implements Drawable {
         return y;
     }
 
-
     /**
      *  Sets the radius of this point.
      *
@@ -247,7 +231,6 @@ public class Point implements Drawable {
     public void setRadius(double r) {
         this.r = (float) r;
     }
-
 
     /**
      *  Sets the radius of this point.
@@ -258,7 +241,6 @@ public class Point implements Drawable {
         this.r = r;
     }
 
-
     /**
      *  Returns the radius of this point.
      *
@@ -267,7 +249,6 @@ public class Point implements Drawable {
     public float getRadius() {
         return r;
     }
-
 
     /**
      *  Sets the shape of this point.
@@ -294,7 +275,6 @@ public class Point implements Drawable {
         this.shape = shape;
     }
 
-
     /**
      *  Returns the point shape code value.
      *
@@ -303,7 +283,6 @@ public class Point implements Drawable {
     public int getShape() {
         return shape;
     }
-
 
     /**
      *  Sets the private fillShape variable.
@@ -314,7 +293,6 @@ public class Point implements Drawable {
         this.fillShape = fillShape;
     }
 
-
     /**
      *  Returns the value of the fillShape private variable.
      *
@@ -323,7 +301,6 @@ public class Point implements Drawable {
     public boolean getFillShape() {
         return this.fillShape;
     }
-
 
     /**
      *  Sets the pen color for this point.
@@ -336,7 +313,6 @@ public class Point implements Drawable {
         return this;
     }
 
-
     /**
      *  Returns the point color as an integer.
      *
@@ -345,7 +321,6 @@ public class Point implements Drawable {
     public int getColor() {
         return this.color;
     }
-
 
     /**
      *  Sets the width of the lines of this point.
@@ -356,7 +331,6 @@ public class Point implements Drawable {
         this.lineWidth = (float) lineWidth;
     }
 
-
     /**
      *  Sets the width of the lines of this point.
      *
@@ -366,7 +340,6 @@ public class Point implements Drawable {
         this.lineWidth = lineWidth;
     }
 
-
     /**
      *  Returns the width of the lines used to draw this point.
      *
@@ -375,7 +348,6 @@ public class Point implements Drawable {
     public float getLineWidth() {
         return lineWidth;
     }
-
 
     /**
      *
@@ -405,7 +377,6 @@ public class Point implements Drawable {
         this.linePattern = linePattern;
     }
 
-
     /**
      *  Returns the line dash pattern.
      *
@@ -414,7 +385,6 @@ public class Point implements Drawable {
     public String getLinePattern() {
         return linePattern;
     }
-
 
     /**
      *  Sets this point as the start of a path that will be drawn on the chart.
@@ -426,7 +396,6 @@ public class Point implements Drawable {
         return this;
     }
 
-
     /**
      *  Sets the URI for the "click point" action.
      *
@@ -435,7 +404,6 @@ public class Point implements Drawable {
     public void setURIAction(String uri) {
         this.uri = uri;
     }
-
 
     /**
      *  Returns the URI for the "click point" action.
@@ -446,7 +414,6 @@ public class Point implements Drawable {
         return uri;
     }
 
-
     /**
      *  Sets the point text.
      *
@@ -455,7 +422,6 @@ public class Point implements Drawable {
     public void setText(String text) {
         this.text = text;
     }
-
 
     /**
      *  Returns the text associated with this point.
@@ -466,7 +432,6 @@ public class Point implements Drawable {
         return this.text;
     }
 
-
     /**
      *  Sets the point's text color.
      *
@@ -475,7 +440,6 @@ public class Point implements Drawable {
     public void setTextColor(int textColor) {
         this.textColor = textColor;
     }
-
 
     /**
      *  Returns the point's text color.
@@ -486,7 +450,6 @@ public class Point implements Drawable {
         return this.textColor;
     }
 
-
     /**
      *  Sets the point's text direction.
      *
@@ -495,7 +458,6 @@ public class Point implements Drawable {
     public void setTextDirection(int textDirection) {
         this.textDirection = textDirection;
     }
-
 
     /**
      *  Returns the point's text direction.
@@ -506,7 +468,6 @@ public class Point implements Drawable {
         return this.textDirection;
     }
 
-
     /**
      *  Sets the point alignment inside table cell.
      *
@@ -515,7 +476,6 @@ public class Point implements Drawable {
     public void setAlignment(int align) {
         this.align = align;
     }
-
 
     /**
      *  Returns the point alignment.
@@ -526,7 +486,6 @@ public class Point implements Drawable {
         return this.align;
     }
 
-
     /**
      *  Places this point in the specified box at position (0f, 0f).
      *
@@ -535,7 +494,6 @@ public class Point implements Drawable {
     public void placeIn(Box box) {
         placeIn(box, 0f, 0f);
     }
-
 
     /**
      *  Places this point in the specified box.
@@ -550,7 +508,6 @@ public class Point implements Drawable {
             double yOffset) {
         placeIn(box, (float) xOffset, (float) yOffset);
     }
-
 
     /**
      *  Places this point in the specified box.
@@ -567,7 +524,6 @@ public class Point implements Drawable {
         yBox = box.y + yOffset;
     }
 
-
     /**
      *  Draws this point on the specified page.
      *
@@ -581,8 +537,7 @@ public class Point implements Drawable {
 
         if (fillShape) {
             page.setBrushColor(color);
-        }
-        else {
+        } else {
             page.setPenColor(color);
         }
 
@@ -594,5 +549,4 @@ public class Point implements Drawable {
 
         return new float[] {x + xBox + r, y + yBox + r};
     }
-
 }   // End of Point.java

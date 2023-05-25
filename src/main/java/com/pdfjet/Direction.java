@@ -1,5 +1,5 @@
 /**
- *  PageMode.java
+ *  Direction.java
  *
 Copyright 2023 Innovatics Inc.
 
@@ -24,14 +24,13 @@ SOFTWARE.
 package com.pdfjet;
 
 /**
- *  Used to specify the PDF page mode.
- *
+ *  Used to specify the text direction in TextBox.
  */
-public class PageMode {
-    public static final String USE_NONE = "UseNone";            // Neither document outline nor thumbnail images visible
-    public static final String USE_OUTLINES = "UseOutlines";    // Document outline visible
-    public static final String USE_THUMBS = "UseThumbs";        // Thumbnail images visible
-    public static final String FULL_SCREEN = "FullScreen";      // Full-screen mode
-    public static final String USE_OC = "UseOC";                // (PDF 1.5) Optional content group panel visible
-    public static final String USE_ATTACHMENTS = "UseAttachements";
+public enum Direction {
+    /** Left to Right */
+    LEFT_TO_RIGHT,
+    /** Bottom to Top */
+    BOTTOM_TO_TOP,
+    /** Top to Bottom */
+    TOP_TO_BOTTOM;
 }

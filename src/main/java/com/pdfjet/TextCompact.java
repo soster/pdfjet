@@ -23,13 +23,10 @@ SOFTWARE.
 */
 package com.pdfjet;
 
-
 class TextCompact {
-
 /*
  * The following table contains:
  * ASCII Value, Base 30 Value, Code specifying in what subtable is the character.
- *
  */
 public static final int[][] TABLE = {
 {0,26,0x04},    // space

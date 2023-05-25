@@ -26,7 +26,6 @@ package com.pdfjet;
 import java.util.*;
 
 public class CalendarMonth implements Drawable {
-
     Font f1 = null;
     Font f2 = null;
 
@@ -42,7 +41,6 @@ public class CalendarMonth implements Drawable {
 
     int daysInMonth;
     int dayOfWeek;
-
 
     public CalendarMonth(Font f1, Font f2, int year, int month) {
         this.f1 = f1;
@@ -62,26 +60,21 @@ public class CalendarMonth implements Drawable {
         dy = dx;
     }
 
-
     public void setHeadFont(Font font) {
         this.f1 = font;
     }
-
 
     public void setBodyFont(Font font) {
         this.f2 = font;
     }
 
-
     public void setCellWidth(float width) {
         this.dx = width;
     }
 
-
     public void setCellHeight(float height) {
         this.dy = height;
     }
-
 
     public void setPosition(float x, float y) {
         setLocation(x, y);
@@ -101,7 +94,6 @@ public class CalendarMonth implements Drawable {
         return setLocation((float) x, (float) y);
     }
 
-
     public float[] drawOn(Page page) throws Exception {
         for (int row = 0; row < 7; row++) {
             for (int col = 0; col < 7; col++) {
@@ -117,8 +109,7 @@ public class CalendarMonth implements Drawable {
                             x1 + 7*dx,
                             y1 + dy/2 + f1.descent);
                     line.drawOn(page);
-                }
-                else {
+                } else {
                     int dayOfMonth = ((7*row + col) - 6) - (dayOfWeek - 1);
                     if (dayOfMonth > 0 && dayOfMonth <= daysInMonth) {
                         String s1 = String.valueOf(dayOfMonth);
@@ -126,7 +117,6 @@ public class CalendarMonth implements Drawable {
                         TextLine text = new TextLine(f2, s1);
                         text.setLocation(x1 + col*dx + offset, y1 + row*dy + f2.ascent);
                         text.drawOn(page);
-
                         page.setPenWidth(1.25f);
                         page.setPenColor(Color.blue);
                         page.drawEllipse(
@@ -141,11 +131,9 @@ public class CalendarMonth implements Drawable {
         return new float[] {this.x1 + 7*this.dx, this.y1 + 7*this.dy};
     }
 
-
     private boolean isLeapYear(int year) {
         return (year % 4 == 0 && year % 100 != 0) || year % 400 == 0;
     }
-
 
     private int getDaysInMonth(
             int year,
@@ -154,5 +142,4 @@ public class CalendarMonth implements Drawable {
         int[] daysInMonth = {31, daysInFebruary, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
         return daysInMonth[month];
     }
-
 }

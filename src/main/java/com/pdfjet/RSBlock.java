@@ -16,16 +16,13 @@ package com.pdfjet;
 import java.util.ArrayList;
 import java.util.List;
 
-
 /**
  * RSBlock
  * @author Kazuhiko Arase
  */
 class RSBlock {
-
     private int totalCount;
     private int dataCount;
-
 
     private RSBlock(int totalCount, int dataCount) {
         this.totalCount = totalCount;
@@ -43,7 +40,6 @@ class RSBlock {
     public static RSBlock[] getRSBlocks(int errorCorrectLevel) {
         int[] rsBlock = getRsBlockTable(errorCorrectLevel);
         int length = rsBlock.length / 3;
-
         List<RSBlock> list = new ArrayList<RSBlock>();
         for (int i = 0; i < length; i++) {
             int count = rsBlock[3*i];
@@ -54,7 +50,6 @@ class RSBlock {
                 list.add(new RSBlock(totalCount, dataCount));
             }
         }
-
         return list.toArray(new RSBlock[list.size()]);
     }
 
@@ -71,5 +66,4 @@ class RSBlock {
         }
         return null;
     }
-
 }

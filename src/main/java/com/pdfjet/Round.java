@@ -23,7 +23,6 @@ SOFTWARE.
 */
 package com.pdfjet;
 
-
 class Round {
     protected float minValue = 0f;
     protected float maxValue = 0f;

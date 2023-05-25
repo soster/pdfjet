@@ -2,12 +2,29 @@
  *  OpenTypeFont.java
  *
 Copyright 2023 Innovatics Inc.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 */
 package com.pdfjet;
 
 import java.io.*;
 import java.util.*;
-
 
 class OpenTypeFont {
     protected static void register(
@@ -60,7 +77,6 @@ class OpenTypeFont {
         pdf.fonts.add(font);
     }
 
-
     private static void embedFontFile(PDF pdf, Font font, OTF otf) throws Exception {
         // Check if the font file is already embedded
         for (Font f : pdf.fonts) {
@@ -71,7 +87,6 @@ class OpenTypeFont {
         }
 
         int metadataObjNumber = pdf.addMetadataObject(otf.fontInfo, true);
-
         pdf.newobj();
         pdf.append("<<\n");
         if (otf.cff) {
@@ -88,13 +103,11 @@ class OpenTypeFont {
             pdf.append(otf.buf.length); // The uncompressed size
             pdf.append('\n');
         }
-
         if (metadataObjNumber != -1) {
             pdf.append("/Metadata ");
             pdf.append(metadataObjNumber);
             pdf.append(" 0 R\n");
         }
-
         pdf.append(">>\n");
         pdf.append("stream\n");
         pdf.append(otf.baos);
@@ -103,7 +116,6 @@ class OpenTypeFont {
 
         font.fileObjNumber = pdf.getObjNumber();
     }
-
 
     private static void addFontDescriptorObject(
             PDF pdf, Font font, OTF otf) throws Exception {
@@ -122,8 +134,7 @@ class OpenTypeFont {
         pdf.append('\n');
         if (otf.cff) {
             pdf.append("/FontFile3 ");
-        }
-        else {
+        } else {
             pdf.append("/FontFile2 ");
         }
         pdf.append(font.fileObjNumber);
@@ -154,7 +165,6 @@ class OpenTypeFont {
 
         font.fontDescriptorObjNumber = pdf.getObjNumber();
     }
-
 
     private static void addToUnicodeCMapObject(
             PDF pdf,
@@ -219,7 +229,6 @@ class OpenTypeFont {
         font.toUnicodeCMapObjNumber = pdf.getObjNumber();
     }
 
-
     private static void addCIDFontDictionaryObject(
             PDF pdf,
             Font font,
@@ -236,8 +245,7 @@ class OpenTypeFont {
         pdf.append("/Type /Font\n");
         if (otf.cff) {
             pdf.append("/Subtype /CIDFontType0\n");
-        }
-        else {
+        } else {
             pdf.append("/Subtype /CIDFontType2\n");
         }
         pdf.append("/BaseFont /");
@@ -267,21 +275,17 @@ class OpenTypeFont {
         font.cidFontDictObjNumber = pdf.getObjNumber();
     }
 
-
     private static String toHexString(int code) {
         String str = Integer.toHexString(code);
         if (str.length() == 1) {
             return "000" + str;
-        }
-        else if (str.length() == 2) {
+        } else if (str.length() == 2) {
             return "00" + str;
-        }
-        else if (str.length() == 3) {
+        } else if (str.length() == 3) {
             return "0" + str;
         }
         return str;
     }
-
 
     private static void writeListToBuffer(List<String> list, StringBuilder sb) {
         sb.append(list.size());
@@ -292,5 +296,4 @@ class OpenTypeFont {
         sb.append("endbfchar\n");
         list.clear();
     }
-
 }   // End of OpenTypeFont.java

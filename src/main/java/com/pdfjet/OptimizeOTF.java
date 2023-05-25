@@ -24,6 +24,8 @@ SOFTWARE.
 package com.pdfjet;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.*;
 
 /**
@@ -32,29 +34,28 @@ import java.util.zip.*;
  * that the original fonts.
  */
 public class OptimizeOTF {
+    private static boolean useZopfli = true;
+
     /**
      * Converts font TTF or OTF file to .ttf.stream .otf.stream
-     * 
+     *
      * @param fileName the file name
      * @throws Exception if the font file is not found
      */
-    private static void convertFontFile(String fileName) throws Exception {
-        FileInputStream fis = new FileInputStream(fileName);
-        OTF otf = new OTF(fis);
-        fis.close();
+    public static void convertFontFile(String fileName) throws Exception {
+        BufferedOutputStream fos =
+                new BufferedOutputStream(new FileOutputStream(fileName + ".stream"));
 
-        FileOutputStream fos = new FileOutputStream(fileName + ".stream");
-
+        OTF otf = new OTF(new FileInputStream(fileName));
         byte[] name = otf.fontName.getBytes("UTF8");
         fos.write(name.length);
         fos.write(name);
 
-        byte[] info = otf.fontInfo.toString().getBytes("UTF8");
+        byte[] info = otf.fontInfo.getBytes("UTF8");
         writeInt24(info.length, fos);
         fos.write(info);
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream(32768);
-
         writeInt32(otf.unitsPerEm, baos);
         writeInt32(otf.bBoxLLx, baos);
         writeInt32(otf.bBoxLLy, baos);
@@ -84,14 +85,18 @@ public class OptimizeOTF {
         }
 
         byte[] buf1 = baos.toByteArray();
-        ByteArrayOutputStream buf2 = new ByteArrayOutputStream(0xFFFF);
-        DeflaterOutputStream dos1 =
-                new DeflaterOutputStream(
-                        buf2, new Deflater(Deflater.BEST_COMPRESSION));
-        dos1.write(buf1, 0, buf1.length);
-        dos1.finish();
-        writeInt32(buf2.size(), fos);
-        buf2.writeTo(fos);
+        if (OptimizeOTF.useZopfli) {
+            compressWithZopfli(fileName, fos, buf1, false);
+        } else {
+            ByteArrayOutputStream buf2 = new ByteArrayOutputStream(0xFFFF);
+            DeflaterOutputStream dos1 =
+                    new DeflaterOutputStream(
+                            buf2, new Deflater(Deflater.BEST_COMPRESSION));
+            dos1.write(buf1, 0, buf1.length);
+            dos1.finish();
+            writeInt32(buf2.size(), fos);
+            buf2.writeTo(fos);
+        }
 
         byte[] buf3 = otf.buf;
         if (otf.cff == true) {
@@ -100,22 +105,55 @@ public class OptimizeOTF {
             for (int i = 0; i < otf.cffLen; i++) {
                 buf3[i] = otf.buf[otf.cffOff + i];
             }
-        }
-        else {
+        } else {
             fos.write('N');
         }
 
-        ByteArrayOutputStream buf4 = new ByteArrayOutputStream(0xFFFF);
-        DeflaterOutputStream dos2 =
-                new DeflaterOutputStream(buf4,
-                        new Deflater(Deflater.BEST_COMPRESSION));
-        dos2.write(buf3, 0, buf3.length);
-        dos2.finish();
-        writeInt32(buf3.length, fos);   // Uncompressed font size
-        writeInt32(buf4.size(), fos);   // Compressed font size
-        buf4.writeTo(fos);
-
+        if (OptimizeOTF.useZopfli) {
+            compressWithZopfli(fileName, fos, buf3, true);
+        } else {
+            ByteArrayOutputStream buf4 = new ByteArrayOutputStream(0xFFFF);
+            DeflaterOutputStream dos =
+                    new DeflaterOutputStream(buf4,
+                            new Deflater(Deflater.BEST_COMPRESSION));
+            dos.write(buf3, 0, buf3.length);
+            dos.finish();
+            writeInt32(buf3.length, fos);   // Uncompressed font size
+            writeInt32(buf4.size(), fos);   // Compressed font size
+            buf4.writeTo(fos);
+        }
         fos.close();
+    }
+
+    private static void compressWithZopfli(
+            String fileName,
+            BufferedOutputStream fos,
+            byte[] buf3,
+            boolean uncompressed) throws IOException {
+        BufferedOutputStream fos4 =
+                new BufferedOutputStream(new FileOutputStream(fileName + ".tmp"));
+        fos4.write(buf3, 0, buf3.length);
+        fos4.close();
+        final List<String> command = new ArrayList<String>();
+        command.add("util/zopfli/zopfli");
+        command.add("-c");
+        command.add("--zlib");
+        command.add("--i100");
+        command.add(fileName + ".tmp");
+        final Process process = new ProcessBuilder(command).start();
+        final InputStream input = process.getInputStream();
+        final byte[] buf = new byte[4096];
+        ByteArrayOutputStream buf5 = new ByteArrayOutputStream(0xFFFF);
+        int len;
+        while ((len = input.read(buf)) != -1) {
+            buf5.write(buf, 0, len);
+        }
+        if (uncompressed) {
+            writeInt32(buf3.length, fos);   // Uncompressed font size
+        }
+        writeInt32(buf5.size(), fos);       // Compressed font size
+        buf5.writeTo(fos);
+        new File(fileName + ".tmp").delete();
     }
 
     private static void writeInt16(int i, OutputStream stream) throws IOException {
@@ -138,29 +176,26 @@ public class OptimizeOTF {
 
     /**
      * Entry point for the OptimizeOTF converter
-     * 
+     *
      * @param args the arguments
      * @throws Exception if there is a problem
      */
     public static void main(String[] args) throws Exception {
-/*
-Use this code to streamline fonts in bulk.
-
         File file = new File(args[0]);
         if (file.isDirectory()) {
             String path = file.getPath();
             String[] list = file.list();
             for (String fileName : list) {
                 if (fileName.endsWith(".ttf") || fileName.endsWith(".otf")) {
-                    System.out.println(fileName);
+                    System.out.println("Reading: " + fileName);
                     convertFontFile(path + File.separator + fileName);
+                    System.out.println("Writing: " + fileName + ".stream");
                 }
             }
-        }
-        else {
+        } else {
+            System.out.println("Reading: " + args[0]);
             convertFontFile(args[0]);
+            System.out.println("Writing: " + args[0] + ".stream");
         }
-*/
-        convertFontFile(args[0]);
     }
 }

@@ -23,7 +23,6 @@ SOFTWARE.
 */
 package com.pdfjet;
 
-
 /**
  *  Used to specify the check mark in CheckBox.
  *

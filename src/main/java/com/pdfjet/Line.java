@@ -23,14 +23,12 @@ SOFTWARE.
 */
 package com.pdfjet;
 
-
 /**
  *  Used to create line objects.
  *
  *  Please see Example_01.
  */
 public class Line implements Drawable {
-
     private float x1;
     private float y1;
     private float x2;
@@ -48,7 +46,6 @@ public class Line implements Drawable {
     private String altDescription = Single.space;
     private String actualText = Single.space;
 
-
     /**
      *  The default constructor.
      *
@@ -56,7 +53,6 @@ public class Line implements Drawable {
      */
     public Line() {
     }
-
 
     /**
      *  Create a line object.
@@ -73,7 +69,6 @@ public class Line implements Drawable {
         this.y2 = (float) y2;
     }
 
-
     /**
      *  Create a line object.
      *
@@ -88,7 +83,6 @@ public class Line implements Drawable {
         this.x2 = x2;
         this.y2 = y2;
     }
-
 
     /**
      *  The line dash pattern controls the pattern of dashes and gaps used to stroke paths.
@@ -119,7 +113,6 @@ public class Line implements Drawable {
         return this;
     }
 
-
     /**
      *  Sets the x and y coordinates of the start point.
      *
@@ -133,11 +126,9 @@ public class Line implements Drawable {
         return this;
     }
 
-
     public void setPosition(float x, float y) {
         setStartPoint(x, y);
     }
-
 
     /**
      *  Sets the x and y coordinates of the start point.
@@ -152,7 +143,6 @@ public class Line implements Drawable {
         return this;
     }
 
-
     /**
      *  Sets the x and y coordinates of the start point.
      *
@@ -166,7 +156,6 @@ public class Line implements Drawable {
         return this;
     }
 
-
     /**
      *  Returns the start point of this line.
      *
@@ -175,7 +164,6 @@ public class Line implements Drawable {
     public Point getStartPoint() {
         return new Point(x1, y1);
     }
-
 
     /**
      *  Sets the x and y coordinates of the end point.
@@ -190,7 +178,6 @@ public class Line implements Drawable {
         return this;
     }
 
-
     /**
      *  Sets the x and y coordinates of the end point.
      *
@@ -203,7 +190,6 @@ public class Line implements Drawable {
         this.y2 = y;
         return this;
     }
-
 
     /**
      *  Sets the x and y coordinates of the end point.
@@ -218,7 +204,6 @@ public class Line implements Drawable {
         return this;
     }
 
-
     /**
      *  Returns the end point of this line.
      *
@@ -227,7 +212,6 @@ public class Line implements Drawable {
     public Point getEndPoint() {
         return new Point(x2, y2);
     }
-
 
     /**
      *  Sets the width of this line.
@@ -240,7 +224,6 @@ public class Line implements Drawable {
         return this;
     }
 
-
     /**
      *  Sets the width of this line.
      *
@@ -252,7 +235,6 @@ public class Line implements Drawable {
         return this;
     }
 
-
     /**
      *  Sets the color for this line.
      *
@@ -263,7 +245,6 @@ public class Line implements Drawable {
         this.color = color;
         return this;
     }
-
 
     /**
      *  Sets the line cap style.
@@ -277,7 +258,6 @@ public class Line implements Drawable {
         return this;
     }
 
-
     /**
      *  Returns the line cap style.
      *
@@ -286,7 +266,6 @@ public class Line implements Drawable {
     public CapStyle getCapStyle() {
         return capStyle;
     }
-
 
     /**
      *  Sets the alternate description of this line.
@@ -299,7 +278,6 @@ public class Line implements Drawable {
         return this;
     }
 
-
     /**
      *  Sets the actual text for this line.
      *
@@ -311,7 +289,6 @@ public class Line implements Drawable {
         return this;
     }
 
-
     /**
      *  Places this line in the specified box at position (0.0f, 0.0f).
      *
@@ -321,7 +298,6 @@ public class Line implements Drawable {
     public Line placeIn(Box box) {
         return placeIn(box, 0f, 0f);
     }
-
 
     /**
      *  Places this line in the specified box.
@@ -335,7 +311,6 @@ public class Line implements Drawable {
         placeIn(box, (float) xOffset, (float) yOffset);
         return this;
     }
-
 
     /**
      *  Places this line in the specified box.
@@ -351,7 +326,6 @@ public class Line implements Drawable {
         return this;
     }
 
-
     /**
      *  Scales this line by the spacified factor.
      *
@@ -362,7 +336,6 @@ public class Line implements Drawable {
     public Line scaleBy(double factor) throws Exception {
         return scaleBy((float) factor);
     }
-
 
     /**
      *  Scales this line by the spacified factor.
@@ -377,7 +350,6 @@ public class Line implements Drawable {
         this.y2 *= factor;
         return this;
     }
-
 
     /**
      *  Draws this line on the specified page.
@@ -403,5 +375,4 @@ public class Line implements Drawable {
         float yMax = Math.max(y1 + yBox, y2 + yBox);
         return new float[] {xMax, yMax};
     }
-
 }   // End of Line.java

@@ -34,7 +34,7 @@ public class DonutChart {
     Float r2;
     List<Slice> slices;
     boolean isDonutChart = true;
-    
+
     public DonutChart(Font f1, Font f2, boolean isDonutChart) {
         this.f1 = f1;
         this.f2 = f2;
@@ -143,10 +143,29 @@ public class DonutChart {
         return a2;
     }
 
+    private void drawLinePointer(
+            Page page,
+            int perColor,
+            Float xc, Float yc,
+            Float r1, Float r2,     // r1 > r2
+            Float a1, Float a2) {   // a1 > a2
+        page.setPenColor(Color.black);
+        Float angle1 = a1 - 90f;
+        Float angle2 = a2 - 90f;
+        if ((angle2 - angle1) <= 90f) {
+            page.drawLine(xc, yc, 500f, 500f);
+        }
+    }
+
     public void drawOn(Page page) throws Exception {
         float angle = 0f;
         for (Slice slice : slices) {
             angle = drawSlice(
+                    page, slice.color,
+                    xc, yc,
+                    r1, r2,
+                    angle, angle + slice.angle);
+            drawLinePointer(
                     page, slice.color,
                     xc, yc,
                     r1, r2,

@@ -30,7 +30,6 @@ import java.util.*;
  *
  */
 public class Bookmark {
-
     protected Page page = null;
     protected float y = 0f;
     protected int objNumber = 0;
@@ -49,14 +48,12 @@ public class Bookmark {
         pdf.toc = this;
     }
 
-
     private Bookmark(Page page, float y, String key, String title) {
         this.page = page;
         this.y = y;
         this.key = key;
         this.title = title;
     }
-
 
     public Bookmark addBookmark(Page page, Title title) {
         Bookmark bm = this;
@@ -73,8 +70,7 @@ public class Bookmark {
         bookmark2.dest = page.addDestination(key, title.textLine.getDestinationY());
         if (children == null) {
             children = new ArrayList<Bookmark>();
-        }
-        else {
+        } else {
             bookmark2.prev = children.get(children.size() - 1);
             children.get(children.size() - 1).next = bookmark2;
         }
@@ -82,21 +78,17 @@ public class Bookmark {
         return bookmark2;
     }
 
-
     public String getDestKey() {
         return this.key;
     }
-
 
     public String getTitle() {
         return this.title;
     }
 
-
     public Bookmark getParent() {
         return this.parent;
     }
-
 
     public Bookmark autoNumber(TextLine textLine) {
         Bookmark bm = getPrevBookmark();
@@ -104,37 +96,30 @@ public class Bookmark {
             bm = getParent();
             if (bm.prefix == null) {
                 prefix = "1";
-            }
-            else {
+            } else {
                 prefix = bm.prefix + ".1";
             }
-        }
-        else {
+        } else {
             if (bm.prefix == null) {
                 if (bm.getParent().prefix == null) {
                     prefix = "1";
-                }
-                else {
+                } else {
                     prefix = bm.getParent().prefix + ".1";
                 }
-            }
-            else {
+            } else {
                 int index = bm.prefix.lastIndexOf('.');
                 if (index == -1) {
                     prefix = String.valueOf(Integer.parseInt(bm.prefix) + 1);
-                }
-                else {
+                } else {
                     prefix = bm.prefix.substring(0, index) + ".";
                     prefix += String.valueOf(Integer.parseInt(bm.prefix.substring(index + 1)) + 1);
                 }
             }
         }
-
         textLine.setText(prefix);
         title = prefix + " " + title;
         return this;
     }
-
 
     protected List<Bookmark> toArrayList() {
         List<Bookmark> list = new ArrayList<Bookmark>();
@@ -152,40 +137,32 @@ public class Bookmark {
         return list;
     }
 
-
     protected List<Bookmark> getChildren() {
         return this.children;
     }
-
 
     protected Bookmark getPrevBookmark() {
         return this.prev;
     }
 
-
     protected Bookmark getNextBookmark() {
         return this.next;
     }
-
 
     protected Bookmark getFirstChild() {
         return this.children.get(0);
     }
 
-
     protected Bookmark getLastChild() {
         return children.get(children.size() - 1);
     }
-
 
     protected Destination getDestination() {
         return this.dest;
     }
 
-
     private String next() {
         destNumber++;
         return "dest#" + destNumber;
     }
-
 }   // End of Bookmark.java

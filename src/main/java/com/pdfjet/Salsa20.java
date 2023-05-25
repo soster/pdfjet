@@ -12,14 +12,10 @@
  */
 package com.pdfjet;
 
-
 class Salsa20 {
-
     private String id = null;
 
-
     public Salsa20() {
-
 /*
 The Original Specification:
 
@@ -74,7 +70,6 @@ The expected output:
 0xf62cb407
 0x6bdede3d
 */
-
         int[] a_in = new int[16];
 
         StringBuilder buf = new StringBuilder(
@@ -92,15 +87,12 @@ The expected output:
         // System.out.println(id);
     }
 
-
     // Use unsigned right shift >>> !
     private int R(int a, int b) {
         return (a << b) | (a >>> (32 - b));
     }
 
-
     private int[] salsa20_word_specification(int[] a_in) {
-
         int[] a_out = new int[16];
         int[] x = new int[16];
 
@@ -134,12 +126,9 @@ The expected output:
         return a_out;
     }
 
-
     private String bin2hex(int[] binarray) {
-
         String table = "0123456789abcdef";
         StringBuilder buf = new StringBuilder();
-
         for (int i = 0; i < binarray.length; i++) {
             int a = binarray[i];
             buf.append(table.charAt(a>>28 & 0x0000000f));
@@ -151,18 +140,14 @@ The expected output:
             buf.append(table.charAt(a>> 4 & 0x0000000f));
             buf.append(table.charAt(a     & 0x0000000f));
         }
-
         return buf.substring(0, 32);
     }
-
 
     public String getID() {
         return id;
     }
 
-
     public static void main(String[] args) {
         new Salsa20();
     }
-
 }

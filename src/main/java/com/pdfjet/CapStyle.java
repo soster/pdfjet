@@ -23,7 +23,6 @@ SOFTWARE.
 */
 package com.pdfjet;
 
-
 /**
  *  Used to specify the cap style of a line.
  *  See the Line class for more information.

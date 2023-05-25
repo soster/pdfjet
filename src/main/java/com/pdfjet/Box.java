@@ -23,14 +23,12 @@ SOFTWARE.
 */
 package com.pdfjet;
 
-
 /**
  *  Used to create rectangular boxes on a page.
  *  Also used to for layout purposes. See the placeIn method in the Image and TextLine classes.
  *
  */
 public class Box implements Drawable {
-
     protected float x;
     protected float y;
 
@@ -39,7 +37,7 @@ public class Box implements Drawable {
 
     private int color = Color.black;
 
-    private float width = 0.3f;
+    private float width = 0f;
     private String pattern = "[] 0";
     private boolean fillShape = false;
 
@@ -57,7 +55,6 @@ public class Box implements Drawable {
     public Box() {
     }
 
-
     /**
      *  Creates a box object.
      *
@@ -72,7 +69,6 @@ public class Box implements Drawable {
         this.w = (float) w;
         this.h = (float) h;
     }
-
 
     /**
      *  Creates a box object.
@@ -99,7 +95,6 @@ public class Box implements Drawable {
         setLocation(x, y);
     }
 
-
     /**
      *  Sets the position of this box on the page.
      *
@@ -109,7 +104,6 @@ public class Box implements Drawable {
     public void setPosition(double x, double y) {
         setLocation(x, y);
     }
-
 
     /**
      *  Sets the location of this box on the page.
@@ -124,7 +118,6 @@ public class Box implements Drawable {
         return this;
     }
 
-
     /**
      *  Sets the location of this box on the page.
      *
@@ -135,7 +128,6 @@ public class Box implements Drawable {
     public Box setLocation(double x, double y) {
         return setLocation((float) x, (float) y);
     }
-
 
     /**
      *  Sets the size of this box.
@@ -148,7 +140,6 @@ public class Box implements Drawable {
         this.h = (float) h;
     }
 
-
     /**
      *  Sets the size of this box.
      *
@@ -160,7 +151,6 @@ public class Box implements Drawable {
         this.h = h;
     }
 
-
     /**
      *  Sets the color for this box.
      *
@@ -169,7 +159,6 @@ public class Box implements Drawable {
     public void setColor(int color) {
         this.color = color;
     }
-
 
     /**
      *  Sets the width of this line.
@@ -180,7 +169,6 @@ public class Box implements Drawable {
         this.width = (float) width;
     }
 
-
     /**
      *  Sets the width of this line.
      *
@@ -189,7 +177,6 @@ public class Box implements Drawable {
     public void setLineWidth(float width) {
         this.width = width;
     }
-
 
     /**
      *  Sets the URI for the "click box" action.
@@ -200,7 +187,6 @@ public class Box implements Drawable {
         this.uri = uri;
     }
 
-
     /**
      *  Sets the destination key for the action.
      *
@@ -209,7 +195,6 @@ public class Box implements Drawable {
     public void setGoToAction(String key) {
         this.key = key;
     }
-
 
     /**
      *  Sets the alternate description of this box.
@@ -222,7 +207,6 @@ public class Box implements Drawable {
         return this;
     }
 
-
     /**
      *  Sets the actual text for this box.
      *
@@ -233,7 +217,6 @@ public class Box implements Drawable {
         this.actualText = actualText;
         return this;
     }
-
 
     /**
      *  The line dash pattern controls the pattern of dashes and gaps used to stroke paths.
@@ -262,7 +245,6 @@ public class Box implements Drawable {
         this.pattern = pattern;
     }
 
-
     /**
      *  Sets the private fillShape variable.
      *  If the value of fillShape is true - the box is filled with the current brush color.
@@ -272,7 +254,6 @@ public class Box implements Drawable {
     public void setFillShape(boolean fillShape) {
         this.fillShape = fillShape;
     }
-
 
     /**
      *  Places this box in the another box.
@@ -284,7 +265,6 @@ public class Box implements Drawable {
     public void placeIn(Box box, double xOffset, double yOffset) {
         placeIn(box, (float) xOffset, (float) yOffset);
     }
-
 
     /**
      *  Places this box in the another box.
@@ -298,7 +278,6 @@ public class Box implements Drawable {
         this.y = box.y + yOffset;
     }
 
-
     /**
      *  Scales this box by the spacified factor.
      *
@@ -307,7 +286,6 @@ public class Box implements Drawable {
     public void scaleBy(double factor) {
         scaleBy((float) factor);
     }
-
 
     /**
      *  Scales this box by the spacified factor.
@@ -318,7 +296,6 @@ public class Box implements Drawable {
         this.x *= factor;
         this.y *= factor;
     }
-
 
     /**
      *  Draws this box on the specified page.
@@ -333,8 +310,7 @@ public class Box implements Drawable {
         page.setLinePattern(pattern);
         if (fillShape) {
             page.setBrushColor(color);
-        }
-        else {
+        } else {
             page.setPenColor(color);
         }
         page.moveTo(x, y);
@@ -343,8 +319,7 @@ public class Box implements Drawable {
         page.lineTo(x, y + h);
         if (fillShape) {
             page.fillPath();
-        }
-        else {
+        } else {
             page.closePath();
         }
         page.addEMC();
@@ -364,5 +339,4 @@ public class Box implements Drawable {
 
         return new float[] {x + w, y + h + width};
     }
-
 }   // End of Box.java

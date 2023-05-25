@@ -23,18 +23,15 @@ SOFTWARE.
 */
 package com.pdfjet;
 
-
 /**
  *  Used to create PDF destination objects.
  *
  *
  */
 public class Destination {
-
     String name;
     int pageObjNumber;
     float yPosition;
-
 
     /**
      *  This class is used to create destination objects.
@@ -46,7 +43,6 @@ public class Destination {
     public Destination(String name, double yPosition) {
         this(name, (float) yPosition);
     }
-
 
     /**
      *  This class is used to create destination objects.
@@ -60,9 +56,7 @@ public class Destination {
         this.yPosition = yPosition;
     }
 
-
     protected void setPageObjNumber(int pageObjNumber) {
         this.pageObjNumber = pageObjNumber;
     }
-
 }

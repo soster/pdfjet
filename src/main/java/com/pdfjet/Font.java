@@ -23,27 +23,15 @@ SOFTWARE.
 */
 package com.pdfjet;
 
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.List;
-
 
 /**
  *  Used to create font objects.
  *  The font objects must added to the PDF before they can be used to draw text.
  */
 public class Font {
-    /** Chinese (Traditional) font */
-    public static final String AdobeMingStd_Light = "AdobeMingStd-Light";
-
-    /** Chinese (Simplified) font */
-    public static final String STHeitiSC_Light = "STHeitiSC-Light";
-
-    /** Japanese font */
-    public static final String KozMinProVI_Regular = "KozMinProVI-Regular";
-
-    /** Korean font */
-    public static final String AdobeMyungjoStd_Medium = "AdobeMyungjoStd-Medium";
-
     /** Is this a stream font? */
     public static final boolean STREAM = true;
 
@@ -93,7 +81,6 @@ public class Font {
     protected float underlinePosition;
     protected float underlineThickness;
 
-
     /**
      *  Constructor for the 14 standard fonts.
      *  Creates a font object and adds it to the PDF.
@@ -142,7 +129,6 @@ public class Font {
         pdf.fonts.add(this);
     }
 
-
     // Used by PDFobj
     protected Font(CoreFont coreFont) {
         StandardFont font = new StandardFont(coreFont);
@@ -160,16 +146,25 @@ public class Font {
         setSize(size);
     }
 
-
     /**
      *  Constructor for CJK - Chinese, Japanese and Korean fonts.
      *  Please see Example_04.
      *
      *  @param pdf the PDF to add this font to.
-     *  @param fontName the font name. Please see Example_04.
+     *  @param font the CJK font. Please see Example_04.
      *  @throws Exception  If an input or output exception occurred
      */
-    public Font(PDF pdf, String fontName) throws Exception {
+    public Font(PDF pdf, CJKFont font) throws Exception {
+        String fontName = null;
+        if (font == CJKFont.ADOBE_MING_STD_LIGHT) {             // Chinese (Traditional) font
+            fontName = "AdobeMingStd-Light";
+        } else if (font == CJKFont.ST_HEITI_SC_LIGHT) {         // Chinese (Simplified) font
+            fontName = "STHeitiSC-Light";
+        } else if (font == CJKFont.KOZ_MIN_PRO_VI_REGULAR) {    // Japanese font
+            fontName = "KozMinProVI-Regular";
+        } else if (font == CJKFont.ADOBE_MYUNGJO_STD_MEDIUM) {  // Korean font
+            fontName = "AdobeMyungjoStd-Medium";
+        }
         this.name = fontName;
         this.isCJK = true;
         this.firstChar = 0x0020;
@@ -255,10 +250,9 @@ public class Font {
         pdf.fonts.add(this);
     }
 
-
     /**
      * Constructor for .ttf.stream fonts
-     * 
+     *
      * @param pdf the PDF
      * @param inputStream the input stream
      * @param flag the flag ...
@@ -269,10 +263,9 @@ public class Font {
         this.setSize(size);
     }
 
-
     /**
      * Constructor for .ttf.stream fonts
-     * 
+     *
      * @param objects the list of objects
      * @param inputStream the input stream
      * @param flag the flag ...
@@ -282,7 +275,6 @@ public class Font {
         FontStream2.register(objects, this, inputStream);
         setSize(size);
     }
-
 
     /**
      *  Constructor for OpenType and TrueType fonts.
@@ -296,6 +288,23 @@ public class Font {
         setSize(size);
     }
 
+    /**
+     * Constructor for OpenType, TrueType and .otf.stream and .ttf.stream fonts.
+     *
+     * @param pdf the pdf object.
+     * @param fontPath the font path.
+     * @throws Exception thrown of the font file is not found.
+     */
+    public Font(PDF pdf, String fontPath) throws Exception {
+        InputStream inputStream = new FileInputStream(fontPath);
+        // InputStream inputStream = Font.class.getClassLoader().getResourceAsStream(fontPath);
+        if (fontPath.endsWith(".stream")) {
+            FontStream1.register(pdf, this, inputStream);
+        } else {
+            OpenTypeFont.register(pdf, this, inputStream);
+        }
+        setSize(size);
+    }
 
     /**
      *  Sets the size of this font.
@@ -306,7 +315,6 @@ public class Font {
     public Font setSize(double fontSize) {
         return setSize((float) fontSize);
     }
-
 
     /**
      *  Sets the size of this font.
@@ -330,7 +338,6 @@ public class Font {
         return this;
     }
 
-
     /**
      *  Returns the current font size.
      *
@@ -339,7 +346,6 @@ public class Font {
     public float getSize() {
         return size;
     }
-
 
     /**
      *  Sets the kerning for the selected font to 'true' or 'false' depending on the passed value of kernPairs parameter.
@@ -350,7 +356,6 @@ public class Font {
     public void setKernPairs(boolean kernPairs) {
         this.kernPairs = kernPairs;
     }
-
 
     /**
      *  Returns the width of the specified string when drawn on the page with this font using the current font size.
@@ -390,8 +395,7 @@ public class Font {
                         }
                     }
                 }
-            }
-            else {
+            } else {
                 if (c1 < firstChar || c1 > lastChar) {
                     width += advanceWidth[0];
                 } else {
@@ -403,7 +407,6 @@ public class Font {
         return width * size / unitsPerEm;
     }
 
-
     /**
      *  Returns the ascent of this font.
      *
@@ -412,7 +415,6 @@ public class Font {
     public float getAscent() {
         return ascent;
     }
-
 
     /**
      *  Returns the descent of this font.
@@ -423,7 +425,6 @@ public class Font {
         return descent;
     }
 
-
     /**
      *  Returns the height of this font.
      *
@@ -433,7 +434,6 @@ public class Font {
         return ascent + descent;
     }
 
-
     /**
      *  Returns the height of the body of the font.
      *
@@ -442,7 +442,6 @@ public class Font {
     public float getBodyHeight() {
         return bodyHeight;
     }
-
 
     /**
      *  Returns the number of characters from the specified string that will fit within the specified width.
@@ -456,7 +455,6 @@ public class Font {
         return getFitChars(str, (float) width);
     }
 
-
     /**
      *  Returns the number of characters from the specified string that will fit within the specified width.
      *
@@ -466,7 +464,6 @@ public class Font {
      *  @return the number of characters that will fit.
      */
     public int getFitChars(String str, float width) {
-
         float w = width * unitsPerEm / size;
 
         if (isCJK) {
@@ -483,8 +480,7 @@ public class Font {
 
             if (c1 < firstChar || c1 > lastChar) {
                 w -= advanceWidth[0];
-            }
-            else {
+            } else {
                 w -= glyphWidth[c1];
             }
 
@@ -494,13 +490,11 @@ public class Font {
         return i;
     }
 
-
     private int getCoreFontFitChars(String str, float width) {
         float w = width;
 
         int i = 0;
         while (i < str.length()) {
-
             int c1 = str.charAt(i);
 
             if (c1 < firstChar || c1 > lastChar) {
@@ -519,7 +513,6 @@ public class Font {
                 if (c2 < firstChar || c2 > lastChar) {
                     c2 = 32;
                 }
-
                 for (int j = 2; j < metrics[c1].length; j += 2) {
                     if (metrics[c1][j] == c2) {
                         w -= metrics[c1][j + 1];
@@ -537,7 +530,6 @@ public class Font {
         return i;
     }
 
-
     /**
      * Sets the skew15 private variable.
      * When the variable is set to 'true' all glyphs in the font are skewed on 15 degrees.
@@ -551,7 +543,6 @@ public class Font {
     public void setItalic(boolean skew15) {
         this.skew15 = skew15;
     }
-
 
     /**
      * Returns the width of a string drawn using two fonts.
@@ -577,8 +568,7 @@ public class Font {
                 // Switch the active font
                 if (activeFont == this) {
                     activeFont = fallbackFont;
-                }
-                else {
+                } else {
                     activeFont = this;
                 }
             }
@@ -588,5 +578,4 @@ public class Font {
 
         return width;
     }
-
 }   // End of Font.java

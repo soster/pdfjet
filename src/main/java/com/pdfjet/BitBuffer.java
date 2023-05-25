@@ -13,17 +13,14 @@ DENSO WAVE INCORPORATED
 */
 package com.pdfjet;
 
-
 /**
  * BitBuffer
  * @author Kazuhiko Arase
  */
 class BitBuffer {
-
     private byte[] buffer;
     private int length;
     private int increments = 32;
-
 
     public BitBuffer() {
         buffer = new byte[increments];
@@ -50,12 +47,9 @@ class BitBuffer {
             System.arraycopy(buffer, 0, newBuffer, 0, buffer.length);
             buffer = newBuffer;
         }
-
         if (bit) {
             buffer[length / 8] |= (0x80 >>> (length % 8));
         }
-
         length++;
     }
-
 }

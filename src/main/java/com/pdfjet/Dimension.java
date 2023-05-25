@@ -27,7 +27,6 @@ package com.pdfjet;
  *  Encapsulates the width and height of a component.
  */
 public class Dimension {
-
     protected float w;
     protected float h;
 
@@ -42,15 +41,12 @@ public class Dimension {
         this.h = height;
     }
 
-
     public float getWidth() {
         return w;
     }
-
 
     public float getHeight() {
         return h;
     }
 
 }   // End of Dimension.java
-

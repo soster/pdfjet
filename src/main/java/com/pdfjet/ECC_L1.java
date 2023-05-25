@@ -23,11 +23,8 @@ SOFTWARE.
 */
 package com.pdfjet;
 
-
 class ECC_L1 {
-
 public static final int[] table = {
 522,568,723,809
 };
-
 }   // End of ECC_L1.java

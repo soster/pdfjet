@@ -24,32 +24,25 @@ SOFTWARE.
 package com.pdfjet;
 
 import java.util.*;
-
 /**
  *  Used to create text column objects and draw them on a page.
  *
  *  Please see Example_10.
  */
 public class TextColumn implements Drawable {
-
     protected int alignment = Align.LEFT;
     protected int rotate;
     private float x;    // This variable is set in the beginning and only reset after the drawOn
     private float y;    // This variable is set in the beginning and only reset after the drawOn
     private float w;
     private float h;
-
     private float x1;
     private float y1;
     private float lineHeight;
-
     private float spaceBetweenLines = 1f;
     private float spaceBetweenParagraphs = 2f;
-
     private final List<Paragraph> paragraphs;
-
     private boolean lineBetweenParagraphs = false;
-
 
     /**
      *  Create a text column object.
@@ -58,7 +51,6 @@ public class TextColumn implements Drawable {
     public TextColumn() {
         this.paragraphs = new ArrayList<Paragraph>();
     }
-
 
     /**
      *  Create a text column object and set the rotation angle.
@@ -69,14 +61,12 @@ public class TextColumn implements Drawable {
     public TextColumn(int rotateByDegrees) throws Exception {
         this.rotate = rotateByDegrees;
         if (rotate == 0 || rotate == 90 || rotate == 270) {
-        }
-        else {
+        } else {
             throw new Exception(
                     "Invalid rotation angle. Please use 0, 90 or 270 degrees.");
         }
         this.paragraphs = new ArrayList<Paragraph>();
     }
-
 
     /**
      *  Sets the lineBetweenParagraphs private variable value.
@@ -88,11 +78,9 @@ public class TextColumn implements Drawable {
         this.lineBetweenParagraphs = lineBetweenParagraphs;
     }
 
-
     public void setSpaceBetweenLines(float spaceBetweenLines) {
         this.spaceBetweenLines = spaceBetweenLines;
     }
-
 
     public void setSpaceBetweenParagraphs(float spaceBetweenParagraphs) {
         this.spaceBetweenParagraphs = spaceBetweenParagraphs;
@@ -141,7 +129,6 @@ public class TextColumn implements Drawable {
         setLocation((float) x, (float) y);
     }
 
-
     /**
      *  Sets the size of this text column.
      *
@@ -151,7 +138,6 @@ public class TextColumn implements Drawable {
     public void setSize(double w, double h) {
         setSize((float) w, (float) h);
     }
-
 
     /**
      *  Sets the size of this text column.
@@ -164,7 +150,6 @@ public class TextColumn implements Drawable {
         this.h = h;
     }
 
-
     /**
      *  Sets the desired width of this text column.
      *
@@ -173,7 +158,6 @@ public class TextColumn implements Drawable {
     public void setWidth(float w) {
         this.w = w;
     }
-
 
     /**
      *  Sets the text alignment.
@@ -184,7 +168,6 @@ public class TextColumn implements Drawable {
         this.alignment = alignment;
     }
 
-
     /**
      *  Sets the spacing between the lines in this text column.
      *
@@ -193,7 +176,6 @@ public class TextColumn implements Drawable {
     public void setLineSpacing(double spacing) {
         this.spaceBetweenLines = (float) spacing;
     }
-
 
     /**
      *  Sets the spacing between the lines in this text column.
@@ -204,7 +186,6 @@ public class TextColumn implements Drawable {
         this.spaceBetweenLines = spacing;
     }
 
-
     /**
      *  Adds a new paragraph to this text column.
      *
@@ -213,7 +194,6 @@ public class TextColumn implements Drawable {
     public void addParagraph(Paragraph paragraph) {
         this.paragraphs.add(paragraph);
     }
-
 
     /**
      *  Removes the last paragraph added to this text column.
@@ -224,7 +204,6 @@ public class TextColumn implements Drawable {
             this.paragraphs.remove(this.paragraphs.size() - 1);
         }
     }
-
 
     /**
      *  Returns dimension object containing the width and height of this component.
@@ -237,7 +216,6 @@ public class TextColumn implements Drawable {
         float[] xy = drawOn(null);
         return new Dimension(this.w, xy[1] - this.y);
     }
-
 
     /**
      *  Draws this text column on the specified page if the 'draw' boolean value is 'true'.
@@ -258,22 +236,18 @@ public class TextColumn implements Drawable {
         return xy;
     }
 
-
     private float[] drawParagraphOn(Page page, Paragraph paragraph) throws Exception {
-
         List<TextLine> list = new ArrayList<TextLine>();
         float runLength = 0f;
-        for (int i = 0; i < paragraph.list.size(); i++) {
-            TextLine line = paragraph.list.get(i);
+        for (int i = 0; i < paragraph.lines.size(); i++) {
+            TextLine line = paragraph.lines.get(i);
             if (i == 0) {
                 lineHeight = line.font.bodyHeight + spaceBetweenLines;
                 if (rotate == 0) {
                     y1 += line.font.ascent;
-                }
-                else if (rotate == 90) {
+                } else if (rotate == 90) {
                     x1 += line.font.ascent;
-                }
-                else if (rotate == 270) {
+                } else if (rotate == 270) {
                     x1 -= line.font.ascent;
                 }
             }
@@ -294,8 +268,7 @@ public class TextColumn implements Drawable {
                 if (runLength < w) {
                     list.add(text);
                     runLength += line.font.stringWidth(line.fallbackFont, Single.space);
-                }
-                else {
+                } else {
                     drawLineOfText(page, list);
                     moveToNextLine();
                     list.clear();
@@ -309,7 +282,6 @@ public class TextColumn implements Drawable {
             }
         }
         drawNonJustifiedLine(page, list);
-
         if (lineBetweenParagraphs) {
             moveToNextLine();
         }
@@ -317,40 +289,33 @@ public class TextColumn implements Drawable {
         return moveToNextParagraph(this.spaceBetweenParagraphs);
     }
 
-
     private float[] moveToNextLine() {
         if (rotate == 0) {
             this.x1 = x;
             this.y1 += lineHeight;
-        }
-        else if (rotate == 90) {
+        } else if (rotate == 90) {
             this.x1 += lineHeight;
             this.y1 = y;
-        }
-        else if (rotate == 270) {
+        } else if (rotate == 270) {
             this.x1 -= lineHeight;
             this.y1 = y;
         }
         return new float[] {x1, y1};
     }
 
-
     private float[] moveToNextParagraph(float spaceBetweenParagraphs) {
         if (rotate == 0) {
             x1 = x;
             y1 += spaceBetweenParagraphs;
-        }
-        else if (rotate == 90) {
+        } else if (rotate == 90) {
             x1 += spaceBetweenParagraphs;
             y1 = y;
-        }
-        else if (rotate == 270) {
+        } else if (rotate == 270) {
             x1 -= spaceBetweenParagraphs;
             y1 = y;
         }
         return new float[] {x1, y1};
     }
-
 
     private float[] drawLineOfText(Page page, List<TextLine> list) throws Exception {
         if (alignment == Align.JUSTIFY) {
@@ -381,25 +346,21 @@ public class TextColumn implements Drawable {
                     textLine.setTextDirection(0);
                     textLine.drawOn(page);
                     x1 += textLine.font.stringWidth(textLine.fallbackFont, textLine.text) + dx;
-                }
-                else if (rotate == 90) {
+                } else if (rotate == 90) {
                     textLine.setTextDirection(90);
                     textLine.drawOn(page);
                     y1 -= textLine.font.stringWidth(textLine.fallbackFont, textLine.text) + dx;
-                }
-                else if (rotate == 270) {
+                } else if (rotate == 270) {
                     textLine.setTextDirection(270);
                     textLine.drawOn(page);
                     y1 += textLine.font.stringWidth(textLine.fallbackFont, textLine.text) + dx;
                 }
             }
-        }
-        else {
+        } else {
             return drawNonJustifiedLine(page, list);
         }
         return new float[] {x1, y1};
     }
-
 
     private float[] drawNonJustifiedLine(Page page, List<TextLine> list) throws Exception {
         float runLength = 0f;
@@ -416,22 +377,17 @@ public class TextColumn implements Drawable {
         if (alignment == Align.CENTER) {
             if (rotate == 0) {
                 x1 = x + ((w - runLength) / 2);
-            }
-            else if (rotate == 90) {
+            } else if (rotate == 90) {
                 y1 = y - ((w - runLength) / 2);
-            }
-            else if (rotate == 270) {
+            } else if (rotate == 270) {
                 y1 = y + ((w - runLength) / 2);
             }
-        }
-        else if (alignment == Align.RIGHT) {
+        } else if (alignment == Align.RIGHT) {
             if (rotate == 0) {
                 x1 = x + (w - runLength);
-            }
-            else if (rotate == 90) {
+            } else if (rotate == 90) {
                 y1 = y - (w - runLength);
-            }
-            else if (rotate == 270) {
+            } else if (rotate == 270) {
                 y1 = y + (w - runLength);
             }
         }
@@ -439,7 +395,6 @@ public class TextColumn implements Drawable {
         for (int i = 0; i < list.size(); i++) {
             TextLine textLine = list.get(i);
             textLine.setLocation(x1, y1 + textLine.getVerticalOffset());
-
             if (textLine.getGoToAction() != null) {
                 page.addAnnotation(new Annotation(
                         null,                       // The URI
@@ -457,13 +412,11 @@ public class TextColumn implements Drawable {
                 textLine.setTextDirection(0);
                 textLine.drawOn(page);
                 x1 += textLine.font.stringWidth(textLine.fallbackFont, textLine.text);
-            }
-            else if (rotate == 90) {
+            } else if (rotate == 90) {
                 textLine.setTextDirection(90);
                 textLine.drawOn(page);
                 y1 -= textLine.font.stringWidth(textLine.fallbackFont, textLine.text);
-            }
-            else if (rotate == 270) {
+            } else if (rotate == 270) {
                 textLine.setTextDirection(270);
                 textLine.drawOn(page);
                 y1 += textLine.font.stringWidth(textLine.fallbackFont, textLine.text);
@@ -471,7 +424,6 @@ public class TextColumn implements Drawable {
         }
         return new float[] {x1, y1};
     }
-
 
     /**
      *  Adds a new paragraph with Chinese text to this text column.
@@ -497,7 +449,6 @@ public class TextColumn implements Drawable {
         addParagraph(paragraph);
     }
 
-
     /**
      *  Adds a new paragraph with Japanese text to this text column.
      *
@@ -507,5 +458,4 @@ public class TextColumn implements Drawable {
     public void addJapaneseParagraph(Font font, String japanese) {
         addChineseParagraph(font, japanese);
     }
-
 }   // End of TextColumn.java

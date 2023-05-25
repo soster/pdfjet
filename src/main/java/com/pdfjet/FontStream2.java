@@ -26,9 +26,7 @@ package com.pdfjet;
 import java.io.*;
 import java.util.*;
 
-
 class FontStream2 {
-
     protected static void register(
             List<PDFobj> objects,
             Font font,
@@ -67,25 +65,23 @@ class FontStream2 {
         font.objNumber = obj.number;
     }
 
-
     private static int addMetadataObject(List<PDFobj> objects, Font font) throws Exception {
-
         StringBuilder sb = new StringBuilder();
-        sb.append("<?xpacket begin='\uFEFF' id=\"W5M0MpCehiHzreSzNTczkc9d\"?>\n");
+        sb.append("<?xpacket id=\"W5M0MpCehiHzreSzNTczkc9d\"?>\n");
         sb.append("<x:xmpmeta xmlns:x=\"adobe:ns:meta/\">\n");
         sb.append("<rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\">\n");
         sb.append("<rdf:Description rdf:about=\"\" xmlns:xmpRights=\"http://ns.adobe.com/xap/1.0/rights/\">\n");
         sb.append("<xmpRights:UsageTerms>\n");
         sb.append("<rdf:Alt>\n");
         sb.append("<rdf:li xml:lang=\"x-default\">\n");
-        sb.append(font.info);
+        sb.append(font.info.getBytes("UTF-8"));
         sb.append("</rdf:li>\n");
         sb.append("</rdf:Alt>\n");
         sb.append("</xmpRights:UsageTerms>\n");
         sb.append("</rdf:Description>\n");
         sb.append("</rdf:RDF>\n");
         sb.append("</x:xmpmeta>\n");
-        sb.append("<?xpacket end=\"w\"?>");
+        sb.append("<?xpacket end=\"r\"?>");
 
         byte[] xml = sb.toString().getBytes("UTF-8");
 
@@ -106,12 +102,10 @@ class FontStream2 {
         return obj.number;
     }
 
-
     private static void embedFontFile(
             List<PDFobj> objects,
             Font font,
             InputStream inputStream) throws Exception {
-
         int metadataObjNumber = addMetadataObject(objects, font);
 
         PDFobj obj = new PDFobj();
@@ -127,8 +121,7 @@ class FontStream2 {
         if (font.cff) {
             obj.dict.add("/Subtype");
             obj.dict.add("/CIDFontType0C");
-        }
-        else {
+        } else {
             obj.dict.add("/Length1");
             obj.dict.add(String.valueOf(font.uncompressedSize));
         }
@@ -145,7 +138,6 @@ class FontStream2 {
         objects.add(obj);
         font.fileObjNumber = obj.number;
     }
-
 
     private static void addFontDescriptorObject(List<PDFobj> objects, Font font) {
         PDFobj obj = new PDFobj();
@@ -183,10 +175,8 @@ class FontStream2 {
         font.fontDescriptorObjNumber = obj.number;
     }
 
-
     private static void addToUnicodeCMapObject(
             List<PDFobj> objects, Font font) throws Exception {
-
         StringBuilder sb = new StringBuilder();
 
         sb.append("/CIDInit /ProcSet findresource begin\n");
@@ -235,7 +225,6 @@ class FontStream2 {
         font.toUnicodeCMapObjNumber = obj.number;
     }
 
-
     private static void addCIDFontDictionaryObject(List<PDFobj> objects, Font font) {
         PDFobj obj = new PDFobj();
         obj.dict.add("<<");
@@ -278,5 +267,4 @@ class FontStream2 {
         objects.add(obj);
         font.cidFontDictObjNumber = obj.number;
     }
-
 }   // End of FontStream2.java

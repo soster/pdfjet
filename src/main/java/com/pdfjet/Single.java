@@ -23,7 +23,6 @@ SOFTWARE.
 */
 package com.pdfjet;
 
-
 /**
  *  Please see Example_45
  */

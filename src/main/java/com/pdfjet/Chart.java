@@ -26,14 +26,12 @@ package com.pdfjet;
 import java.util.*;
 import java.text.*;
 
-
 /**
  *  Used to create XY chart objects and draw them on a page.
  *
  *  Please see Example_09.
  */
 public class Chart implements Drawable {
-
     private float w = 300f;
     private float h = 200f;
 
@@ -100,7 +98,6 @@ public class Chart implements Drawable {
 
     private List<List<Point>> chartData = null;
 
-
     /**
      *  Create a XY chart object.
      *
@@ -113,7 +110,6 @@ public class Chart implements Drawable {
         nf = NumberFormat.getInstance();
     }
 
-
     /**
      *  Sets the title of the chart.
      *
@@ -122,7 +118,6 @@ public class Chart implements Drawable {
     public void setTitle(String title) {
         this.title = title;
     }
-
 
     /**
      *  Sets the title for the X axis.
@@ -133,7 +128,6 @@ public class Chart implements Drawable {
         this.xAxisTitle = title;
     }
 
-
     /**
      *  Sets the title for the Y axis.
      *
@@ -142,7 +136,6 @@ public class Chart implements Drawable {
     public void setYAxisTitle(String title) {
         this.yAxisTitle = title;
     }
-
 
     /**
      *  Sets the data that will be used to draw this chart.
@@ -153,7 +146,6 @@ public class Chart implements Drawable {
         this.chartData = chartData;
     }
 
-
     /**
      *  Returns the chart data.
      *
@@ -162,7 +154,6 @@ public class Chart implements Drawable {
     public List<List<Point>> getData() {
         return chartData;
     }
-
 
     /**
      *  Sets the position of this chart on the page.
@@ -174,7 +165,6 @@ public class Chart implements Drawable {
         setLocation((float) x, (float) y);
     }
 
-
     /**
      *  Sets the position of this chart on the page.
      *
@@ -184,7 +174,6 @@ public class Chart implements Drawable {
     public void setPosition(float x, float y) {
         setLocation(x, y);
     }
-
 
     /**
      *  Sets the location of this chart on the page.
@@ -196,7 +185,6 @@ public class Chart implements Drawable {
     public Chart setLocation(double x, double y) {
         return setLocation((float) x, (float) y);
     }
-
 
     /**
      *  Sets the location of this chart on the page.
@@ -211,7 +199,6 @@ public class Chart implements Drawable {
         return this;
     }
 
-
     /**
      *  Sets the size of this chart.
      *
@@ -221,7 +208,6 @@ public class Chart implements Drawable {
     public void setSize(double w, double h) {
         setSize((float) w, (float) h);
     }
-
 
     /**
      *  Sets the size of this chart.
@@ -234,7 +220,6 @@ public class Chart implements Drawable {
         this.h = h;
     }
 
-
     /**
      *  Sets the minimum number of fractions digits do display for the X and Y axis labels.
      *
@@ -244,7 +229,6 @@ public class Chart implements Drawable {
         this.minFractionDigits = minFractionDigits;
     }
 
-
     /**
      *  Sets the maximum number of fractions digits do display for the X and Y axis labels.
      *
@@ -253,7 +237,6 @@ public class Chart implements Drawable {
     public void setMaximumFractionDigits(int maxFractionDigits) {
         this.maxFractionDigits = maxFractionDigits;
     }
-
 
     /**
      *  Calculates the slope of a trend line given a list of points.
@@ -266,7 +249,6 @@ public class Chart implements Drawable {
         return (covar(points) / devsq(points) * (points.size() - 1));
     }
 
-
     /**
      *  Calculates the intercept of a trend line given a list of points.
      *  See Example_09.
@@ -278,7 +260,6 @@ public class Chart implements Drawable {
     public float intercept(List<Point> points, double slope) {
         return intercept(points, (float) slope);
     }
-
 
     /**
      *  Calculates the intercept of a trend line given a list of points.
@@ -293,31 +274,25 @@ public class Chart implements Drawable {
         return (_mean[1] - slope * _mean[0]);
     }
 
-
     public void setDrawXAxisLines(boolean drawXAxisLines) {
         this.drawXAxisLines = drawXAxisLines;
     }
-
 
     public void setDrawYAxisLines(boolean drawYAxisLines) {
         this.drawYAxisLines = drawYAxisLines;
     }
 
-
     public void setDrawXAxisLabels(boolean drawXAxisLabels) {
         this.drawXAxisLabels = drawXAxisLabels;
     }
-
 
     public void setDrawYAxisLabels(boolean drawYAxisLabels) {
         this.drawYAxisLabels = drawYAxisLabels;
     }
 
-
     public void setXYChart(boolean xyChart) {
         this.xyChart = xyChart;
     }
-
 
     /**
      *  Draws this chart on the specified page.
@@ -391,8 +366,7 @@ public class Chart implements Drawable {
                     point.x = x5 + (point.x - xMin) * (x6 - x5) / (xMax - xMin);
                     point.y = y8 - (point.y - yMin) * (y8 - y5) / (yMax - yMin);
                     point.lineWidth *= (x6 - x5) / w;
-                }
-                else {
+                } else {
                     point.x = x5 + point.x * (x6 - x5) / w;
                     point.y = y8 - (point.y - yMin) * (y8 - y5) / (yMax - yMin);
                 }
@@ -437,7 +411,6 @@ public class Chart implements Drawable {
         return new float[] {this.x1 + this.w, this.y1 + this.h};
     }
 
-
     private float getLongestAxisYLabelWidth() {
         float minLabelWidth = f2.stringWidth(nf.format(yMin) + "0");
         float maxLabelWidth = f2.stringWidth(nf.format(yMax) + "0");
@@ -446,7 +419,6 @@ public class Chart implements Drawable {
         }
         return minLabelWidth;
     }
-
 
     private void setXAxisMinAndMaxChartValues() {
         if (xAxisGridLines != 0) {
@@ -464,7 +436,6 @@ public class Chart implements Drawable {
         }
     }
 
-
     private void setYAxisMinAndMaxChartValues() {
         if (yAxisGridLines != 0) {
             return;
@@ -481,7 +452,6 @@ public class Chart implements Drawable {
         }
     }
 
-
     private void roundXAxisMinAndMaxValues() {
         if (xAxisGridLines != 0) {
             return;
@@ -492,7 +462,6 @@ public class Chart implements Drawable {
         xAxisGridLines = round.numOfGridLines;
     }
 
-
     private void roundYAxisMinAndMaxValues() {
         if (yAxisGridLines != 0) {
             return;
@@ -502,7 +471,6 @@ public class Chart implements Drawable {
         yMin = round.minValue;
         yAxisGridLines = round.numOfGridLines;
     }
-
 
     private void drawChartBorder(Page page) {
         page.setPenWidth(chartBorderWidth);
@@ -515,7 +483,6 @@ public class Chart implements Drawable {
         page.strokePath();
     }
 
-
     private void drawInnerBorder(Page page) {
         page.setPenWidth(innerBorderWidth);
         page.setPenColor(Color.black);
@@ -526,7 +493,6 @@ public class Chart implements Drawable {
         page.closePath();
         page.strokePath();
     }
-
 
     private void drawHorizontalGridLines(Page page) {
         page.setPenWidth(hGridLineWidth);
@@ -541,7 +507,6 @@ public class Chart implements Drawable {
         }
     }
 
-
     private void drawVerticalGridLines(Page page) {
         page.setPenWidth(vGridLineWidth);
         page.setPenColor(Color.black);
@@ -555,7 +520,6 @@ public class Chart implements Drawable {
         }
     }
 
-
     private void drawXAxisLabels(Page page) {
         float x = x5;
         float y = y8 + f2.bodyHeight;
@@ -568,7 +532,6 @@ public class Chart implements Drawable {
         }
     }
 
-
     private void drawYAxisLabels(Page page) {
         float x = x5 - getLongestAxisYLabelWidth();
         float y = y8 + f2.ascent / 3;
@@ -580,7 +543,6 @@ public class Chart implements Drawable {
             y -= step;
         }
     }
-
 
     private void drawPathsAndPoints(
             Page page, List<List<Point>> chartData) throws Exception {
@@ -611,9 +573,7 @@ public class Chart implements Drawable {
         }
     }
 
-
     private Round roundMaxAndMinValues(float maxValue, float minValue) {
-
         int maxExponent = (int) Math.floor(Math.log(maxValue) / Math.log(10));
         maxValue *= (float) Math.pow(10, -maxExponent);
 
@@ -667,7 +627,6 @@ public class Chart implements Drawable {
         return round;
     }
 
-
     private float[] mean(List<Point> points) {
         float[] _mean = new float[2];
         for (int i = 0; i < points.size(); i++) {
@@ -680,7 +639,6 @@ public class Chart implements Drawable {
         return _mean;
     }
 
-
     private float covar(List<Point> points) {
         float covariance = 0f;
         float[] _mean = mean(points);
@@ -690,7 +648,6 @@ public class Chart implements Drawable {
         }
         return (covariance / (points.size() - 1));
     }
-
 
     /**
      * devsq() returns the sum of squares of deviations.
@@ -706,7 +663,6 @@ public class Chart implements Drawable {
         return _devsq;
     }
 
-
     /**
      *  Sets xMin and xMax for the X axis and the number of X grid lines.
      *
@@ -720,7 +676,6 @@ public class Chart implements Drawable {
         this.xAxisGridLines = xAxisGridLines;
     }
 
-
     /**
      *  Sets yMin and yMax for the Y axis and the number of Y grid lines.
      *
@@ -733,5 +688,4 @@ public class Chart implements Drawable {
         this.yMax = yMax;
         this.yAxisGridLines = yAxisGridLines;
     }
-
 }   // End of Chart.java

@@ -2,14 +2,16 @@ package com.pdfjet;
 
 import java.util.*;
 
+class Pair {
+    List<Byte> key;
+    int code;
+}
 
-
-class LookupTable {
-
+class LZWHashTable {
     private final int mask = 0xFFFF;
     private final Pair[] pairs = new Pair[mask + 1];
 
-    public LookupTable() {
+    public LZWHashTable() {
         for (int i = 0; i < pairs.length; i++) {
             pairs[i] = new Pair();
         }
@@ -50,5 +52,4 @@ class LookupTable {
         }
         return hash & mask;
     }
-
 }

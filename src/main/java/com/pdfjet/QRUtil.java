@@ -13,13 +13,11 @@ DENSO WAVE INCORPORATED
 */
 package com.pdfjet;
 
-
 /**
  * QRUtil
  * @author Kazuhiko Arase
  */
 class QRUtil {
-
     protected static Polynomial getErrorCorrectPolynomial(int errorCorrectLength) {
         Polynomial a = new Polynomial(new int[] {1});
         for (int i = 0; i < errorCorrectLength; i++) {
@@ -30,7 +28,6 @@ class QRUtil {
 
     protected static boolean getMask(int maskPattern, int i, int j) {
         switch (maskPattern) {
-
         case MaskPattern.PATTERN000 : return (i + j) % 2 == 0;
         case MaskPattern.PATTERN001 : return (i % 2) == 0;
         case MaskPattern.PATTERN010 : return (j % 3) == 0;
@@ -39,7 +36,6 @@ class QRUtil {
         case MaskPattern.PATTERN101 : return (i * j) % 2 + (i * j) % 3 == 0;
         case MaskPattern.PATTERN110 : return ((i * j) % 2 + (i * j) % 3) % 2 == 0;
         case MaskPattern.PATTERN111 : return ((i * j) % 3 + (i + j) % 2) % 2 == 0;
-
         default :
             throw new IllegalArgumentException("mask: " + maskPattern);
         }
@@ -54,27 +50,22 @@ class QRUtil {
             for (int col = 0; col < moduleCount; col++) {
                 int sameCount = 0;
                 boolean dark = qrCode.isDark(row, col);
-
                 for (int r = -1; r <= 1; r++) {
                     if (row + r < 0 || moduleCount <= row + r) {
                         continue;
                     }
-
                     for (int c = -1; c <= 1; c++) {
                         if (col + c < 0 || moduleCount <= col + c) {
                             continue;
                         }
-
                         if (r == 0 && c == 0) {
                             continue;
                         }
-
                         if (dark == qrCode.isDark(row + r, col + c)) {
                             sameCount++;
                         }
                     }
                 }
-
                 if (sameCount > 5) {
                     lostPoint += (3 + sameCount - 5);
                 }

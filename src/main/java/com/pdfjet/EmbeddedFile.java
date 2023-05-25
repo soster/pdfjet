@@ -23,59 +23,55 @@ SOFTWARE.
 */
 package com.pdfjet;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 
-
 /**
  *  Used to embed file objects.
  *  The file objects must added to the PDF before drawing on the first page.
- *
  */
 public class EmbeddedFile {
-
     protected int objNumber = -1;
     protected String fileName;
 
+    public EmbeddedFile(PDF pdf, String fileName, boolean compress) throws Exception {
+        this(pdf, fileName.substring(fileName.lastIndexOf("/") + 1),
+                new BufferedInputStream(new FileInputStream(fileName)), compress);
+    }
 
     public EmbeddedFile(PDF pdf, String fileName, InputStream stream, boolean compress) throws Exception {
         this.fileName = fileName;
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        byte[] buf = new byte[4096];
-        int number;
-        while ((number = stream.read(buf, 0, buf.length)) > 0) {
-            baos.write(buf, 0, number);
-        }
-        stream.close();
+        byte[] buf = Contents.getFromStream(stream);
 
         if (compress) {
-            buf = baos.toByteArray();
-            baos = new ByteArrayOutputStream();
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
             DeflaterOutputStream dos = new DeflaterOutputStream(baos, new Deflater());
             dos.write(buf, 0, buf.length);
             dos.finish();
+            buf = baos.toByteArray();
         }
 
         pdf.newobj();
-        pdf.append("<<\n");
+        pdf.append(Token.beginDictionary);
         pdf.append("/Type /EmbeddedFile\n");
         if (compress) {
             pdf.append("/Filter /FlateDecode\n");
         }
-        pdf.append("/Length ");
-        pdf.append(baos.size());
-        pdf.append("\n");
-        pdf.append(">>\n");
-        pdf.append("stream\n");
-        pdf.append(baos);
-        pdf.append("\nendstream\n");
+        pdf.append(Token.length);
+        pdf.append(buf.length);
+        pdf.append(Token.newline);
+        pdf.append(Token.endDictionary);
+        pdf.append(Token.stream);
+        pdf.append(buf);
+        pdf.append(Token.endstream);
         pdf.endobj();
 
         pdf.newobj();
-        pdf.append("<<\n");
+        pdf.append(Token.beginDictionary);
         pdf.append("/Type /Filespec\n");
         pdf.append("/F (");
         pdf.append(fileName);
@@ -83,15 +79,13 @@ public class EmbeddedFile {
         pdf.append("/EF <</F ");
         pdf.append(pdf.getObjNumber() - 1);
         pdf.append(" 0 R>>\n");
-        pdf.append(">>\n");
+        pdf.append(Token.endDictionary);
         pdf.endobj();
 
         this.objNumber = pdf.getObjNumber();
     }
 
-
     public String getFileName() {
         return fileName;
     }
-
 }   // End of EmbeddedFile.java

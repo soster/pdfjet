@@ -29,10 +29,8 @@ import java.util.zip.*;
 
 /**
  * This class parses and extracts the data from TTF and OTF font files.
- * 
  */
 public class OTF {
-
     String fontName;
     String fontInfo;
     ByteArrayOutputStream baos;
@@ -61,20 +59,12 @@ public class OTF {
 
     /**
      * Creates OTF object
-     * 
+     *
      * @param stream the input stream
      * @throws Exception if there is a problem
      */
     public OTF(InputStream stream) throws Exception {
-        this.baos = new ByteArrayOutputStream();
-
-        byte[] buffer = new byte[0x10000];
-        int count;
-        while ((count = stream.read(buffer, 0, buffer.length)) > 0) {
-            baos.write(buffer, 0, count);
-        }
-        stream.close();
-        buf = baos.toByteArray();
+        buf = Contents.getFromStream(stream);
 
         // Extract OTF metadata
         long version = readUInt32();
@@ -82,8 +72,7 @@ public class OTF {
             version == 0x74727565L ||   // Mac TTF
             version == 0x4F54544FL) {   // CFF OTF
             // We should be able to read this font
-        }
-        else {
+        } else {
             throw new Exception(
                     "OTF version == " + version + " is not supported.");
         }
@@ -119,14 +108,12 @@ public class OTF {
 
         // This table must be processed last
         cmap(cmapTable);
-
         baos = new ByteArrayOutputStream();
         DeflaterOutputStream dos =
                 new DeflaterOutputStream(baos, new Deflater(Deflater.BEST_SPEED));
         if (cff) {
             dos.write(buf, cffOff, cffLen);
-        }
-        else {
+        } else {
             dos.write(buf, 0, buf.length);
         }
         dos.finish();
@@ -181,20 +168,17 @@ public class OTF {
                         buf, table.offset + stringOffset + offset, length, "UTF-8");
                 if (nameID == 6) {
                     fontName = str;
-                }
-                else {
+                } else {
                     macFontInfo.append(str);
                     macFontInfo.append('\n');
                 }
-            }
-            else if (platformID == 3 && encodingID == 1 && languageID == 0x409) {
+            } else if (platformID == 3 && encodingID == 1 && languageID == 0x409) {
                 // Windows
                 String str = new String(
                         buf, table.offset + stringOffset + offset, length, "UTF-16");
                 if (nameID == 6) {
-                    fontName = str;
-                }
-                else {
+                    fontName = new String(str.getBytes("UTF-8"));
+                } else {
                     winFontInfo.append(str);
                     winFontInfo.append('\n');
                 }
@@ -269,8 +253,7 @@ public class OTF {
                 int offset = idRangeOffset[seg];
                 if (offset == 0) {
                     gid = (idDelta[seg] + ch) % 65536;
-                }
-                else {
+                } else {
                     offset /= 2;
                     offset -= segCount - seg;
                     gid = glyphIdArray[offset + (ch - startCount[seg])];
@@ -278,11 +261,9 @@ public class OTF {
                         gid += idDelta[seg] % 65536;
                     }
                 }
-
                 if (gid < advanceWidth.length) {
                     glyphWidth[ch] = advanceWidth[gid];
                 }
-
                 unicodeToGID[ch] = gid;
             }
         }
@@ -348,130 +329,7 @@ public class OTF {
         val |= (buf[index++])       & 0x000000FFL;
         return val;
     }
-
-    /**
-     * The entry point of the this class
-     * 
-     * @param args the arguments
-     * @throws Exception if there is a problem
-     */
-    public static void main(String[] args) throws Exception {
-        File file = new File(args[0]);
-        if (file.isDirectory()) {
-            String path = file.getPath();
-            String[] list = file.list();
-            for (String fileName : list) {
-                if (fileName.endsWith(".ttf") || fileName.endsWith(".otf")) {
-                    System.out.println(fileName);
-                    convertFontFile(path + File.separator + fileName);
-                }
-            }
-        }
-        else {
-            convertFontFile(args[0]);
-        }
-    }
-
-    private static void convertFontFile(String fileName) throws Exception {
-        FileInputStream fis = new FileInputStream(fileName);
-        OTF otf = new OTF(fis);
-        fis.close();
-
-        FileOutputStream fos = new FileOutputStream(fileName + ".stream");
-
-        byte[] name = otf.fontName.getBytes("UTF-8");
-        fos.write(name.length);
-        fos.write(name);
-
-        byte[] info = otf.fontInfo.getBytes("UTF-8");
-        writeInt24(info.length, fos);
-        fos.write(info);
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream(32768);
-
-        writeInt32(otf.unitsPerEm, baos);
-        writeInt32(otf.bBoxLLx, baos);
-        writeInt32(otf.bBoxLLy, baos);
-        writeInt32(otf.bBoxURx, baos);
-        writeInt32(otf.bBoxURy, baos);
-        writeInt32(otf.ascent, baos);
-        writeInt32(otf.descent, baos);
-        writeInt32(otf.firstChar, baos);
-        writeInt32(otf.lastChar, baos);
-        writeInt32(otf.capHeight, baos);
-        writeInt32(otf.underlinePosition, baos);
-        writeInt32(otf.underlineThickness, baos);
-
-        writeInt32(otf.advanceWidth.length, baos);
-        for (int i = 0; i < otf.advanceWidth.length; i++) {
-            writeInt16(otf.advanceWidth[i], baos);
-        }
-
-        writeInt32(otf.glyphWidth.length, baos);
-        for (int i = 0; i < otf.glyphWidth.length; i++) {
-            writeInt16(otf.glyphWidth[i], baos);
-        }
-
-        writeInt32(otf.unicodeToGID.length, baos);
-        for (int i = 0; i < otf.unicodeToGID.length; i++) {
-            writeInt16(otf.unicodeToGID[i], baos);
-        }
-
-        byte[] buf1 = baos.toByteArray();
-        ByteArrayOutputStream buf2 = new ByteArrayOutputStream(0xFFFF);
-        DeflaterOutputStream dos1 =
-                new DeflaterOutputStream(
-                        buf2, new Deflater(Deflater.BEST_COMPRESSION));
-        dos1.write(buf1, 0, buf1.length);
-        dos1.finish();
-        writeInt32(buf2.size(), fos);
-        buf2.writeTo(fos);
-
-        byte[] buf3 = otf.buf;
-        if (otf.cff) {
-            fos.write('Y');
-            buf3 = new byte[otf.cffLen];
-            for (int i = 0; i < otf.cffLen; i++) {
-                buf3[i] = otf.buf[otf.cffOff + i];
-            }
-        }
-        else {
-            fos.write('N');
-        }
-
-        ByteArrayOutputStream buf4 = new ByteArrayOutputStream(0xFFFF);
-        DeflaterOutputStream dos2 =
-                new DeflaterOutputStream(buf4,
-                        new Deflater(Deflater.BEST_COMPRESSION));
-        dos2.write(buf3, 0, buf3.length);
-        dos2.finish();
-        writeInt32(buf3.length, fos);       // Uncompressed font size
-        writeInt32(buf4.size(), fos);       // Compressed font size
-        buf4.writeTo(fos);
-
-        fos.close();
-    }
-
-    static void writeInt16(int i, OutputStream stream) throws IOException {
-        stream.write((i >>  8) & 0xff);
-        stream.write((i >>  0) & 0xff);
-    }
-
-    static void writeInt24(int i, OutputStream stream) throws IOException {
-        stream.write((i >> 16) & 0xff);
-        stream.write((i >>  8) & 0xff);
-        stream.write((i >>  0) & 0xff);
-    }
-
-    static void writeInt32(int i, OutputStream stream) throws IOException {
-        stream.write((i >> 24) & 0xff);
-        stream.write((i >> 16) & 0xff);
-        stream.write((i >>  8) & 0xff);
-        stream.write((i >>  0) & 0xff);
-    }
-
 }   // End of OTF.java
-
 
 class FontTable {
     protected String name;

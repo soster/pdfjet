@@ -1,5 +1,5 @@
 /**
- *  PageMode.java
+ *  CJKFont.java
  *
 Copyright 2023 Innovatics Inc.
 
@@ -24,14 +24,11 @@ SOFTWARE.
 package com.pdfjet;
 
 /**
- *  Used to specify the PDF page mode.
- *
+ *  Used to select Chinese, Japanese and Korean fonts.
  */
-public class PageMode {
-    public static final String USE_NONE = "UseNone";            // Neither document outline nor thumbnail images visible
-    public static final String USE_OUTLINES = "UseOutlines";    // Document outline visible
-    public static final String USE_THUMBS = "UseThumbs";        // Thumbnail images visible
-    public static final String FULL_SCREEN = "FullScreen";      // Full-screen mode
-    public static final String USE_OC = "UseOC";                // (PDF 1.5) Optional content group panel visible
-    public static final String USE_ATTACHMENTS = "UseAttachements";
+public enum CJKFont {
+    ADOBE_MING_STD_LIGHT,       // Chinese (Traditional) font
+    ST_HEITI_SC_LIGHT,          // Chinese (Simplified) font
+    KOZ_MIN_PRO_VI_REGULAR,     // Japanese font
+    ADOBE_MYUNGJO_STD_MEDIUM,   // Korean font
 }

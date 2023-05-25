@@ -1,5 +1,5 @@
 /**
- *  ClockWise.java
+ *  Compliance.java
  *
 Copyright 2023 Innovatics Inc.
 
@@ -23,15 +23,12 @@ SOFTWARE.
 */
 package com.pdfjet;
 
-
 /**
- *  Used to set PDF/A compliance.
+ *  Used to set PDF/UA and PDF/A compliance.
  *  See the constructors in the PDF class.
- *
  */
 public class Compliance {
     public static final int PDF_UA = 1;
-
     public static final int PDF_A_1A = 2;
     public static final int PDF_A_1B = 3;
     public static final int PDF_A_2A = 4;

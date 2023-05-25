@@ -25,32 +25,33 @@ package com.pdfjet;
 
 import java.util.*;
 
-
 /**
  *  Used to create paragraph objects.
  *  See the TextColumn class for more information.
  *
  */
 public class Paragraph {
-
-    protected List<TextLine> list = null;
+    public float xText;
+    public float yText;
+    public float x1;
+    public float y1;
+    public float x2;
+    public float y2;
+    protected List<TextLine> lines = null;
     protected int alignment = Align.LEFT;
-
 
     /**
      *  Constructor for creating paragraph objects.
      *
      */
     public Paragraph() {
-        list = new ArrayList<TextLine>();
+        lines = new ArrayList<TextLine>();
     }
-
 
     public Paragraph(TextLine text) {
-        list = new ArrayList<TextLine>();
-        list.add(text);
+        lines = new ArrayList<TextLine>();
+        lines.add(text);
     }
-
 
     /**
      *  Adds a text line to this paragraph.
@@ -59,10 +60,9 @@ public class Paragraph {
      *  @return this paragraph.
      */
     public Paragraph add(TextLine text) {
-        list.add(text);
+        lines.add(text);
         return this;
     }
-
 
     /**
      *  Sets the alignment of the text in this paragraph.
@@ -77,4 +77,23 @@ public class Paragraph {
         return this;
     }
 
+    public List<TextLine> getTextLines() {
+        return lines;
+    }
+
+    public boolean startsWith(String token) {
+        return lines.get(0).getText().startsWith(token);
+    }
+
+    public void setColor(int color) {
+        for (TextLine line : lines) {
+            line.setColor(color);
+        }
+    }
+
+    public void setColorMap(Map<String, Integer> colorMap) {
+        for (TextLine line : lines) {
+            line.setColorMap(colorMap);
+        }
+    }
 }   // End of Paragraph.java

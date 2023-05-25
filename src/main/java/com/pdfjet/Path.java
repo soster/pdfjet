@@ -25,7 +25,6 @@ package com.pdfjet;
 
 import java.util.*;
 
-
 /**
  *  Used to create path objects.
  *  The path objects may consist of lines, splines or both.
@@ -33,21 +32,16 @@ import java.util.*;
  *  Please see Example_02.
  */
 public class Path implements Drawable {
-
     private int color = Color.black;
     private float width = 0.3f;
     private String pattern = "[] 0";
     private boolean fillShape = false;
     private boolean closePath = false;
-
     private List<Point> points = null;
-
     private float xBox;
     private float yBox;
-
     private CapStyle lineCapStyle = CapStyle.BUTT;
     private JoinStyle lineJoinStyle = JoinStyle.MITER;
-
 
     /**
      *  The default constructor.
@@ -58,7 +52,6 @@ public class Path implements Drawable {
         points = new ArrayList<Point>();
     }
 
-
     /**
      *  Adds a point to this path.
      *
@@ -67,7 +60,6 @@ public class Path implements Drawable {
     public void add(Point point) {
         points.add(point);
     }
-
 
     /**
      *  Sets the line dash pattern for this path.
@@ -98,7 +90,6 @@ public class Path implements Drawable {
         this.pattern = pattern;
     }
 
-
     /**
      *  Sets the pen width that will be used to draw the lines and splines that are part of this path.
      *
@@ -107,7 +98,6 @@ public class Path implements Drawable {
     public void setWidth(double width) {
         this.width = (float) width;
     }
-
 
     /**
      *  Sets the pen width that will be used to draw the lines and splines that are part of this path.
@@ -118,7 +108,6 @@ public class Path implements Drawable {
         this.width = width;
     }
 
-
     /**
      *  Sets the pen color that will be used to draw this path.
      *
@@ -127,7 +116,6 @@ public class Path implements Drawable {
     public void setColor(int color) {
         this.color = color;
     }
-
 
     /**
      *  Sets the closePath variable.
@@ -138,7 +126,6 @@ public class Path implements Drawable {
         this.closePath = closePath;
     }
 
-
     /**
      *  Sets the fillShape private variable. If fillShape is true - the shape of the path will be filled with the current brush color.
      *
@@ -147,7 +134,6 @@ public class Path implements Drawable {
     public void setFillShape(boolean fillShape) {
         this.fillShape = fillShape;
     }
-
 
     /**
      *  Sets the line cap style.
@@ -159,7 +145,6 @@ public class Path implements Drawable {
         this.lineCapStyle = style;
     }
 
-
     /**
      *  Returns the line cap style for this path.
      *
@@ -168,7 +153,6 @@ public class Path implements Drawable {
     public CapStyle getLineCapStyle() {
         return this.lineCapStyle;
     }
-
 
     /**
      *  Sets the line join style.
@@ -179,7 +163,6 @@ public class Path implements Drawable {
         this.lineJoinStyle = style;
     }
 
-
     /**
      *  Returns the line join style.
      *
@@ -189,7 +172,6 @@ public class Path implements Drawable {
         return this.lineJoinStyle;
     }
 
-
     /**
      *  Places this path in the specified box at position (0.0, 0.0).
      *
@@ -198,7 +180,6 @@ public class Path implements Drawable {
     public void placeIn(Box box) {
         placeIn(box, 0.0f, 0.0f);
     }
-
 
     /**
      *  Places the path inside the spacified box at coordinates (xOffset, yOffset) of the top left corner.
@@ -213,7 +194,6 @@ public class Path implements Drawable {
             double yOffset) {
         placeIn(box, (float) xOffset, (float) yOffset);
     }
-
 
     /**
      *  Places the path inside the spacified box at coordinates (xOffset, yOffset) of the top left corner.
@@ -230,28 +210,23 @@ public class Path implements Drawable {
         yBox = box.y + yOffset;
     }
 
-
     public void setPosition(double x, double y) {
         setLocation((float) x, (float) y);
     }
-
 
     public void setPosition(float x, float y) {
         setLocation(x, y);
     }
 
-
     public Path setLocation(double x, double y) {
         return setLocation((float) x, (float) y);
     }
-
 
     public Path setLocation(float x, float y) {
         xBox += x;
         yBox += y;
         return this;
     }
-
 
     /**
      *  Scales the path using the specified factor.
@@ -261,7 +236,6 @@ public class Path implements Drawable {
     public void scaleBy(double factor) {
         scaleBy((float) factor);
     }
-
 
     /**
      *  Scales the path using the specified factor.
@@ -275,7 +249,6 @@ public class Path implements Drawable {
             point.y *= factor;
         }
     }
-
 
     /**
      * Returns a list containing the start point, first control point, second control point and the end point of elliptical curve segment.
@@ -303,20 +276,17 @@ public class Path implements Drawable {
             list.add(new Point(x + m4*r1, y - r2, Point.CONTROL_POINT));
             list.add(new Point(x + r1, y - m4*r2, Point.CONTROL_POINT));
             list.add(new Point(x + r1, y));
-        }
-        else if (segment == 1) {
+        } else if (segment == 1) {
             list.add(new Point(x + r1, y));
             list.add(new Point(x + r1, y + m4*r2, Point.CONTROL_POINT));
             list.add(new Point(x + m4*r1, y + r2, Point.CONTROL_POINT));
             list.add(new Point(x, y + r2));
-        }
-        else if (segment == 2) {
+        } else if (segment == 2) {
             list.add(new Point(x, y + r2));
             list.add(new Point(x - m4*r1, y + r2, Point.CONTROL_POINT));
             list.add(new Point(x - r1, y + m4*r2, Point.CONTROL_POINT));
             list.add(new Point(x - r1, y));
-        }
-        else if (segment == 3) {
+        } else if (segment == 3) {
             list.add(new Point(x - r1, y));
             list.add(new Point(x - r1, y - m4*r2, Point.CONTROL_POINT));
             list.add(new Point(x - m4*r1, y - r2, Point.CONTROL_POINT));
@@ -325,7 +295,6 @@ public class Path implements Drawable {
 
         return list;
     }
-
 
     /**
      *  Draws this path on the page using the current selected color, pen width, line pattern and line join style.
@@ -337,8 +306,7 @@ public class Path implements Drawable {
     public float[] drawOn(Page page) throws Exception {
         if (fillShape) {
             page.setBrushColor(color);
-        }
-        else {
+        } else {
             page.setPenColor(color);
         }
         page.setPenWidth(width);
@@ -354,12 +322,10 @@ public class Path implements Drawable {
 
         if (fillShape) {
             page.drawPath(points, 'f');
-        }
-        else {
+        } else {
             if (closePath) {
                 page.drawPath(points, 's');
-            }
-            else {
+            } else {
                 page.drawPath(points, 'S');
             }
         }
@@ -376,5 +342,4 @@ public class Path implements Drawable {
 
         return new float[] {xMax, yMax};
     }
-
 }   // End of Path.java

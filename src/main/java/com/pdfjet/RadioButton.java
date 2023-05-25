@@ -23,7 +23,6 @@ SOFTWARE.
 */
 package com.pdfjet;
 
-
 /**
  *  Creates a RadioButton, which can be set selected or unselected.
  *
@@ -43,7 +42,6 @@ public class RadioButton implements Drawable {
     private String actualText = Single.space;
     private String altDescription = Single.space;
 
-
     /**
      *  Creates a RadioButton that is not selected.
      *
@@ -54,7 +52,6 @@ public class RadioButton implements Drawable {
         this.font = font;
         this.label = label;
     }
-
 
     /**
      *  Sets the font size to use for this text line.
@@ -67,7 +64,6 @@ public class RadioButton implements Drawable {
         return this;
     }
 
-
     /**
      *  Set the x,y position on the Page.
      *
@@ -78,7 +74,6 @@ public class RadioButton implements Drawable {
         setLocation(x, y);
     }
 
-
     /**
      *  Set the x,y position on the Page.
      *
@@ -88,7 +83,6 @@ public class RadioButton implements Drawable {
     public void setPosition(double x, double y) {
         setLocation(x, y);
     }
-
 
     /**
      *  Set the x,y location on the Page.
@@ -103,7 +97,6 @@ public class RadioButton implements Drawable {
         return this;
     }
 
-
     /**
      *  Set the x,y location on the Page.
      *
@@ -114,7 +107,6 @@ public class RadioButton implements Drawable {
     public RadioButton setLocation(double x, double y) {
         return setLocation(x, y);
     }
-
 
     /**
      *  Sets the URI for the "click text line" action.
@@ -127,7 +119,6 @@ public class RadioButton implements Drawable {
         return this;
     }
 
-
     /**
      *  Selects or deselects this radio button.
      *
@@ -138,7 +129,6 @@ public class RadioButton implements Drawable {
         this.selected = selected;
         return this;
     }
-
 
     /**
      *  Sets the alternate description of this radio button.
@@ -151,7 +141,6 @@ public class RadioButton implements Drawable {
         return this;
     }
 
-
     /**
      *  Sets the actual text for this radio button.
      *
@@ -162,7 +151,6 @@ public class RadioButton implements Drawable {
         this.actualText = actualText;
         return this;
     }
-
 
     /**
      *  Draws this RadioButton on the specified Page.
@@ -213,5 +201,4 @@ public class RadioButton implements Drawable {
 
         return new float[] { x + 6*r1 + font.stringWidth(label), y + font.bodyHeight };
     }
-
 }   // End of RadioButton.java

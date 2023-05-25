@@ -23,11 +23,9 @@ SOFTWARE.
 */
 package com.pdfjet;
 
-
 /**
  *  Used to specify the text alignment in paragraphs.
  *  See the Paragraph class for more details.
- *
  */
  public class Align {
     public static final int LEFT    = 0x00000000;

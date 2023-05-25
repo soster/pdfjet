@@ -23,16 +23,13 @@ SOFTWARE.
 */
 package com.pdfjet;
 
-
 class State {
-
     private float[] pen;
     private float[] brush;
     private float penWidth;
     private CapStyle lineCapStyle;
     private JoinStyle lineJoinStyle;
     private String linePattern;
-
 
     public State(
             float[] pen,
@@ -49,34 +46,27 @@ class State {
         this.linePattern = linePattern;
     }
 
-
     public float[] getPen() {
         return pen;
     }
-
 
     public float[] getBrush() {
         return brush;
     }
 
-
     public float getPenWidth() {
         return penWidth;
     }
-
 
     public CapStyle getLineCapStyle() {
         return lineCapStyle;
     }
 
-
     public JoinStyle getLineJoinStyle() {
         return lineJoinStyle;
     }
 
-
     public String getLinePattern() {
         return linePattern;
     }
-
 }   // End of State.java

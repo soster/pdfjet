@@ -1,6 +1,5 @@
 package com.pdfjet;
 
-
 class ICCBlackScaled {
     public static byte[] profile = {
 (byte) 0x78,

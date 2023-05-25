@@ -23,7 +23,6 @@ SOFTWARE.
 */
 package com.pdfjet;
 
-
 class Chunk {
     protected long length;
     protected byte[] type;

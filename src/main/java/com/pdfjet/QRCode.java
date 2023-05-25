@@ -11,11 +11,9 @@ The word "QR Code" is registered trademark of
 DENSO WAVE INCORPORATED
   http://www.denso-wave.com/qrcode/faqpatent-e.html
 */
-
 package com.pdfjet;
 
 import java.io.UnsupportedEncodingException;
-
 
 /**
  * Used to create 2D QR Code barcodes. Please see Example_20.
@@ -23,21 +21,16 @@ import java.io.UnsupportedEncodingException;
  * @author Kazuhiko Arase
  */
 public class QRCode implements Drawable {
-
     private static final int PAD0 = 0xEC;
     private static final int PAD1 = 0x11;
     private Boolean[][] modules;
     private final int moduleCount = 33;   // Magic Number
     private int errorCorrectLevel = ErrorCorrectLevel.M;
-
     private float x;
     private float y;
-
     private final byte[] qrData;
     private float m1 = 2.0f;        // Module length
-
     private int color = Color.black;
-
 
     /**
      * Used to create 2D QR Code barcodes.
@@ -106,7 +99,6 @@ public class QRCode implements Drawable {
         this.m1 = (float) moduleLength;
     }
 
-
     /**
      *  Sets the module length of this barcode.
      *  The default value is 2.0f
@@ -116,7 +108,6 @@ public class QRCode implements Drawable {
     public void setModuleLength(float moduleLength) {
         this.m1 = moduleLength;
     }
-
 
     public void setColor(int color) {
         this.color = color;
@@ -138,7 +129,6 @@ public class QRCode implements Drawable {
                 }
             }
         }
-
         float w = m1*modules.length;
         float h = m1*modules.length;
         return new float[] {x + w, y + h};
@@ -155,8 +145,7 @@ public class QRCode implements Drawable {
     protected boolean isDark(int row, int col) {
         if (modules[row][col] != null) {
             return modules[row][col];
-        }
-        else {
+        } else {
             return false;
         }
     }
@@ -168,7 +157,6 @@ public class QRCode implements Drawable {
     protected int getBestMaskPattern() {
         int minLostPoint = 0;
         int pattern = 0;
-
         for (int i = 0; i < 8; i++) {
             make(true, i);
             int lostPoint = QRUtil.getLostPoint(this);
@@ -177,21 +165,17 @@ public class QRCode implements Drawable {
                 pattern = i;
             }
         }
-
         return pattern;
     }
 
     protected void make(boolean test, int maskPattern) {
         modules = new Boolean[moduleCount][moduleCount];
-
         setupPositionProbePattern(0, 0);
         setupPositionProbePattern(moduleCount - 7, 0);
         setupPositionProbePattern(0, moduleCount - 7);
-
         setupPositionAdjustPattern();
         setupTimingPattern();
         setupTypeInfo(test, maskPattern);
-
         mapData(createData(errorCorrectLevel), maskPattern);
     }
 
@@ -200,23 +184,19 @@ public class QRCode implements Drawable {
         int row = moduleCount - 1;
         int bitIndex = 7;
         int byteIndex = 0;
-
         for (int col = moduleCount - 1; col > 0; col -= 2) {
             if (col == 6) col--;
             while (true) {
                 for (int c = 0; c < 2; c++) {
                     if (modules[row][col - c] == null) {
                         boolean dark = false;
-
                         if (byteIndex < data.length) {
                             dark = (((data[byteIndex] >>> bitIndex) & 1) == 1);
                         }
-
                         boolean mask = QRUtil.getMask(maskPattern, row, col - c);
                         if (mask) {
                             dark = !dark;
                         }
-
                         modules[row][col - c] = dark;
                         bitIndex--;
                         if (bitIndex == -1) {
@@ -225,7 +205,6 @@ public class QRCode implements Drawable {
                         }
                     }
                 }
-
                 row += inc;
                 if (row < 0 || moduleCount <= row) {
                     row -= inc;
@@ -242,11 +221,9 @@ public class QRCode implements Drawable {
             for (int j = 0; j < pos.length; j++) {
                 int row = pos[i];
                 int col = pos[j];
-
                 if (modules[row][col] != null) {
                     continue;
                 }
-
                 for (int r = -2; r <= 2; r++) {
                     for (int c = -2; c <= 2; c++) {
                         modules[row + r][col + c] =
@@ -296,11 +273,9 @@ public class QRCode implements Drawable {
             Boolean mod = (!test && ((bits >> i) & 1) == 1);
             if (i < 6) {
                 modules[i][8] = mod;
-            }
-            else if (i < 8) {
+            } else if (i < 8) {
                 modules[i + 1][8] = mod;
-            }
-            else {
+            } else {
                 modules[moduleCount - 15 + i][8] = mod;
             }
         }
@@ -309,11 +284,9 @@ public class QRCode implements Drawable {
             boolean mod = (!test && ((bits >> i) & 1) == 1);
             if (i < 8) {
                 modules[8][moduleCount - i - 1] = mod;
-            }
-            else if (i < 9) {
+            } else if (i < 9) {
                 modules[8][15 - i - 1 + 1] = mod;
-            }
-            else {
+            } else {
                 modules[8][15 - i - 1] = mod;
             }
         }
@@ -426,5 +399,4 @@ public class QRCode implements Drawable {
 
         return data;
     }
-
 }

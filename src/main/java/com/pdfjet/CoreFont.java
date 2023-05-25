@@ -23,7 +23,6 @@ SOFTWARE.
 */
 package com.pdfjet;
 
-
 /**
  *  Used to select one of the 14 core fonts.
  *  See the Font class for more details.

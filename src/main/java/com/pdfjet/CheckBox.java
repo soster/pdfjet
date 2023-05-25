@@ -23,7 +23,6 @@ SOFTWARE.
 */
 package com.pdfjet;
 
-
 /**
  *  Creates a CheckBox, which can be set checked or unchecked.
  *  By default the check box is unchecked.
@@ -31,7 +30,6 @@ package com.pdfjet;
  *  Shirley Christenson Consulting
  */
 public class CheckBox implements Drawable {
-
     private float x;
     private float y;
     private float w;
@@ -49,7 +47,6 @@ public class CheckBox implements Drawable {
     private String altDescription = Single.space;
     private String actualText = Single.space;
 
-
     /**
      *  Creates a CheckBox with black check mark.
      *
@@ -60,7 +57,6 @@ public class CheckBox implements Drawable {
         this.font = font;
         this.label = label;
     }
-
 
     /**
      *  Sets the font size to use for this text line.
@@ -73,7 +69,6 @@ public class CheckBox implements Drawable {
         return this;
     }
 
-
     /**
      *  Sets the color of the check box.
      *
@@ -85,7 +80,6 @@ public class CheckBox implements Drawable {
         return this;
     }
 
-
     /**
      *  Sets the color of the check mark.
      *
@@ -96,7 +90,6 @@ public class CheckBox implements Drawable {
         this.checkColor = checkColor;
         return this;
     }
-
 
     /**
      *  Set the x,y position on the Page.
@@ -118,7 +111,6 @@ public class CheckBox implements Drawable {
         setLocation(x, y);
     }
 
-
     /**
      *  Set the x,y location on the Page.
      *
@@ -132,7 +124,6 @@ public class CheckBox implements Drawable {
         return this;
     }
 
-
     /**
      *  Set the x,y location on the Page.
      *
@@ -144,8 +135,6 @@ public class CheckBox implements Drawable {
         return setLocation((float) x, (float) y);
     }
 
-
-
     /**
      *  Gets the height of the CheckBox.
      *
@@ -155,7 +144,6 @@ public class CheckBox implements Drawable {
         return this.h;
     }
 
-
     /**
      *  Gets the width of the CheckBox.
      *
@@ -164,7 +152,6 @@ public class CheckBox implements Drawable {
     public float getWidth() {
         return this.w;
     }
-
 
     /**
      *  Checks or unchecks this check box. See the Mark class for available options.
@@ -177,7 +164,6 @@ public class CheckBox implements Drawable {
         return this;
     }
 
-
     /**
      *  Sets the URI for the "click text line" action.
      *
@@ -188,7 +174,6 @@ public class CheckBox implements Drawable {
         this.uri = uri;
         return this;
     }
-
 
     /**
      *  Sets the alternate description of this check box.
@@ -201,7 +186,6 @@ public class CheckBox implements Drawable {
         return this;
     }
 
-
     /**
      *  Sets the actual text for this check box.
      *
@@ -213,6 +197,15 @@ public class CheckBox implements Drawable {
         return this;
     }
 
+    public static void xMark(Page page, float x, float y, float size) throws Exception {
+        page.setPenColor(Color.blue);
+        page.setPenWidth(size / 5);
+        page.moveTo(x, y);
+        page.lineTo(x + size, y + size);
+        page.moveTo(x, y + size);
+        page.lineTo(x + size, y);
+        page.strokePath();
+    }
 
     /**
      *  Draws this CheckBox on the specified Page.
@@ -242,8 +235,7 @@ public class CheckBox implements Drawable {
                 page.lineTo((x + w/6 + checkWidth) + penWidth, ((yBox + h) - 4f*checkWidth/3f) + penWidth);
                 page.lineTo(((x + w) - checkWidth) + penWidth, (yBox + checkWidth) + penWidth);
                 page.strokePath();
-            }
-            else if (mark == Mark.X) {
+            } else if (mark == Mark.X) {
                 // Draw 'X' mark
                 page.moveTo(x + checkWidth + penWidth, yBox + checkWidth + penWidth);
                 page.lineTo(((x + w) - checkWidth) + penWidth, ((yBox + h) - checkWidth) + penWidth);
@@ -263,7 +255,7 @@ public class CheckBox implements Drawable {
 
         page.addEMC();
 
-        if (uri != null) {
+        if (uri != null) {  // TODO: BMC and EMC here!
             page.addAnnotation(new Annotation(
                     uri,
                     null,
@@ -278,5 +270,4 @@ public class CheckBox implements Drawable {
 
         return new float[] { x + 3f*w + font.stringWidth(label), y + font.bodyHeight };
     }
-
 }   // End of CheckBox.java

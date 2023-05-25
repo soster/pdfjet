@@ -23,7 +23,6 @@ SOFTWARE.
 */
 package com.pdfjet;
 
-
 /**
  *  Used to specify the image type of an image.
  *  Supported types: ImageType.JPG, ImageType.PNG, ImageType.BMP and ImageType.PNG_STREAM

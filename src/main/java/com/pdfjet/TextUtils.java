@@ -23,10 +23,22 @@ SOFTWARE.
 */
 package com.pdfjet;
 
-import java.util.*;
-
+import java.util.ArrayList;
+import java.util.List;
 
 public class TextUtils {
+    public static void printDuration(String example, long time0, long time1) {
+        String duration = String.valueOf(time1 - time0);
+        if (duration.length() == 1) {
+            duration = "   " + duration;
+        } else if (duration.length() == 2) {
+            duration = "  " + duration;
+        } else if (duration.length() == 3) {
+            duration = " " + duration;
+        }
+        duration += ".0";
+        System.out.println(example + " => " + duration);
+    }
 
     public static String[] splitTextIntoTokens(
             String text,
@@ -62,5 +74,4 @@ public class TextUtils {
 
         return tokens2.toArray(new String[] {});
     }
-
 }

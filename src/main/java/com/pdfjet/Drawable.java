@@ -40,7 +40,7 @@ public interface Drawable {
 
     /**
      * Set the x and y coordinates of the drawable object
-     * 
+     *
      * @param x the x location
      * @param y the y location
      */

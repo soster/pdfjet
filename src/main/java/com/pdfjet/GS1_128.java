@@ -23,9 +23,7 @@ SOFTWARE.
 */
 package com.pdfjet;
 
-
 class GS1_128 {
-
 public static final int[] TABLE = {
 212222, // 0
 222122, // 1
@@ -147,5 +145,4 @@ public static final int START_A = 103;
 public static final int START_B = 104;
 public static final int START_C = 105;
 public static final int STOP = 106;
-
 }   // End of GS1_128.java

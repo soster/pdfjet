@@ -25,12 +25,10 @@ package com.pdfjet;
 
 import java.util.*;
 
-
 /**
  *  Please see Example_45
  */
 public class Form implements Drawable {
-
     private final List<Field> fields;
     private float x;
     private float y;
@@ -44,16 +42,14 @@ public class Form implements Drawable {
     private int labelColor = Color.black;
     private int valueColor = Color.blue;
 
-
     /**
      * Creates a Form object
-     * 
+     *
      * @param fields the fields contained in this form
      */
     public Form(List<Field> fields) {
         this.fields = fields;
     }
-
 
     /**
      * Sets the position of this form on the page
@@ -65,7 +61,6 @@ public class Form implements Drawable {
         setLocation(x, y);
     }
 
-
     /**
      * Sets the position of this form on the page
      *
@@ -75,7 +70,6 @@ public class Form implements Drawable {
     public void setPosition(double x, double y) {
         setLocation(x, y);
     }
-
 
     /**
      * Sets the location of this form on the page
@@ -90,7 +84,6 @@ public class Form implements Drawable {
         return this;
     }
 
-
     /**
      * Sets the location of this form on the page
      *
@@ -102,10 +95,9 @@ public class Form implements Drawable {
         return setLocation((float) x, (float) y);
     }
 
-
     /**
      * Sets the row length
-     * 
+     *
      * @param rowLength the row length
      * @return this form
      */
@@ -114,10 +106,9 @@ public class Form implements Drawable {
         return this;
     }
 
-
     /**
      * Sets the row height
-     * 
+     *
      * @param rowHeight the row height
      * @return this form
      */
@@ -126,10 +117,9 @@ public class Form implements Drawable {
         return this;
     }
 
-
     /**
      * Sets the font for the label
-     * 
+     *
      * @param f1 the font
      * @return this form
      */
@@ -138,10 +128,9 @@ public class Form implements Drawable {
         return this;
     }
 
-
     /**
      * Sets the size for the label font
-     * 
+     *
      * @param labelFontSize the label font size
      * @return the form
      */
@@ -150,10 +139,9 @@ public class Form implements Drawable {
         return this;
     }
 
-
     /**
      * Sets the font for the value
-     * 
+     *
      * @param f2 the value font
      * @return the form
      */
@@ -162,10 +150,9 @@ public class Form implements Drawable {
         return this;
     }
 
-
     /**
      * Sets the size for the value font
-     * 
+     *
      * @param valueFontSize the font size
      * @return the form
      */
@@ -174,10 +161,9 @@ public class Form implements Drawable {
         return this;
     }
 
-
     /**
      * Sets the label color
-     * 
+     *
      * @param labelColor the label color
      * @return the form
      */
@@ -186,10 +172,9 @@ public class Form implements Drawable {
         return this;
     }
 
-
     /**
      * Sets the color for the value
-     * 
+     *
      * @param valueColor the value color
      * @return the form
      */
@@ -197,7 +182,6 @@ public class Form implements Drawable {
         this.valueColor = valueColor;
         return this;
     }
-
 
     /**
      *  Draws this Form on the specified page.
@@ -272,10 +256,9 @@ public class Form implements Drawable {
         return new float[] { x + rowLength, y + boxHeight };
     }
 
-
     /**
      * Formats the form
-     * 
+     *
      * @param title the form title
      * @param text the form text
      * @param font the form font
@@ -283,7 +266,6 @@ public class Form implements Drawable {
      * @return the form
      */
     public static String[] format(String title, String text, Font font, float width) {
-
         String[] original = text.split("\\r?\\n", -1);
         List<String> lines = new ArrayList<String>();
         StringBuilder buf = new StringBuilder();
@@ -326,5 +308,4 @@ public class Form implements Drawable {
 
         return data;
     }
-
 }   // End of Form.java

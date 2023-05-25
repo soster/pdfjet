@@ -23,14 +23,11 @@ SOFTWARE.
 */
 package com.pdfjet;
 
-
 /**
  *  Used to create PDF annotation objects.
  *
- *
  */
 class Annotation {
-
     protected int objNumber;
     protected String uri;
     protected String key;
@@ -38,13 +35,11 @@ class Annotation {
     protected float y1;
     protected float x2;
     protected float y2;
-
     protected String language = null;
     protected String actualText = null;
     protected String altDescription = null;
-
+    protected String contents = "TODO";
     protected FileAttachment fileAttachment = null;
-
 
     /**
      *  This class is used to create annotation objects.
@@ -77,5 +72,4 @@ class Annotation {
         this.actualText = (actualText == null) ? uri : actualText;
         this.altDescription = (altDescription == null) ? uri : altDescription;
     }
-
 }

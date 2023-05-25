@@ -28,7 +28,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-
 /**
  *  Used to create Java or .NET objects that represent the objects in PDF document.
  *  See the PDF specification for more information.
@@ -51,11 +50,9 @@ public class PDFobj {
         this.dict = new ArrayList<String>();
     }
 
-
     public int getNumber() {
         return this.number;
     }
-
 
     /**
      *  Returns the object dictionary.
@@ -66,7 +63,6 @@ public class PDFobj {
         return this.dict;
     }
 
-
     /**
      *  Returns the uncompressed stream data.
      *
@@ -76,15 +72,13 @@ public class PDFobj {
         return this.data;
     }
 
-
     protected void setStreamAndData(byte[] buf, int length) throws Exception {
         if (this.stream == null) {
             this.stream = new byte[length];
             System.arraycopy(buf, streamOffset, stream, 0, length);
             if (getValue("/Filter").equals("/FlateDecode")) {
                 this.data = Decompressor.inflate(stream);
-            }
-            else {
+            } else {
                 // Assume no compression for now.
                 // In the future we may handle LZW compression ...
                 this.data = stream;
@@ -92,16 +86,13 @@ public class PDFobj {
         }
     }
 
-
     protected void setStream(byte[] stream) {
         this.stream = stream;
     }
 
-
     protected void setNumber(int number) {
         this.number = number;
     }
-
 
     /**
      *  Returns the dictionary value for the specified key.
@@ -125,8 +116,7 @@ public class PDFobj {
                     }
                     buffer.append(">>");
                     return buffer.toString();
-                }
-                else if (token.equals("[")) {
+                } else if (token.equals("[")) {
                     StringBuilder buffer = new StringBuilder();
                     buffer.append("[ ");
                     i += 2;
@@ -137,15 +127,13 @@ public class PDFobj {
                     }
                     buffer.append("]");
                     return buffer.toString();
-                }
-                else {
+                } else {
                     return token;
                 }
             }
         }
         return "";
     }
-
 
     protected List<Integer> getObjectNumbers(String key) {
         List<Integer> numbers = new ArrayList<Integer>();
@@ -163,8 +151,7 @@ public class PDFobj {
                         ++i;    // 0
                         ++i;    // R
                     }
-                }
-                else {
+                } else {
                     numbers.add(Integer.valueOf(str));
                 }
                 break;
@@ -172,7 +159,6 @@ public class PDFobj {
         }
         return numbers;
     }
-
 
     public float[] getPageSize() {
         for (int i = 0; i < dict.size(); i++) {
@@ -185,7 +171,6 @@ public class PDFobj {
         return Letter.PORTRAIT;
     }
 
-
     protected int getLength(List<PDFobj> objects) {
         for (int i = 0; i < dict.size(); i++) {
             String token = dict.get(i);
@@ -194,15 +179,13 @@ public class PDFobj {
                 if (dict.get(i + 2).equals("0") &&
                         dict.get(i + 3).equals("R")) {
                     return getLength(objects, number);
-                }
-                else {
+                } else {
                     return number;
                 }
             }
         }
         return 0;
     }
-
 
     protected int getLength(List<PDFobj> objects, int number) {
         for (PDFobj obj : objects) {
@@ -213,15 +196,13 @@ public class PDFobj {
         return 0;
     }
 
-
     public PDFobj getContentsObject(List<PDFobj> objects) {
         for (int i = 0; i < dict.size(); i++) {
             if (dict.get(i).equals("/Contents")) {
                 if (dict.get(i + 1).equals("[")) {
                     String token = dict.get(i + 2);
                     return objects.get(Integer.parseInt(token) - 1);
-                }
-                else {
+                } else {
                     String token = dict.get(i + 1);
                     return objects.get(Integer.parseInt(token) - 1);
                 }
@@ -268,8 +249,7 @@ public class PDFobj {
                 String token = dict.get(++i);
                 if (token.equals("<<")) {                       // Direct resources object
                     addFontResource(this, objects, font.fontID, obj.number);
-                }
-                else if (Character.isDigit(token.charAt(0))) {  // Indirect resources object
+                } else if (Character.isDigit(token.charAt(0))) {  // Indirect resources object
                     addFontResource(objects.get(Integer.parseInt(token) - 1), objects, font.fontID, obj.number);
                 }
             }
@@ -278,10 +258,8 @@ public class PDFobj {
         return font;
     }
 
-
     private void addFontResource(
             PDFobj obj, List<PDFobj> objects, String fontID, int number) {
-
         boolean fonts = false;
         for (int i = 0; i < obj.dict.size(); i++) {
             if (obj.dict.get(i).equals("/Font")) {
@@ -309,8 +287,7 @@ public class PDFobj {
                     obj.dict.add(i + 4, "0");
                     obj.dict.add(i + 5, "R");
                     return;
-                }
-                else if (Character.isDigit(token.charAt(0))) {
+                } else if (Character.isDigit(token.charAt(0))) {
                     PDFobj o2 = objects.get(Integer.parseInt(token) - 1);
                     for (int j = 0; j < o2.dict.size(); j++) {
                         if (o2.dict.get(j).equals("<<")) {
@@ -325,7 +302,6 @@ public class PDFobj {
             }
         }
     }
-
 
     private void insertNewObject(
             List<String> dict, List<String> list, String type) {
@@ -346,7 +322,6 @@ public class PDFobj {
         }
     }
 
-
     private void addResource(
             String type, PDFobj obj, List<PDFobj> objects, int objNumber) {
         String tag = type.equals("/Font") ? "/F" : "/Im";
@@ -358,8 +333,7 @@ public class PDFobj {
                 token = obj.dict.get(i + 1);
                 if (token.equals("<<")) {
                     insertNewObject(obj.dict, list, type);
-                }
-                else {
+                } else {
                     insertNewObject(objects.get(Integer.parseInt(token) - 1).dict, list, type);
                 }
                 return;
@@ -382,15 +356,13 @@ public class PDFobj {
         }
     }
 
-
     public void addResource(Image image, List<PDFobj> objects) {
         for (int i = 0; i < dict.size(); i++) {
             if (dict.get(i).equals("/Resources")) {
                 String token = dict.get(i + 1);
-                if (token.equals("<<")) {       // Direct resources object
+                if (token.equals("<<")) {   // Direct resources object
                     addResource("/XObject", this, objects, image.objNumber);
-                }
-                else {                          // Indirect resources object
+                } else {                    // Indirect resources object
                     addResource("/XObject", objects.get(Integer.parseInt(token) - 1), objects, image.objNumber);
                 }
                 return;
@@ -398,22 +370,19 @@ public class PDFobj {
         }
     }
 
-
     public void addResource(Font font, List<PDFobj> objects) {
         for (int i = 0; i < dict.size(); i++) {
             if (dict.get(i).equals("/Resources")) {
                 String token = dict.get(i + 1);
-                if (token.equals("<<")) {       // Direct resources object
+                if (token.equals("<<")) {   // Direct resources object
                     addResource("/Font", this, objects, font.objNumber);
-                }
-                else {                          // Indirect resources object
+                } else {                    // Indirect resources object
                     addResource("/Font", objects.get(Integer.parseInt(token) - 1), objects, font.objNumber);
                 }
                 return;
             }
         }
     }
-
 
     public void addContent(byte[] content, List<PDFobj> objects) {
         PDFobj obj = new PDFobj();
@@ -439,8 +408,7 @@ public class PDFobj {
                         }
                         i += 2;     // Skip the 0 and R
                     }
-                }
-                else {
+                } else {
                     // Single content object
                     PDFobj obj2 = objects.get(Integer.parseInt(token) - 1);
                     if (obj2.data == null && obj2.stream == null) {
@@ -464,7 +432,6 @@ public class PDFobj {
             }
         }
     }
-
 
     /**
      * Adds new content object before the existing content objects.
@@ -492,8 +459,7 @@ public class PDFobj {
                     dict.add(i, "0");
                     dict.add(i, objNumber);
                     return;
-                }
-                else {
+                } else {
                     // Single content object
                     PDFobj obj2 = objects.get(Integer.parseInt(token) - 1);
                     if (obj2.data == null && obj2.stream == null) {
@@ -520,7 +486,6 @@ public class PDFobj {
         }
     }
 
-
     private int getMaxGSNumber(PDFobj obj) {
         List<Integer> numbers = new ArrayList<Integer>();
         for (String token : obj.dict) {
@@ -534,7 +499,6 @@ public class PDFobj {
         return Collections.max(numbers);
     }
 
-
     public void setGraphicsState(GraphicsState gs, List<PDFobj> objects) {
         PDFobj obj = null;
         int index = -1;
@@ -544,8 +508,7 @@ public class PDFobj {
                 if (token.equals("<<")) {
                     obj = this;
                     index = i + 2;
-                }
-                else {
+                } else {
                     obj = objects.get(Integer.parseInt(token) - 1);
                     for (int j = 0; j < obj.dict.size(); j++) {
                         if (obj.dict.get(j).equals("<<")) {
@@ -557,13 +520,14 @@ public class PDFobj {
                 break;
             }
         }
-
+        if (obj == null || index == -1) {
+            return;
+        }
         gsNumber = getMaxGSNumber(obj);
         if (gsNumber == 0) {                    // No existing ExtGState dictionary
             obj.dict.add(index, "/ExtGState");  // Add ExtGState dictionary
             obj.dict.add(++index, "<<");
-        }
-        else {
+        } else {
             while (index < obj.dict.size()) {
                 String token = obj.dict.get(index);
                 if (token.equals("/ExtGState")) {
@@ -589,5 +553,4 @@ public class PDFobj {
         buf.append("/GS" + String.valueOf(gsNumber + 1) + " gs\n");
         addPrefixContent(buf.toString().getBytes(), objects);
     }
-
 }

@@ -23,7 +23,6 @@ SOFTWARE.
 */
 package com.pdfjet;
 
-
 /**
  * Please see Example_51 and Example_52
  *
@@ -32,7 +31,6 @@ public class Title implements Drawable {
     public TextLine prefix;
     public TextLine textLine;
 
-
     public Title(Font font, String title, float x, float y) {
         this.prefix = new TextLine(font);
         this.prefix.setLocation(x, y);
@@ -40,12 +38,10 @@ public class Title implements Drawable {
         this.textLine.setLocation(x, y);
     }
 
-
     public Title setPrefix(String text) {
         prefix.setText(text);
         return this;
     }
-
 
     public Title setOffset(float offset) {
         textLine.setLocation(textLine.x + offset, textLine.y);
@@ -61,7 +57,6 @@ public class Title implements Drawable {
         setPosition(x, y);
     }
 
-
     public Title setLocation(float x, float y) {
         textLine.setLocation(x, y);
         return this;
@@ -71,12 +66,10 @@ public class Title implements Drawable {
         return setLocation((float) x, (float) y);
     }
 
-
     public float[] drawOn(Page page) throws Exception {
         if (!prefix.equals("")) {
             prefix.drawOn(page);
         }
         return textLine.drawOn(page);
     }
-
 }

@@ -26,7 +26,6 @@ package com.pdfjet;
 import java.io.*;
 import java.util.*;
 
-
 /**
  *  Used to create image objects and draw them on a page.
  *  The image type can be one of the following:
@@ -35,7 +34,6 @@ import java.util.*;
  *  Please see Example_03 and Example_24.
  */
 public class Image implements Drawable {
-
     protected int objNumber;
 
     protected float x = 0f; // Position of the image on the page
@@ -56,6 +54,20 @@ public class Image implements Drawable {
     private String actualText = Single.space;
     private String altDescription = Single.space;
 
+    /**
+     *  Convenience constructor for the Image class.
+     *
+     *  @param pdf the PDF to which we add this image.
+     *  @param filePath the file path to the image file.
+     *  @throws Exception  If an input or output exception occurred
+     *
+     */
+    public Image(PDF pdf, String filePath) throws Exception {
+        this(pdf, new FileInputStream(filePath),
+                filePath.toLowerCase().endsWith(".png.stream") ? ImageType.PNG_STREAM :
+                filePath.toLowerCase().endsWith(".png") ? ImageType.PNG :
+                filePath.toLowerCase().endsWith(".bmp") ? ImageType.BMP : ImageType.JPG);
+    }
 
     /**
      *  The main constructor for the Image class.
@@ -66,8 +78,7 @@ public class Image implements Drawable {
      *  @throws Exception  If an input or output exception occurred
      *
      */
-    public Image(PDF pdf, InputStream inputStream, int imageType)
-            throws Exception {
+    public Image(PDF pdf, InputStream inputStream, int imageType) throws Exception {
         byte[] data;
         if (imageType == ImageType.JPG) {
             JPGImage jpg = new JPGImage(inputStream);
@@ -76,45 +87,37 @@ public class Image implements Drawable {
             h = jpg.getHeight();
             if (jpg.getColorComponents() == 1) {
                 addImage(pdf, data, null, imageType, "DeviceGray", 8);
-            }
-            else if (jpg.getColorComponents() == 3) {
+            } else if (jpg.getColorComponents() == 3) {
                 addImage(pdf, data, null, imageType, "DeviceRGB", 8);
-            }
-            else if (jpg.getColorComponents() == 4) {
+            } else if (jpg.getColorComponents() == 4) {
                 addImage(pdf, data, null, imageType, "DeviceCMYK", 8);
             }
-        }
-        else if (imageType == ImageType.PNG) {
+        } else if (imageType == ImageType.PNG) {
             PNGImage png = new PNGImage(inputStream);
             data = png.getData();
             w = png.getWidth();
             h = png.getHeight();
             if (png.getColorType() == 0) {
                 addImage(pdf, data, null, imageType, "DeviceGray", png.getBitDepth());
-            }
-            else {
+            } else {
                 if (png.getBitDepth() == 16) {
                     addImage(pdf, data, null, imageType, "DeviceRGB", 16);
-                }
-                else {
+                } else {
                     addImage(pdf, data, png.getAlpha(), imageType, "DeviceRGB", 8);
                 }
             }
-        }
-        else if (imageType == ImageType.BMP) {
+        } else if (imageType == ImageType.BMP) {
             BMPImage bmp = new BMPImage(inputStream);
             data = bmp.getData();
             w = bmp.getWidth();
             h = bmp.getHeight();
             addImage(pdf, data, null, imageType, "DeviceRGB", 8);
-        }
-        else if (imageType == ImageType.PNG_STREAM) {
+        } else if (imageType == ImageType.PNG_STREAM) {
             addImage(pdf, inputStream);
         }
 
         inputStream.close();
     }
-
 
     /**
      *  Constructor used to attach images to existing PDF.
@@ -134,32 +137,26 @@ public class Image implements Drawable {
             h = jpg.getHeight();
             if (jpg.getColorComponents() == 1) {
                 addImageToObjects(objects, data, null, imageType, "DeviceGray", 8);
-            }
-            else if (jpg.getColorComponents() == 3) {
+            } else if (jpg.getColorComponents() == 3) {
                 addImageToObjects(objects, data, null, imageType, "DeviceRGB", 8);
-            }
-            else if (jpg.getColorComponents() == 4) {
+            } else if (jpg.getColorComponents() == 4) {
                 addImageToObjects(objects, data, null, imageType, "DeviceCMYK", 8);
             }
-        }
-        else if (imageType == ImageType.PNG) {
+        } else if (imageType == ImageType.PNG) {
             PNGImage png = new PNGImage(inputStream);
             data = png.getData();
             w = png.getWidth();
             h = png.getHeight();
             if (png.getColorType() == 0) {
                 addImageToObjects(objects, data, null, imageType, "DeviceGray", png.getBitDepth());
-            }
-            else {
+            } else {
                 if (png.getBitDepth() == 16) {
                     addImageToObjects(objects, data, null, imageType, "DeviceRGB", 16);
-                }
-                else {
+                } else {
                     addImageToObjects(objects, data, png.getAlpha(), imageType, "DeviceRGB", 8);
                 }
             }
-        }
-        else if (imageType == ImageType.BMP) {
+        } else if (imageType == ImageType.BMP) {
             BMPImage bmp = new BMPImage(inputStream);
             data = bmp.getData();
             w = bmp.getWidth();
@@ -169,10 +166,9 @@ public class Image implements Drawable {
         inputStream.close();
     }
 
-
     /**
      * Creates new image from PDFobj
-     * 
+     *
      * @param pdf the PDF
      * @param obj the PDFobj
      * @throws Exception if can not parse the width or height
@@ -226,7 +222,6 @@ public class Image implements Drawable {
         objNumber = pdf.getObjNumber();
     }
 
-
     /**
      *  Sets the position of this image on the page to (x, y).
      *
@@ -237,7 +232,6 @@ public class Image implements Drawable {
         setLocation(x, y);
     }
 
-
     /**
      *  Sets the position of this image on the page to (x, y).
      *
@@ -247,7 +241,6 @@ public class Image implements Drawable {
     public void setPosition(double x, double y) {
         setLocation(x, y);
     }
-
 
     /**
      *  Sets the location of this image on the page to (x, y).
@@ -262,10 +255,9 @@ public class Image implements Drawable {
         return this;
     }
 
-
     /**
      * Sets the location of this image
-     * 
+     *
      * @param x the horizontal location
      * @param y the vertical location
      * @return the image
@@ -273,7 +265,6 @@ public class Image implements Drawable {
     public Image setLocation(double x, double y) {
         return setLocation((float) x, (float) y);
     }
-
 
     /**
      *  Scales this image by the specified factor.
@@ -285,7 +276,6 @@ public class Image implements Drawable {
         return this.scaleBy((float) factor, (float) factor);
     }
 
-
     /**
      *  Scales this image by the specified factor.
      *
@@ -295,7 +285,6 @@ public class Image implements Drawable {
     public Image scaleBy(float factor) {
         return this.scaleBy(factor, factor);
     }
-
 
     /**
      *  Scales this image by the specified width and height factor.
@@ -311,10 +300,9 @@ public class Image implements Drawable {
         return this;
     }
 
-
     /**
      * Resizes the image
-     * 
+     *
      * @param width the desired width
      * @return the image
      */
@@ -323,10 +311,9 @@ public class Image implements Drawable {
         return this.scaleBy(factor, factor);
     }
 
-
     /**
      * Resizes the image
-     * 
+     *
      * @param height the desired height
      * @return the image
      */
@@ -334,7 +321,6 @@ public class Image implements Drawable {
         float factor = height / getHeight();
         return this.scaleBy(factor, factor);
     }
-
 
     /**
      *  Places this image in the specified box.
@@ -346,7 +332,6 @@ public class Image implements Drawable {
         yBox = box.y;
     }
 
-
     /**
      *  Sets the URI for the "click box" action.
      *
@@ -355,7 +340,6 @@ public class Image implements Drawable {
     public void setURIAction(String uri) {
         this.uri = uri;
     }
-
 
     /**
      *  Sets the destination key for the action.
@@ -366,32 +350,17 @@ public class Image implements Drawable {
         this.key = key;
     }
 
-
-    /**
-     *  Sets the rotate90 flag.
-     *  When the flag is true the image is rotated 90 degrees clockwise.
-     *
-     *  @param rotate90 the flag.
-     */
-    public void setRotateCW90(boolean rotate90) {
-        if (rotate90) {
-            this.degrees = 90;
-        }
-        else {
-            this.degrees = 0;
-        }
-    }
-
-
     /**
      *  Sets the image rotation to the specified number of degrees.
      *
      *  @param degrees the number of degrees.
      */
-    public void setRotate(int degrees) {
+    public void rotateClockwise(int degrees) throws Exception {
+        if (degrees != 0 && degrees != 90 && degrees != 180 && degrees != 270) {
+            throw new Exception("The rotation angle must be 0, 90, 180 or 270");
+        }
         this.degrees = degrees;
     }
-
 
     /**
      *  Sets the alternate description of this image.
@@ -404,7 +373,6 @@ public class Image implements Drawable {
         return this;
     }
 
-
     /**
      *  Sets the actual text for this image.
      *
@@ -415,7 +383,6 @@ public class Image implements Drawable {
         this.actualText = actualText;
         return this;
     }
-
 
     /**
      *  Draws this image on the specified page.
@@ -444,8 +411,7 @@ public class Image implements Drawable {
             page.append(' ');
             page.append(page.height - (y + h));
             page.append(" cm\n");
-        }
-        else if (degrees == 90) {
+        } else if (degrees == 90) {
             page.append(h);
             page.append(' ');
             page.append(0f);
@@ -459,8 +425,7 @@ public class Image implements Drawable {
             page.append(page.height - y);
             page.append(" cm\n");
             page.append("0 -1 1 0 0 0 cm\n");
-        }
-        else if (degrees == 180) {
+        } else if (degrees == 180) {
             page.append(w);
             page.append(' ');
             page.append(0f);
@@ -474,8 +439,7 @@ public class Image implements Drawable {
             page.append(page.height - y);
             page.append(" cm\n");
             page.append("-1 0 0 -1 0 0 cm\n");
-        }
-        else if (degrees == 270) {
+        } else if (degrees == 270) {
             page.append(h);
             page.append(' ');
             page.append(0f);
@@ -518,7 +482,6 @@ public class Image implements Drawable {
         return new float[] {x + w, y + h};
     }
 
-
     /**
      *  Returns the width of this image when drawn on the page.
      *  The scaling is take into account.
@@ -529,7 +492,6 @@ public class Image implements Drawable {
         return this.w;
     }
 
-
     /**
      *  Returns the height of this image when drawn on the page.
      *  The scaling is take into account.
@@ -539,7 +501,6 @@ public class Image implements Drawable {
     public float getHeight() {
         return this.h;
     }
-
 
     private void addSoftMask(
             PDF pdf,
@@ -574,7 +535,6 @@ public class Image implements Drawable {
         objNumber = pdf.getObjNumber();
     }
 
-
     private void addImage(
             PDF pdf,
             byte[] data,
@@ -591,8 +551,7 @@ public class Image implements Drawable {
         pdf.append("/Subtype /Image\n");
         if (imageType == ImageType.JPG) {
             pdf.append("/Filter /DCTDecode\n");
-        }
-        else if (imageType == ImageType.PNG || imageType == ImageType.BMP) {
+        } else if (imageType == ImageType.PNG || imageType == ImageType.BMP) {
             pdf.append("/Filter /FlateDecode\n");
             if (alpha != null) {
                 pdf.append("/SMask ");
@@ -628,9 +587,7 @@ public class Image implements Drawable {
         objNumber = pdf.getObjNumber();
     }
 
-
     private void addImage(PDF pdf, InputStream inputStream) throws Exception {
-
         w = getInt(inputStream);            // Width
         h = getInt(inputStream);            // Height
         byte c = (byte) inputStream.read(); // Color Space
@@ -683,8 +640,7 @@ public class Image implements Drawable {
         pdf.append("/ColorSpace /");
         if (c == 1) {
             pdf.append("DeviceGray");
-        }
-        else if (c == 3 || c == 6) {
+        } else if (c == 3 || c == 6) {
             pdf.append("DeviceRGB");
         }
         pdf.append('\n');
@@ -705,7 +661,6 @@ public class Image implements Drawable {
         objNumber = pdf.getObjNumber();
     }
 
-
     private int getInt(InputStream inputStream) throws Exception {
         byte[] buf = new byte[4];
         inputStream.read(buf, 0, 4);
@@ -719,7 +674,6 @@ public class Image implements Drawable {
         val |= buf[3] & 0xff;
         return val;
     }
-
 
     private void addSoftMask(
             List<PDFobj> objects,
@@ -751,7 +705,6 @@ public class Image implements Drawable {
         objNumber = obj.number;
     }
 
-
     private void addImageToObjects(
             List<PDFobj> objects,
             byte[] data,
@@ -771,8 +724,7 @@ public class Image implements Drawable {
         if (imageType == ImageType.JPG) {
             obj.dict.add("/Filter");
             obj.dict.add("/DCTDecode");
-        }
-        else if (imageType == ImageType.PNG || imageType == ImageType.BMP) {
+        } else if (imageType == ImageType.PNG || imageType == ImageType.BMP) {
             obj.dict.add("/Filter");
             obj.dict.add("/FlateDecode");
             if (alpha != null) {
@@ -813,30 +765,26 @@ public class Image implements Drawable {
         objNumber = obj.number;
     }
 
-
     /**
      * Resizes this image
-     * 
+     *
      * @param page the PDF page
      * @param keepAspectRatio flag
      */
     public void resizeToFit(Page page, boolean keepAspectRatio) {
         if (keepAspectRatio) {
             this.scaleBy(Math.min((page.width - x)/w, (page.height - y)/h));
-        }
-        else {
+        } else {
             this.scaleBy((page.width - x)/w, (page.height - y)/h);
         }
     }
 
-
     /**
      * Flips this image upside down
-     * 
+     *
      * @param flipUpsideDown flag
      */
     public void flipUpsideDown(boolean flipUpsideDown) {
         this.flipUpsideDown = flipUpsideDown;
     }
-
 }   // End of Image.java

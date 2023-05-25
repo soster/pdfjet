@@ -40,13 +40,11 @@ package com.pdfjet;
 
 import java.io.*;
 
-
 /**
  * Used to embed JPG images in the PDF document.
  *
  */
 class JPGImage {
-
     static final char M_SOF0  = (char) 0x00C0;  // Start Of Frame N
     static final char M_SOF1  = (char) 0x00C1;  // N indicates which compression process
     static final char M_SOF2  = (char) 0x00C2;  // Only SOF0-SOF2 are now in common use
@@ -66,44 +64,30 @@ class JPGImage {
     int colorComponents;
     byte[] data;
 
-
     public JPGImage(InputStream inputStream) throws Exception {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        byte[] buf = new byte[4096];
-        int count;
-        while ((count = inputStream.read(buf, 0, buf.length)) > 0) {
-            baos.write(buf, 0, count);
-        }
-        inputStream.close();
-        data = baos.toByteArray();
+        data = Contents.getFromStream(inputStream);
         readJPGImage(new ByteArrayInputStream(data));
     }
-
 
     protected int getWidth() {
         return this.width;
     }
 
-
     protected int getHeight() {
         return this.height;
     }
-
 
     protected long getFileSize() {
         return this.data.length;
     }
 
-
     protected int getColorComponents() {
         return this.colorComponents;
     }
 
-
     protected byte[] getData() {
         return this.data;
     }
-
 
     private void readJPGImage(InputStream is) throws Exception {
         char ch1 = (char) is.read();
@@ -153,11 +137,9 @@ class JPGImage {
         }
     }
 
-
     private int getUInt16(InputStream is) throws Exception {
         return is.read() << 8 | is.read();
     }
-
 
     // Find the next JPEG marker and return its marker code.
     // We expect at least one FF byte, possibly more if the compressor
@@ -184,7 +166,6 @@ class JPGImage {
         return ch;
     }
 
-
     // Most types of marker are followed by a variable-length parameter
     // segment. This routine skips over the parameters for any marker we
     // don't otherwise want to process.
@@ -206,5 +187,4 @@ class JPGImage {
             length--;
         }
     }
-
 }   // End of JPGImage.java
