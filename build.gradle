@@ -14,7 +14,7 @@ plugins {
 repositories {
     // Use jcenter for resolving dependencies.
     // You can declare any Maven/Ivy/file repository here.
-    jcenter()
+    mavenCentral()
 }
 
 dependencies {
@@ -30,7 +30,7 @@ sourceSets {
         resources {
             srcDir 'src/examples/resources'
         }
-        compileClasspath += sourceSets.main.output + configurations.runtime
+        compileClasspath += sourceSets.main.output + configurations.runtimeClasspath
         runtimeClasspath += output + compileClasspath
     }
 }
