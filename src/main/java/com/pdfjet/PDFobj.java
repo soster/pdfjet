@@ -499,7 +499,18 @@ public class PDFobj {
         return Collections.max(numbers);
     }
 
-    public void setGraphicsState(GraphicsState gs, List<PDFobj> objects) {
+    /**
+     * Adds a GraphicsState entry to this page object's resource dictionary and
+     * returns the assigned GS number (1-based).  Callers are responsible for
+     * writing the inline "/GSn gs" operator into their content stream at the
+     * correct position (see Page.applyGraphicsState).
+     *
+     * Existing entries with the same CA/ca values are reused rather than
+     * duplicated, so repeated calls with the same alpha are cheap.
+     *
+     * @return the GS number to use in content streams, or -1 if resources not found.
+     */
+    public int setGraphicsState(GraphicsState gs, List<PDFobj> objects) {
         PDFobj obj = null;
         int index = -1;
         for (int i = 0; i < dict.size(); i++) {
@@ -521,8 +532,16 @@ public class PDFobj {
             }
         }
         if (obj == null || index == -1) {
-            return;
+            return -1;
         }
+
+        // Reuse an existing GS entry with the same CA/ca values if present.
+        int existing = findExistingGSNumber(obj, gs.getAlphaStroking(), gs.getAlphaNonStroking());
+        if (existing > 0) {
+            gsNumber = existing - 1;
+            return existing;
+        }
+
         gsNumber = getMaxGSNumber(obj);
         if (gsNumber == 0) {                    // No existing ExtGState dictionary
             obj.dict.add(index, "/ExtGState");  // Add ExtGState dictionary
@@ -531,7 +550,7 @@ public class PDFobj {
             while (index < obj.dict.size()) {
                 String token = obj.dict.get(index);
                 if (token.equals("/ExtGState")) {
-                    index += 1;
+                    index += 1;  // now points at the "<<" opening the ExtGState dict
                     break;
                 }
                 index += 1;
@@ -548,9 +567,35 @@ public class PDFobj {
             obj.dict.add(++index, ">>");
         }
 
-        StringBuilder buf = new StringBuilder();
-        buf.append("q\n");
-        buf.append("/GS" + String.valueOf(gsNumber + 1) + " gs\n");
-        addPrefixContent(buf.toString().getBytes(), objects);
+        return gsNumber + 1;
+    }
+
+    /**
+     * Scans the resource dict for an existing /GSn entry whose /CA and /ca
+     * values match the requested alpha pair.  Returns the GS number (1-based)
+     * if found, or 0 if not found.
+     */
+    private int findExistingGSNumber(PDFobj obj, float ca, float caLower) {
+        String caStr = String.valueOf(ca);
+        String caLowerStr = String.valueOf(caLower);
+        List<String> d = obj.dict;
+        for (int i = 0; i < d.size() - 5; i++) {
+            String token = d.get(i);
+            if (token.startsWith("/GS") && token.length() > 3) {
+                // Expected layout: /GSn << /CA val /ca val >>
+                if (d.get(i + 1).equals("<<") &&
+                        d.get(i + 2).equals("/CA") &&
+                        d.get(i + 3).equals(caStr) &&
+                        d.get(i + 4).equals("/ca") &&
+                        d.get(i + 5).equals(caLowerStr)) {
+                    try {
+                        return Integer.parseInt(token.substring(3));
+                    } catch (NumberFormatException e) {
+                        // malformed token — keep searching
+                    }
+                }
+            }
+        }
+        return 0;
     }
 }

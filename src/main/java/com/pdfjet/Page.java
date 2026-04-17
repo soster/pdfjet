@@ -485,6 +485,19 @@ public class Page {
     }
 
     /**
+     * Writes a "/GSn gs" operator inline into the current content stream.
+     * Use this when the GS entry has already been registered in the page's
+     * resource dictionary via PDFobj.setGraphicsState (existing-PDF flow).
+     *
+     * @param gsNumber the 1-based GS number returned by PDFobj.setGraphicsState
+     */
+    public void applyGraphicsState(int gsNumber) {
+        append("/GS");
+        append(gsNumber);
+        append(" gs\n");
+    }
+
+    /**
      * Sets the color for stroking operations.
      * The pen color is used when drawing lines and splines.
      *
