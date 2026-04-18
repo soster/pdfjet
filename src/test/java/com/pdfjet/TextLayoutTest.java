@@ -7,7 +7,7 @@ import java.io.*;
 public class TextLayoutTest extends PDFTestBase {
 
     @Test
-    public void testTextColumnWithParagraphs() throws Exception {
+    public void testTextColumnDrawOnReturnsPositionBelowContent() throws Exception {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         PDF pdf = new PDF(os);
         Font f1 = new Font(pdf, CoreFont.HELVETICA);
@@ -44,10 +44,13 @@ public class TextLayoutTest extends PDFTestBase {
         column.setSize(400f, 500f);
 
         float[] endPoint = column.drawOn(page);
-        assertNotNull(endPoint);
-
         pdf.complete();
-        assertTrue(os.toByteArray().length > 0);
+
+        assertEquals(2, endPoint.length);
+        // Y cursor must advance below the starting y=100
+        assertTrue("Y cursor advanced past column start y=100", endPoint[1] > 100f);
+        // Y cursor must stay within the column height (100 + 500 = 600)
+        assertTrue("Y cursor stays within column bounds", endPoint[1] <= 600f);
     }
 
     @Test
@@ -71,7 +74,7 @@ public class TextLayoutTest extends PDFTestBase {
     }
 
     @Test
-    public void testOptionalContentGroup() throws Exception {
+    public void testOptionalContentGroupRegistersOCGResource() throws Exception {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         PDF pdf = new PDF(os);
         Font font = new Font(pdf, CoreFont.HELVETICA);
@@ -95,11 +98,15 @@ public class TextLayoutTest extends PDFTestBase {
         hiddenGroup.drawOn(page);
 
         pdf.complete();
-        assertTrue(os.toByteArray().length > 0);
+
+        String content = new String(os.toByteArray(), "ISO-8859-1");
+        assertTrue("PDF references OCG type", content.contains("/OCG"));
+        assertTrue("Layer name 'Layer1' present in PDF", content.contains("Layer1"));
+        assertTrue("Layer name 'Hidden' present in PDF", content.contains("Hidden"));
     }
 
     @Test
-    public void testChartCreation() throws Exception {
+    public void testChartDrawOnReturnsBottomRightCorner() throws Exception {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         PDF pdf = new PDF(os);
         Font f1 = new Font(pdf, CoreFont.HELVETICA_BOLD);
@@ -129,10 +136,12 @@ public class TextLayoutTest extends PDFTestBase {
         chartData.add(path);
 
         chart.setData(chartData);
-        chart.drawOn(page);
-
+        float[] pos = chart.drawOn(page);
         pdf.complete();
-        assertTrue(os.toByteArray().length > 0);
+
+        // drawOn returns {x1 + w, y1 + h} = {70 + 400, 50 + 250}
+        assertEquals(470f, pos[0], 0.001f);
+        assertEquals(300f, pos[1], 0.001f);
     }
 
 }

@@ -62,7 +62,7 @@ public class TextLineTest extends PDFTestBase {
     }
 
     @Test
-    public void testTextLineWidthIsPositive() throws Exception {
+    public void testTextLineDrawOnReturnsPositionAfterText() throws Exception {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         PDF pdf = new PDF(os);
         Font font = new Font(pdf, CoreFont.HELVETICA);
@@ -70,18 +70,26 @@ public class TextLineTest extends PDFTestBase {
         TextLine line = new TextLine(font, "Hello, World!");
         line.setLocation(50f, 50f);
         Page page = new Page(pdf, Letter.PORTRAIT);
-        line.drawOn(page);
+        float[] pos = line.drawOn(page);
         pdf.complete();
+
         assertTrue("TextLine width should be positive", line.getWidth() > 0f);
+        // drawOn returns position after the text; x should advance past start
+        assertTrue("X cursor advanced past starting x=50", pos[0] > 50f);
     }
 
     @Test
-    public void testTextLineWithRotationProducesPDF() throws Exception {
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
-        PDF pdf = new PDF(os);
-        Font font = new Font(pdf, CoreFont.HELVETICA_BOLD);
+    public void testRotatedTextProducesLargerPDFThanNoText() throws Exception {
+        ByteArrayOutputStream noText = new ByteArrayOutputStream();
+        PDF pdf1 = new PDF(noText);
+        new Page(pdf1, Letter.PORTRAIT);
+        pdf1.complete();
+
+        ByteArrayOutputStream withText = new ByteArrayOutputStream();
+        PDF pdf2 = new PDF(withText);
+        Font font = new Font(pdf2, CoreFont.HELVETICA_BOLD);
         font.setItalic(true);
-        Page page = new Page(pdf, Letter.PORTRAIT);
+        Page page = new Page(pdf2, Letter.PORTRAIT);
         TextLine text = new TextLine(font);
         text.setLocation(300f, 300f);
         for (int i = 0; i < 360; i += 45) {
@@ -90,8 +98,13 @@ public class TextLineTest extends PDFTestBase {
             text.setText("Hello " + i + " degrees");
             text.drawOn(page);
         }
-        pdf.complete();
-        assertTrue(os.toByteArray().length > 0);
+        pdf2.complete();
+
+        assertTrue("PDF with rotated text should be larger than empty page",
+                withText.toByteArray().length > noText.toByteArray().length);
+
+        String content = new String(withText.toByteArray(), "ISO-8859-1");
+        assertTrue("Helvetica-Bold referenced in PDF", content.contains("/Helvetica-Bold"));
     }
 
 }

@@ -46,11 +46,11 @@ public class CompositeTextLineTest extends PDFTestBase {
         assertTrue("Composite width must be positive", composite.getWidth() > 0f);
 
         float[] xy = composite.drawOn(page);
-        assertNotNull(xy);
-        assertEquals(2, xy.length);
-
         pdf.complete();
-        assertTrue(os.toByteArray().length > 0);
+
+        assertEquals(2, xy.length);
+        assertTrue("X cursor advanced past start x=50", xy[0] > 50f);
+        assertEquals("Y position unchanged", 50f, xy[1], 5f);
     }
 
     @Test
@@ -80,6 +80,9 @@ public class CompositeTextLineTest extends PDFTestBase {
         assertNotNull(minMax);
         assertEquals(2, minMax.length);
         assertTrue("minMax[0] must be less than minMax[1]", minMax[0] < minMax[1]);
+        // The span covers at least some vertical extent
+        float span = minMax[1] - minMax[0];
+        assertTrue("Vertical span must be positive", span > 0f);
     }
 
 }

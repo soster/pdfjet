@@ -17,7 +17,11 @@ public class PDFDocumentTest extends PDFTestBase {
         page.drawString(font, "Hello PDFjet", 100f, 100f);
 
         pdf.complete();
-        assertTrue("PDF output should not be empty", os.toByteArray().length > 0);
+
+        String content = new String(os.toByteArray(), "ISO-8859-1");
+        assertTrue("PDF must start with %PDF-", content.startsWith("%PDF-"));
+        assertTrue("PDF must end with %%EOF", content.trim().endsWith("%%EOF"));
+        assertTrue("PDF must reference Helvetica font", content.contains("/Helvetica"));
     }
 
     @Test
@@ -38,6 +42,9 @@ public class PDFDocumentTest extends PDFTestBase {
 
         assertTrue("Multi-page PDF should be larger than single-page",
                 multiPage.toByteArray().length > singlePage.toByteArray().length);
+
+        String content = new String(multiPage.toByteArray(), "ISO-8859-1");
+        assertTrue("Multi-page PDF references Helvetica", content.contains("/Helvetica"));
     }
 
     @Test
@@ -49,7 +56,11 @@ public class PDFDocumentTest extends PDFTestBase {
         pdf.setSubject("Test Subject");
         new Page(pdf, Letter.PORTRAIT);
         pdf.complete();
-        assertTrue(os.toByteArray().length > 0);
+
+        String content = new String(os.toByteArray(), "ISO-8859-1");
+        assertTrue("Title written to info object", content.contains("Test Document"));
+        assertTrue("Author written to info object", content.contains("Test Author"));
+        assertTrue("Subject written to info object", content.contains("Test Subject"));
     }
 
 }
