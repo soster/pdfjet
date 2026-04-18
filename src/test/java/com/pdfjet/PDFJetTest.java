@@ -11,11 +11,11 @@ public class PDFJetTest {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         PDF pdf = new PDF(os);
         Page page = new Page(pdf, Letter.PORTRAIT);
-        
+
         Font font = new Font(pdf, CoreFont.HELVETICA);
         page.setTextFont(font);
         page.drawString(font, "Hello PDFjet", 100f, 100f);
-        
+
         pdf.complete();
         assertTrue("PDF output should not be empty", os.toByteArray().length > 0);
     }
@@ -86,4 +86,5 @@ public class PDFJetTest {
         pdf.complete();
         assertTrue("PDF output should not be empty", os.toByteArray().length > 0);
     }
+
 }
