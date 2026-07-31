@@ -58,6 +58,8 @@ public class PDF {
     private String creationDate;    // PDF Info Object
     private int byteCount = 0;
     private int pagesObjNumber = 0;
+    /** /AcroForm of the document being overlaid, preserved across complete(). */
+    private List<String> acroFormTokens = null;
     private String pageLayout = null;
     private String pageMode = null;
     private String language = "en-US";
@@ -653,6 +655,16 @@ public class PDF {
         append("/Pages ");
         append(pagesObjNumber);
         append(Token.objRef);
+
+        // Carried over from the document we are overlaying (see addObjects).
+        if (acroFormTokens != null) {
+            append("/AcroForm ");
+            for (String token : acroFormTokens) {
+                append(token);
+                append(Token.space);
+            }
+            append(Token.newline);
+        }
 
         if (compliance == Compliance.PDF_UA ||
                 compliance == Compliance.PDF_A_1A ||
@@ -1614,7 +1626,56 @@ public class PDF {
 
     public void addObjects(List<PDFobj> objects) throws Exception {
         this.pagesObjNumber = Integer.parseInt(getPagesObject(objects).dict.get(0));
+        this.acroFormTokens = getCatalogEntry(objects, "/AcroForm");
         addObjectsToPDF(objects);
+    }
+
+    /**
+     * Reads the value tokens of a top-level catalog entry of the document being
+     * overlaid.
+     *
+     * complete() writes a fresh catalog holding only /Type and /Pages, so
+     * anything the source catalog carried would be lost otherwise. For
+     * /AcroForm that means an annotated form comes back as a plain document and
+     * viewers stop rendering its field values — the data is still in the file
+     * but invisible.
+     *
+     * @return the value tokens, or null when the entry is absent
+     */
+    private List<String> getCatalogEntry(List<PDFobj> objects, String key) {
+        for (PDFobj obj : objects) {
+            if (!obj.getValue("/Type").equals("/Catalog")) {
+                continue;
+            }
+            List<String> dict = obj.getDict();
+            for (int i = 0; i < dict.size(); i++) {
+                if (!dict.get(i).equals(key)) {
+                    continue;
+                }
+                int start = i + 1;
+                String token = dict.get(start);
+                if (token.equals("<<") || token.equals("[")) {
+                    int level = 0;
+                    for (int j = start; j < dict.size(); j++) {
+                        String t = dict.get(j);
+                        if (t.equals("<<") || t.equals("[")) {
+                            level++;
+                        } else if (t.equals(">>") || t.equals("]")) {
+                            if (--level == 0) {
+                                return new ArrayList<String>(dict.subList(start, j + 1));
+                            }
+                        }
+                    }
+                    return null;
+                }
+                if ((start + 2) < dict.size() && dict.get(start + 2).equals("R")) {
+                    return new ArrayList<String>(dict.subList(start, start + 3));
+                }
+                return new ArrayList<String>(dict.subList(start, start + 1));
+            }
+            return null;
+        }
+        return null;
     }
 
     public PDFobj getPagesObject(List<PDFobj> objects) {

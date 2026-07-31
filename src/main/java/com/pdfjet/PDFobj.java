@@ -486,11 +486,59 @@ public class PDFobj {
         }
     }
 
-    private int getMaxGSNumber(PDFobj obj) {
+    /**
+     * Index of the "&lt;&lt;" opening the resource dictionary's /ExtGState, or -1
+     * when it has none.
+     */
+    private int getExtGStateIndex(PDFobj obj, int from) {
+        for (int i = from; i < obj.dict.size(); i++) {
+            if (obj.dict.get(i).equals("/ExtGState") && (i + 1) < obj.dict.size()
+                    && obj.dict.get(i + 1).equals("<<")) {
+                return i + 1;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Highest number used by any entry of the /ExtGState dictionary opening at
+     * {@code extGStateIndex}, whatever the entries are called.
+     *
+     * Names are not always /GSn — writers use /Gs1, /R7, /gs0 and so on — so the
+     * trailing digits of every key are considered. Assigning a number above all
+     * of them keeps a new entry from colliding with an existing one.
+     */
+    private int getMaxGSNumber(PDFobj obj, int extGStateIndex) {
+        if (extGStateIndex < 0) {
+            return 0;
+        }
         List<Integer> numbers = new ArrayList<Integer>();
-        for (String token : obj.dict) {
-            if (token.startsWith("/GS")) {
-                numbers.add(Integer.valueOf(token.substring(3)));
+        int level = 0;
+        for (int i = extGStateIndex; i < obj.dict.size(); i++) {
+            String token = obj.dict.get(i);
+            if (token.equals("<<")) {
+                level++;
+                continue;
+            }
+            if (token.equals(">>")) {
+                if (--level == 0) {
+                    break;
+                }
+                continue;
+            }
+            if (level != 1 || !token.startsWith("/")) {
+                continue;
+            }
+            int digits = token.length();
+            while (digits > 1 && Character.isDigit(token.charAt(digits - 1))) {
+                digits--;
+            }
+            if (digits < token.length()) {
+                try {
+                    numbers.add(Integer.valueOf(token.substring(digits)));
+                } catch (NumberFormatException e) {
+                    // Number too large to matter — ignore this entry.
+                }
             }
         }
         if (numbers.isEmpty()) {
@@ -542,19 +590,19 @@ public class PDFobj {
             return existing;
         }
 
-        gsNumber = getMaxGSNumber(obj);
-        if (gsNumber == 0) {                    // No existing ExtGState dictionary
+        // Whether an /ExtGState dictionary exists must be decided by looking for
+        // the key itself, not by whether it holds /GSn entries: a resource dict
+        // whose states are named /Gs1, /R7 ... would otherwise get a second
+        // /ExtGState key, and parsers keep only one of the two — silently
+        // dropping the state we just registered.
+        int extGStateIndex = getExtGStateIndex(obj, index);
+        boolean createdExtGState = extGStateIndex < 0;
+        gsNumber = getMaxGSNumber(obj, extGStateIndex);
+        if (createdExtGState) {                 // No existing ExtGState dictionary
             obj.dict.add(index, "/ExtGState");  // Add ExtGState dictionary
             obj.dict.add(++index, "<<");
         } else {
-            while (index < obj.dict.size()) {
-                String token = obj.dict.get(index);
-                if (token.equals("/ExtGState")) {
-                    index += 1;  // now points at the "<<" opening the ExtGState dict
-                    break;
-                }
-                index += 1;
-            }
+            index = extGStateIndex;
         }
         obj.dict.add(++index, "/GS" + String.valueOf(gsNumber + 1));
         obj.dict.add(++index, "<<");
@@ -563,7 +611,7 @@ public class PDFobj {
         obj.dict.add(++index, "/ca");
         obj.dict.add(++index, String.valueOf(gs.getAlphaNonStroking()));
         obj.dict.add(++index, ">>");
-        if (gsNumber == 0) {
+        if (createdExtGState) {
             obj.dict.add(++index, ">>");
         }
 
