@@ -468,11 +468,12 @@ public class Page {
      */
     public void setGraphicsState(GraphicsState gs) {
         StringBuilder buf = new StringBuilder();
-        buf.append("/CA ");
-        buf.append(gs.getAlphaStroking());
-        buf.append(" ");
-        buf.append("/ca ");
-        buf.append(gs.getAlphaNonStroking());
+        for (String token : gs.toTokens()) {
+            if (buf.length() > 0) {
+                buf.append(" ");
+            }
+            buf.append(token);
+        }
         String state = buf.toString();
         Integer n = pdf.states.get(state);
         if (n == null) {

@@ -71,4 +71,40 @@ public class GraphicsState {
     public float getAlphaNonStroking() {
         return this.ca;
     }
+
+    // HandWrite: the highlighter needs /BM /Multiply. Null writes no /BM entry (the old output).
+    private String blendMode = null;
+
+    /**
+     * Sets the blend mode, a PDF blend mode name without the slash ("Multiply", "Normal", ...).
+     * Null leaves /BM out. Note that /BM stays in effect until another state sets it again.
+     *
+     * @param blendMode the blend mode name, or null
+     */
+    public void setBlendMode(String blendMode) {
+        this.blendMode = blendMode;
+    }
+
+    public String getBlendMode() {
+        return this.blendMode;
+    }
+
+    /**
+     * The entries of this state's ExtGState dictionary, as tokens without the
+     * surrounding "&lt;&lt;" and "&gt;&gt;".
+     *
+     * @return e.g. [/CA, 0.8, /ca, 0.8, /BM, /Multiply]
+     */
+    public java.util.List<String> toTokens() {
+        java.util.List<String> tokens = new java.util.ArrayList<String>();
+        tokens.add("/CA");
+        tokens.add(String.valueOf(CA));
+        tokens.add("/ca");
+        tokens.add(String.valueOf(ca));
+        if (blendMode != null) {
+            tokens.add("/BM");
+            tokens.add("/" + blendMode);
+        }
+        return tokens;
+    }
 }

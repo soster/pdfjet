@@ -583,8 +583,9 @@ public class PDFobj {
             return -1;
         }
 
-        // Reuse an existing GS entry with the same CA/ca values if present.
-        int existing = findExistingGSNumber(obj, gs.getAlphaStroking(), gs.getAlphaNonStroking());
+        // Reuse an existing GS entry with the same entries if present.
+        List<String> entries = gs.toTokens();
+        int existing = findExistingGSNumber(obj, entries);
         if (existing > 0) {
             gsNumber = existing - 1;
             return existing;
@@ -606,10 +607,9 @@ public class PDFobj {
         }
         obj.dict.add(++index, "/GS" + String.valueOf(gsNumber + 1));
         obj.dict.add(++index, "<<");
-        obj.dict.add(++index, "/CA");
-        obj.dict.add(++index, String.valueOf(gs.getAlphaStroking()));
-        obj.dict.add(++index, "/ca");
-        obj.dict.add(++index, String.valueOf(gs.getAlphaNonStroking()));
+        for (String entry : entries) {
+            obj.dict.add(++index, entry);
+        }
         obj.dict.add(++index, ">>");
         if (createdExtGState) {
             obj.dict.add(++index, ">>");
@@ -619,28 +619,30 @@ public class PDFobj {
     }
 
     /**
-     * Scans the resource dict for an existing /GSn entry whose /CA and /ca
-     * values match the requested alpha pair.  Returns the GS number (1-based)
+     * Scans the resource dict for an existing /GSn entry with exactly the
+     * requested entries (/CA, /ca and, if set, /BM): a "/CA 1 /ca 1" reset must
+     * not reuse a state that also multiplies.  Returns the GS number (1-based)
      * if found, or 0 if not found.
      */
-    private int findExistingGSNumber(PDFobj obj, float ca, float caLower) {
-        String caStr = String.valueOf(ca);
-        String caLowerStr = String.valueOf(caLower);
+    private int findExistingGSNumber(PDFobj obj, List<String> entries) {
         List<String> d = obj.dict;
-        for (int i = 0; i < d.size() - 5; i++) {
+        int span = entries.size() + 2;          // "<<" entries ">>"
+        for (int i = 0; i + span < d.size(); i++) {
             String token = d.get(i);
-            if (token.startsWith("/GS") && token.length() > 3) {
-                // Expected layout: /GSn << /CA val /ca val >>
-                if (d.get(i + 1).equals("<<") &&
-                        d.get(i + 2).equals("/CA") &&
-                        d.get(i + 3).equals(caStr) &&
-                        d.get(i + 4).equals("/ca") &&
-                        d.get(i + 5).equals(caLowerStr)) {
-                    try {
-                        return Integer.parseInt(token.substring(3));
-                    } catch (NumberFormatException e) {
-                        // malformed token — keep searching
-                    }
+            if (!token.startsWith("/GS") || token.length() <= 3
+                    || !d.get(i + 1).equals("<<")
+                    || !d.get(i + span).equals(">>")) {
+                continue;
+            }
+            boolean same = true;
+            for (int k = 0; k < entries.size() && same; k++) {
+                same = d.get(i + 2 + k).equals(entries.get(k));
+            }
+            if (same) {
+                try {
+                    return Integer.parseInt(token.substring(3));
+                } catch (NumberFormatException e) {
+                    // malformed token — keep searching
                 }
             }
         }
